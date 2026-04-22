@@ -1,0 +1,119 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-primary: #0B5C3B;      /* Dark Green */
+  --color-primary-light: #167A53;
+  --color-primary-dark: #074229;  /* Footer darker green */
+  --color-secondary: #F4C41B;    /* Yellow Gold */
+  --color-accent: #E2AD07;
+  --color-dark-surface: #18181B; 
+  --color-light-surface: #FFFFFF; /* Pure white background */
+  
+  --font-sans: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Custom Animations */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-left {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes slide-up {
+    from { transform: translate(-50%, 100%); }
+    to { transform: translate(-50%, 0); }
+  }
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-left: slide-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  body {
+    @apply bg-light-surface text-gray-800 antialiased font-sans;
+  }
+  
+  /* Premium Heritage List Styling */
+  .prose ul, .prose ol {
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    padding-left: 0.5rem !important;
+  }
+
+  .prose li {
+    position: relative;
+    padding-left: 2.5rem !important;
+    margin-bottom: 1.25rem !important;
+    list-style: none !important;
+    display: block !important;
+    font-size: 1.25rem; /* Exactly matching text-xl of Visi */
+    line-height: 1.5;
+    color: var(--color-gray-900);
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -0.02em; /* Matching tracking-tight of Visi */
+  }
+
+  /* Unordered List Diamond Marker */
+  .prose ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55em; /* Precisely centered for text-xl */
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: var(--color-secondary);
+    border-radius: 1px;
+    transform: rotate(45deg);
+    box-shadow: 0 0 10px rgba(244, 196, 27, 0.4);
+  }
+
+  /* Ordered List Number Marker */
+  .prose ol {
+    counter-reset: heritage-counter;
+  }
+
+  .prose ol li {
+    counter-increment: heritage-counter;
+  }
+
+  .prose ol li::before {
+    content: counter(heritage-counter);
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    width: 1.4rem;
+    height: 1.4rem;
+    background-color: var(--color-primary);
+    color: var(--color-secondary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 900;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Typography refinement for prose */
+  .prose {
+    color: #374151 !important; /* Darker text */
+    max-width: none !important;
+  }
+
+  .prose p {
+    margin-bottom: 1.25rem !important;
+  }
+}
+
+@layer utilities {
+  .clip-path-slant-up {
+    clip-path: polygon(0 100%, 100% 0, 100% 100%);
+  }
+  .clip-path-slant-down {
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+  }
+}
