@@ -1,29 +1,35 @@
 import { useState, useEffect } from 'react';
-import { Image as ImageIcon, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
 import { getImageUrl } from '../../lib/utils';
 import { useSettingsStore } from '../../store/settingsStore';
+import Skeleton from '../../components/ui/Skeleton';
 
 export default function PublicGaleri() {
   const [media, setMedia] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState('Semua');
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const settings = useSettingsStore(state => state.settings);
   const siteName = settings?.site_name || 'Portal Pesantren';
 
+  const fetchGallery = async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const response = await api.get('/public/gallery');
+      setMedia(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching gallery:', error);
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        const response = await api.get('/public/gallery');
-        setMedia(response.data.data || []);
-      } catch (error) {
-        console.error('Error fetching gallery:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchGallery();
     document.title = `Galeri Visual - ${siteName}`;
     window.scrollTo(0, 0);
@@ -35,6 +41,7 @@ export default function PublicGaleri() {
     ? media 
     : media.filter(item => {
         if (activeCategory === 'Sarana') return item.category === 'Sarana';
+        return item.category === activeCategory;
       });
       
   const handleNext = (e?: React.MouseEvent) => {
@@ -103,10 +110,24 @@ export default function PublicGaleri() {
             </div>
           </div>
 
-          {isLoading ? (
-          <div className="py-20 text-center flex flex-col items-center gap-4">
-             <Loader2 className="w-12 h-12 animate-spin text-primary" />
-             <p className="text-gray-400 font-black text-xs uppercase tracking-widest animate-pulse">Menghimpun Kenangan Visual...</p>
+          {isError ? (
+            <div className="py-24 text-center">
+               <div className="bg-red-50 text-red-500 p-8 rounded-[40px] border border-red-100 max-w-xl mx-auto">
+                  <h3 className="font-black uppercase tracking-tighter text-xl mb-2">Gagal Memuat Galeri</h3>
+                  <p className="text-sm font-medium italic opacity-70 mb-6">Terjadi kendala saat menghimpun kenangan visual. Silakan coba lagi.</p>
+                  <button 
+                    onClick={() => fetchGallery()}
+                    className="bg-red-500 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-200 active:scale-95"
+                  >
+                     Muat Ulang Galeri
+                  </button>
+               </div>
+            </div>
+          ) : isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
+                <Skeleton key={i} height="300px" className="rounded-[40px]" />
+             ))}
           </div>
         ) : filteredMedia.length > 0 ? (
           <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6 animate-fade-in">
@@ -119,6 +140,7 @@ export default function PublicGaleri() {
                   <img 
                     src={getImageUrl(item.file_path)} 
                     alt={item.file_name || 'Galeri Pesantren'} 
+                    loading="lazy"
                     className="w-full h-auto object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-1000" 
                   />
                   

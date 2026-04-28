@@ -12,13 +12,14 @@ import {
   Eye,
   Check
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
+import type { Agenda } from '../../types';
 
 export default function AgendasEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -29,44 +30,35 @@ export default function AgendasEdit() {
     status: 'published' as 'published' | 'draft'
   });
 
+  const { data: agenda, isLoading } = useQuery<Agenda>({
+    queryKey: ['admin-agenda', id],
+    queryFn: async () => {
+      const response = await api.get(`/agendas/${id}`);
+      return response.data.data || response.data;
+    },
+    enabled: !!id
+  });
+
   useEffect(() => {
-    const fetchAgenda = async () => {
-      try {
-        const response = await api.get(`/agendas/${id}`);
-        const data = response.data;
-        setFormData({
-          title: data.title || '',
-          content: data.content || '',
-          location: data.location || '',
-          event_date: data.event_date || '',
-          status: data.status || 'published'
-        });
-      } catch (err) {
-        console.error('Error fetching agenda:', err);
-        setError('Gagal memuat data agenda.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAgenda();
-  }, [id]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.event_date) {
-      setError('Judul dan Tanggal Kegiatan wajib diisi.');
-      return;
+    if (agenda) {
+      setFormData({
+        title: agenda.title || '',
+        content: agenda.content || '',
+        location: agenda.location || '',
+        event_date: agenda.event_date || '',
+        status: agenda.status || 'published'
+      });
     }
+  }, [agenda]);
 
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      await api.put(`/agendas/${id}`, formData);
+  const updateMutation = useMutation({
+    mutationFn: (data: typeof formData) => api.put(`/agendas/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agendas'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-agenda', id] });
       navigate('/admin/agendas');
-    } catch (err: any) {
-      console.error('Error updating agenda:', err);
+    },
+    onError: (err: any) => {
       const errors = err.response?.data?.errors;
       if (errors) {
         const firstError = Object.values(errors)[0];
@@ -74,10 +66,20 @@ export default function AgendasEdit() {
       } else {
         setError(err.response?.data?.message || 'Gagal memperbarui agenda.');
       }
-    } finally {
-      setIsSaving(false);
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.event_date) {
+      setError('Judul dan Tanggal Kegiatan wajib diisi.');
+      return;
+    }
+    setError(null);
+    updateMutation.mutate(formData);
   };
+
+  const isSaving = updateMutation.isPending;
 
   if (isLoading) {
     return (

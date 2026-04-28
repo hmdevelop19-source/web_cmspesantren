@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout, Image as ImageIcon, Plus, Edit3, Trash2, ArrowLeft, GripVertical, Loader2, Link as LinkIcon, CheckCircle2, XCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import MediaSelector from '../../components/admin/MediaSelector';
+import type { Banner } from '../../types';
 
 export default function HeroSettings() {
-  const [banners, setBanners] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const navigate = useNavigate();
   const { isAdmin } = useAuthStore();
 
@@ -25,27 +25,49 @@ export default function HeroSettings() {
     is_active: true
   });
 
-  const fetchBanners = async () => {
-    setIsLoading(true);
-    try {
+  const { data: banners = [], isLoading } = useQuery<Banner[]>({
+    queryKey: ['admin-banners'],
+    queryFn: async () => {
       const response = await api.get('/banners');
-      setBanners(response.data);
-    } catch (error) {
-      console.error('Error fetching banners:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return response.data;
+    },
+    enabled: isAdmin()
+  });
 
   useEffect(() => {
     if (!isAdmin()) {
       navigate('/admin/dashboard');
-      return;
     }
-    fetchBanners();
-  }, []);
+  }, [isAdmin, navigate]);
 
-  const handleEdit = (banner: any) => {
+  const saveMutation = useMutation({
+    mutationFn: (data: any) => {
+      if (editingId) {
+        return api.put(`/banners/${editingId}`, data);
+      }
+      return api.post('/banners', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+      setIsEditing(false);
+    },
+    onError: (error: any) => {
+      console.error('Error saving banner:', error);
+      alert('Gagal menyimpan spanduk. Pastikan semua data terisi dengan benar.');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/banners/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+    },
+    onError: () => {
+      alert('Gagal menghapus spanduk.');
+    }
+  });
+
+  const handleEdit = (banner: Banner) => {
     setEditingId(banner.id);
     setFormData({
       title: banner.title || '',
@@ -71,35 +93,18 @@ export default function HeroSettings() {
     setIsEditing(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaving(true);
-    try {
-      if (editingId) {
-        await api.put(`/banners/${editingId}`, formData);
-      } else {
-        await api.post('/banners', formData);
-      }
-      setIsEditing(false);
-      fetchBanners();
-    } catch (error) {
-      console.error('Error saving banner:', error);
-      alert('Gagal menyimpan spanduk. Pastikan semua data terisi dengan benar.');
-    } finally {
-      setIsSaving(false);
+    saveMutation.mutate(formData);
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus spanduk ini?')) {
+      deleteMutation.mutate(id);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus spanduk ini?')) {
-      try {
-        await api.delete(`/banners/${id}`);
-        fetchBanners();
-      } catch (error) {
-        alert('Gagal menghapus spanduk.');
-      }
-    }
-  };
+  const isSaving = saveMutation.isPending;
 
   return (
     <div className="max-w-5xl">

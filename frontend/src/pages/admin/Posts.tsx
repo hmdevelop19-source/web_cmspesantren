@@ -1,53 +1,53 @@
-import { Search, MessageSquare } from 'lucide-react';
+import { Search, MessageSquare, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import Skeleton from '../../components/ui/Skeleton';
+import type { Post, PaginatedResponse } from '../../types';
 
 export default function Posts() {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [meta, setMeta] = useState<any>(null);
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const queryClient = useQueryClient();
 
-  const fetchPosts = async (page = 1) => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<Post>>({
+    queryKey: ['admin-posts', page, triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/posts', {
         params: { 
-          search: searchTerm,
+          search: triggerSearch,
           page: page
         }
       });
-      setPosts(response.data.data);
-      setMeta(response.data);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus pos ini?')) {
-      try {
-        const response = await api.delete(`/posts/${id}`);
-        console.log('Post deleted successfully:', response.data);
-        // Explicitly clear from state first to avoid waiting for fetch if it's lagging
-        setPosts(prev => prev.filter(p => p.id !== id));
-        // Then re-fetch to ensure sync
-        fetchPosts();
-      } catch (error: any) {
-        console.error('Failed to delete post:', error.response?.data || error);
-        alert('Gagal menghapus pos. ' + (error.response?.data?.message || ''));
+      const resData = response.data;
+      if (resData.meta) {
+        return { ...resData.meta, data: resData.data, links: resData.links };
       }
+      return resData;
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/posts/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal menghapus pos. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus pos ini?')) {
+      deleteMutation.mutate(id);
     }
   };
+
+  const posts = data?.data || [];
+  const meta = data;
 
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('posts');
@@ -64,7 +64,7 @@ export default function Posts() {
            )}
         </div>
         
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); fetchPosts(); }}>
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); setPage(1); }}>
            <div className="relative">
               <input 
                 type="text" 
@@ -76,7 +76,7 @@ export default function Posts() {
               <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" />
            </div>
            <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-50 flex items-center gap-1 h-9 font-medium">
-              Cari
+              {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Cari'}
            </button>
         </form>
       </div>
@@ -180,7 +180,7 @@ export default function Posts() {
               {Array.from({ length: meta.last_page }).map((_, i) => (
                 <button 
                   key={i}
-                  onClick={() => fetchPosts(i + 1)}
+                  onClick={() => setPage(i + 1)}
                   className={`px-3 py-1 border border-gray-300 rounded ${meta.current_page === i + 1 ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-50'}`}
                 >
                   {i + 1}

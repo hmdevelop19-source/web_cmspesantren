@@ -1,12 +1,12 @@
 import { Tag, Plus, Trash2, Loader2, Save, X, Edit2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import type { Category } from '../../types';
 
 export default function Categories() {
-  const [categories, setCategories] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
   const [newCatName, setNewCatName] = useState('');
   const [showForm, setShowForm] = useState(false);
 
@@ -17,67 +17,71 @@ export default function Categories() {
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('posts'); // Reuse posts permission for categories
 
-  const fetchCategories = async () => {
-    setIsLoading(true);
-    try {
+  const { data: categories = [], isLoading } = useQuery<Category[]>({
+    queryKey: ['admin-categories'],
+    queryFn: async () => {
       const response = await api.get('/categories');
-      setCategories(Array.isArray(response.data) ? response.data : response.data.data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    } finally {
-      setIsLoading(false);
+      return Array.isArray(response.data) ? response.data : response.data.data || [];
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
-
-    setIsSaving(true);
-    try {
-      await api.post('/categories', { name: newCatName });
+  const createMutation = useMutation({
+    mutationFn: (name: string) => api.post('/categories', { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       setNewCatName('');
       setShowForm(false);
-      fetchCategories();
-    } catch (error) {
+    },
+    onError: () => {
       alert('Gagal menambahkan kategori. Mungkin nama sudah ada.');
-    } finally {
-      setIsSaving(false);
     }
-  };
+  });
 
-  const handleUpdate = async (id: number) => {
-    if (!editCatName.trim()) return;
-    
-    try {
-      await api.put(`/categories/${id}`, { name: editCatName });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, name }: { id: number, name: string }) => api.put(`/categories/${id}`, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
       setEditingId(null);
       setEditCatName('');
-      fetchCategories();
-    } catch (error) {
+    },
+    onError: () => {
       alert('Gagal memperbarui kategori. Mungkin nama sudah digunakan.');
     }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/categories/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
+    },
+    onError: () => {
+      alert('Gagal menghapus kategori.');
+    }
+  });
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    createMutation.mutate(newCatName);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleUpdate = (id: number) => {
+    if (!editCatName.trim()) return;
+    updateMutation.mutate({ id, name: editCatName });
+  };
+
+  const handleDelete = (id: number) => {
     if (window.confirm('Hapus kategori ini? Pos yang menggunakan kategori ini mungkin perlu disesuaikan.')) {
-      try {
-        await api.delete(`/categories/${id}`);
-        fetchCategories();
-      } catch (error) {
-        alert('Gagal menghapus kategori.');
-      }
+      deleteMutation.mutate(id);
     }
   };
 
-  const startEdit = (cat: any) => {
+  const startEdit = (cat: Category) => {
     setEditingId(cat.id);
     setEditCatName(cat.name);
   };
+
+  const isSaving = createMutation.isPending;
 
   return (
     <div className="max-w-4xl">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Http\Resources\MediaResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,7 +20,7 @@ class MediaController extends Controller
 
         $media = $query->paginate($request->per_page ?? 24);
 
-        return response()->json($media);
+        return MediaResource::collection($media);
     }
 
     public function store(Request $request)
@@ -40,10 +41,8 @@ class MediaController extends Controller
                 'file_size' => $file->getSize(),
             ]);
 
-            return response()->json([
-                'message' => 'Media berhasil diunggah.',
-                'data' => $media
-            ], 201);
+            return (new MediaResource($media))
+                ->additional(['message' => 'Media berhasil diunggah.']);
         }
 
         return response()->json(['message' => 'Gagal mengunggah file.'], 400);
@@ -58,10 +57,8 @@ class MediaController extends Controller
 
         $media->update($validated);
 
-        return response()->json([
-            'message' => 'Status galeri media berhasil diperbarui.',
-            'data' => $media
-        ]);
+        return (new MediaResource($media))
+            ->additional(['message' => 'Status galeri media berhasil diperbarui.']);
     }
 
     public function bulkUpdate(Request $request)
@@ -84,6 +81,13 @@ class MediaController extends Controller
 
     public function destroy(Media $media)
     {
+        $isUsedInPost = \App\Models\Post::where('cover_image_id', $media->id)->exists();
+        $isUsedInPage = \App\Models\Page::where('image_id', $media->id)->exists();
+        
+        if ($isUsedInPost || $isUsedInPage) {
+            return response()->json(['message' => 'Gagal: Media ini sedang digunakan oleh Artikel atau Halaman.'], 400);
+        }
+
         // Delete the physical file - removing Storage::url prefix to get the relative path
         $relativePath = str_replace('/storage/', '', $media->file_path);
         Storage::disk('public')->delete($relativePath);

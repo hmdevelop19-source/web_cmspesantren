@@ -3,65 +3,89 @@ import {
   Cloud
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import MediaSelector from '../../components/admin/MediaSelector';
 import RichTextEditor from '../../components/admin/RichTextEditor';
+import type { Post, Category } from '../../types';
 
 export default function PostsEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [categories, setCategories] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   
   // Form State
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState('draft');
+  const [status, setStatus] = useState<'published' | 'draft'>('draft');
   const [coverImage, setCoverImage] = useState('');
   const [coverImageId, setCoverImageId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [mediaMode, setMediaMode] = useState<'cover' | 'editor'>('cover');
+  const editorRef = useRef<any>(null);
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await api.get('/categories');
+      return response.data.data || response.data;
+    }
+  });
+
+  const { data: post, isLoading: isFetching } = useQuery<Post>({
+    queryKey: ['admin-post', id],
+    queryFn: async () => {
+      const response = await api.get(`/posts/${id}`);
+      return response.data.data || response.data;
+    },
+    enabled: !!id
+  });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [catRes, postRes] = await Promise.all([
-          api.get('/categories'),
-          api.get(`/posts/${id}`)
-        ]);
-        
-        setCategories(catRes.data);
-        
-        const post = postRes.data;
-        setTitle(post.title);
-        setContent(post.content);
-        setCategoryId(post.category_id || '');
-        setStatus(post.status);
+    if (post) {
+      setTitle(post.title);
+      setContent(post.content);
+      setCategoryId(post.category_id?.toString() || '');
+      setStatus(post.status);
+      setCoverImageId(post.cover_image_id || null);
+      if (post.cover_image_obj) {
+        setCoverImage(`${import.meta.env.VITE_STORAGE_URL}${post.cover_image_obj.file_path}`);
+      } else {
         setCoverImage(post.cover_image || '');
-        setCoverImageId(post.cover_image_id || null);
-        
-        // If there's an object from resource, use it to ensure URL is correct
-        if (post.cover_image_obj) {
-           setCoverImage(`http://localhost:8000${post.cover_image_obj.file_path}`);
-        }
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Gagal memuat data pos.');
-      } finally {
-        setIsFetching(false);
       }
-    };
-    fetchData();
-  }, [id]);
+    }
+  }, [post]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => api.put(`/posts/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-post', id] });
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal memperbarui pos.');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/posts/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+      navigate('/admin/posts');
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal menghapus pos.');
+    }
+  });
 
   // Auto-save logic
   useEffect(() => {
-    if (isFetching || status === 'published') return;
+    if (isFetching || status === 'published' || !id || !title) return;
 
     const timer = setTimeout(async () => {
       setIsAutoSaving(true);
@@ -79,47 +103,32 @@ export default function PostsEdit() {
       } finally {
         setIsAutoSaving(false);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [title, content, categoryId, coverImageId, id, isFetching, status]);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pos ini?')) {
-      setIsLoading(true);
-      setError(null);
-      try {
-        await api.delete(`/posts/${id}`);
-        navigate('/admin/posts');
-      } catch (err: any) {
-        console.error('Failed to delete post:', err.response?.data || err);
-        setError('Gagal menghapus pos. ' + (err.response?.data?.message || ''));
-        setIsLoading(false);
-      }
+      deleteMutation.mutate();
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, targetStatus?: string) => {
+  const handleSubmit = (e: React.FormEvent, targetStatus: 'published' | 'draft') => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
-    const postStatus = targetStatus || status;
-
-    try {
-      await api.put(`/posts/${id}`, {
-        title,
-        content,
-        category_id: categoryId || null,
-        status: postStatus,
-        cover_image_id: coverImageId
-      });
-      navigate('/admin/posts');
-    } catch (err: any) {
-      const message = err.response?.data?.message || 'Gagal memperbarui pos.';
-      setError(message);
-      setIsLoading(false);
-    }
+    updateMutation.mutate({
+      title,
+      content,
+      category_id: categoryId || null,
+      status: targetStatus,
+      cover_image_id: coverImageId
+    }, {
+      onSuccess: () => {
+        navigate('/admin/posts');
+      }
+    });
   };
 
   if (isFetching) {
@@ -130,6 +139,8 @@ export default function PostsEdit() {
       </div>
     );
   }
+
+  const isLoading = updateMutation.isPending || deleteMutation.isPending;
 
   return (
     <div className="max-w-7xl text-left">
@@ -154,6 +165,16 @@ export default function PostsEdit() {
         </div>
         
         <div className="flex items-center gap-3">
+           <button 
+              type="button"
+              onClick={() => {
+                setMediaMode('cover');
+                setIsMediaSelectorOpen(true);
+              }}
+              className="text-primary hover:underline text-xs"
+           >
+              Ganti Gambar Andalan
+           </button>
            {error && <span className="text-red-500 text-xs mr-2">{error}</span>}
            <button 
               type="button"
@@ -178,9 +199,25 @@ export default function PostsEdit() {
          {/* Main Editor Area */}
          <div className="lg:w-3/4 flex flex-col gap-6">
             <div className="bg-white border border-gray-200 shadow-sm rounded-sm">
+                <div className="p-4 border-b border-dashed border-gray-200">
+                   <input 
+                      type="text" 
+                      placeholder="Tambahkan judul pos di sini..." 
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      required
+                      className="w-full text-2xl px-2 py-2 font-bold text-gray-900 border-none focus:outline-none focus:ring-0 placeholder-gray-300"
+                   />
+                </div>
                 <RichTextEditor 
+                  ref={editorRef}
                   content={content} 
                   onChange={(newContent) => setContent(newContent)} 
+                  onOpenMediaLibrary={() => {
+                    console.log('PostsEdit: Membuka Pustaka Media untuk EDITOR');
+                    setMediaMode('editor');
+                    setIsMediaSelectorOpen(true);
+                  }}
                />
             </div>
          </div>
@@ -247,24 +284,30 @@ export default function PostsEdit() {
                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <button 
                                type="button"
-                               onClick={() => setIsMediaSelectorOpen(true)}
+                               onClick={() => {
+                                  setMediaMode('cover');
+                                  setIsMediaSelectorOpen(true);
+                                }}
                                className="bg-white/90 text-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white"
                             >
-                                Ganti
+                                 Ganti
                             </button>
                             <button 
                                type="button"
                                onClick={() => setCoverImage('')}
                                className="bg-red-500/90 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-600"
                             >
-                                Hapus
+                                 Hapus
                             </button>
                          </div>
                       </div>
                    ) : (
                       <button 
                          type="button"
-                         onClick={() => setIsMediaSelectorOpen(true)}
+                         onClick={() => {
+                            setMediaMode('cover');
+                            setIsMediaSelectorOpen(true);
+                          }}
                          className="text-primary hover:underline w-full p-8 border-2 border-dashed border-gray-200 hover:border-primary hover:bg-primary/5 rounded-xl transition-all flex flex-col items-center gap-2"
                       >
                          <div className="p-3 bg-primary/10 rounded-full text-primary">
@@ -284,14 +327,28 @@ export default function PostsEdit() {
                 isOpen={isMediaSelectorOpen}
                 onClose={() => setIsMediaSelectorOpen(false)}
                 onSelect={(media) => {
-                   setCoverImage(`http://localhost:8000${media.file_path}`);
-                   setCoverImageId(media.id);
-                   setIsMediaSelectorOpen(false);
-                 }}
+                    const imageUrl = `${import.meta.env.VITE_STORAGE_URL}${media.file_path}`;
+                    console.log('PostsEdit: Media terpilih. Mode:', mediaMode, 'URL:', imageUrl);
+                    
+                    if (mediaMode === 'cover') {
+                      setCoverImage(imageUrl);
+                      setCoverImageId(media.id);
+                    } else {
+                      console.log('PostsEdit: Mencoba mengirim ke editor...');
+                      if (editorRef.current) {
+                        console.log('PostsEdit: editorRef ditemukan, memanggil insertImage...');
+                        editorRef.current.insertImage(imageUrl);
+                      } else {
+                        console.error('PostsEdit: editorRef.current NULL! Komponen mungkin belum siap atau ref tidak terpasang.');
+                      }
+                    }
+                    
+                    setIsMediaSelectorOpen(false);
+                  }}
               />
 
           </div>
        </div>
      </div>
-   );
- }
+  );
+}

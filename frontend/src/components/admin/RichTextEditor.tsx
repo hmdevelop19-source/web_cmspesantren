@@ -1,44 +1,53 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
-import { useEffect } from 'react';
+import ResizableImage from './extensions/ResizableImage';
+import { useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { 
   Bold, Italic, List, ListOrdered, Quote, 
-  Link as LinkIcon, Unlink, Undo, Redo,
-  Heading1, Heading2, Strikethrough, Code,
-  ImagePlus
+  Link as LinkIcon, Undo, Redo,
+  Heading1, Heading2, Strikethrough,
+  ImagePlus, AlignLeft, AlignCenter, AlignRight, AlignJustify
 } from 'lucide-react';
-import { useRef } from 'react';
+import TextAlign from '@tiptap/extension-text-align';
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
+  onOpenMediaLibrary?: () => void;
 }
 
-export default function RichTextEditor({ content, onChange }: RichTextEditorProps) {
+const RichTextEditor = forwardRef((props: RichTextEditorProps, ref) => {
+  const { content, onChange, onOpenMediaLibrary } = props;
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      bulletList: {
+        keepMarks: true,
+        keepAttributes: false,
+      },
+      orderedList: {
+        keepMarks: true,
+        keepAttributes: false,
+      },
+    }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-primary underline decoration-secondary cursor-pointer',
+      },
+    }),
+    ResizableImage.configure({
+      allowBase64: true,
+    }),
+    TextAlign.configure({
+      types: ['heading', 'paragraph', 'image'],
+      alignments: ['left', 'center', 'right', 'justify'],
+      defaultAlignment: 'left',
+    }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        bulletList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-        orderedList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline decoration-secondary cursor-pointer',
-        },
-      }),
-      Image.configure({
-        allowBase64: true,
-      }),
-    ],
+    extensions,
     content: content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -50,32 +59,31 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
     },
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert('File terlalu besar. Maksimal 2MB.');
-        return;
+  useImperativeHandle(ref, () => ({
+    insertImage: (url: string) => {
+      console.log('RichTextEditor: Memasukkan gambar...', url);
+      if (editor) {
+        editor.commands.focus();
+        editor.commands.setImage({ src: url });
+        console.log('RichTextEditor: Perintah setImage telah dikirim.');
+      } else {
+        console.error('RichTextEditor: Editor instance tidak ditemukan!');
       }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (result && editor) {
-          editor.chain().focus().setImage({ src: result }).run();
-        }
-      };
-      reader.readAsDataURL(file);
     }
-  };
+  }), [editor]);
 
+  // Handle External Image Insertion
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
+    // We will handle this via a command from the parent or exposure of the editor instance
+  }, [editor]);
+
+  // Sinkronisasi konten dari luar (misal: saat data dari API tiba).
+  // Hanya jalankan jika editor kosong agar tidak menimpa ketikan pengguna.
+  useEffect(() => {
+    if (editor && content && editor.isEmpty) {
       editor.commands.setContent(content);
     }
-  }, [content, editor]);
+  }, [editor, content]);
 
   if (!editor) {
     return null;
@@ -142,13 +150,37 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         >
           <Strikethrough className="w-4 h-4" />
         </MenuButton>
+        <div className="w-px h-5 bg-gray-300 mx-1"></div>
+
         <MenuButton 
-          onClick={() => editor.chain().focus().toggleCode().run()} 
-          isActive={editor.isActive('code')}
-          title="Inline Code"
+          onClick={() => (editor.commands as any).setTextAlign('left')} 
+          isActive={editor.isActive({ textAlign: 'left' })}
+          title="Align Left"
         >
-          <Code className="w-4 h-4" />
+          <AlignLeft className="w-4 h-4" />
         </MenuButton>
+        <MenuButton 
+          onClick={() => (editor.commands as any).setTextAlign('center')} 
+          isActive={editor.isActive({ textAlign: 'center' })}
+          title="Align Center"
+        >
+          <AlignCenter className="w-4 h-4" />
+        </MenuButton>
+        <MenuButton 
+          onClick={() => (editor.commands as any).setTextAlign('right')} 
+          isActive={editor.isActive({ textAlign: 'right' })}
+          title="Align Right"
+        >
+          <AlignRight className="w-4 h-4" />
+        </MenuButton>
+        <MenuButton 
+          onClick={() => (editor.commands as any).setTextAlign('justify')} 
+          isActive={editor.isActive({ textAlign: 'justify' })}
+          title="Align Justify"
+        >
+          <AlignJustify className="w-4 h-4" />
+        </MenuButton>
+
         <div className="w-px h-5 bg-gray-300 mx-1"></div>
         
         <MenuButton 
@@ -174,18 +206,10 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         </MenuButton>
         <div className="w-px h-5 bg-gray-300 mx-1"></div>
         
-        {/* Local Image Upload */}
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleImageUpload} 
-          accept="image/*" 
-          className="hidden" 
-        />
         <MenuButton 
-          onClick={() => fileInputRef.current?.click()} 
+          onClick={() => onOpenMediaLibrary?.()} 
           isActive={false} 
-          title="Upload Photo (Sejarah/Lainnya)"
+          title="Pilih dari Pustaka Media"
         >
           <ImagePlus className="w-4 h-4" />
         </MenuButton>
@@ -193,15 +217,8 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
         <MenuButton onClick={addLink} isActive={editor.isActive('link')} title="Insert Link">
           <LinkIcon className="w-4 h-4" />
         </MenuButton>
-        <MenuButton 
-          onClick={() => editor.chain().focus().unsetLink().run()} 
-          isActive={false}
-          title="Remove Link"
-        >
-          <Unlink className="w-4 h-4" />
-        </MenuButton>
         
-        <div className="w-px h-5 bg-gray-300 mx-1 flex-grow"></div>
+        <div className="flex-grow"></div>
         
         <MenuButton onClick={() => editor.chain().focus().undo().run()} title="Undo">
           <Undo className="w-4 h-4" />
@@ -223,4 +240,6 @@ export default function RichTextEditor({ content, onChange }: RichTextEditorProp
       </div>
     </div>
   );
-}
+});
+
+export default RichTextEditor;

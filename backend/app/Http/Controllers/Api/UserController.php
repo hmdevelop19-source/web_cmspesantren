@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,42 +21,28 @@ class UserController extends Controller
             ->latest()
             ->paginate($request->per_page ?? 10);
 
-        return response()->json($users);
+        return UserResource::collection($users);
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
-            'role' => 'required|in:admin,editor,author',
-            'status' => 'required|in:active,inactive',
-        ]);
-
+        $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
+        
         $user = User::create($validated);
 
-        return response()->json([
-            'message' => 'Akun pengguna berhasil dibuat.',
-            'data' => $user
-        ], 201);
+        return (new UserResource($user))
+            ->additional(['message' => 'Akun pengguna berhasil dibuat.']);
     }
 
     public function show(User $user)
     {
-        return response()->json($user);
+        return new UserResource($user);
     }
 
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8',
-            'role' => 'required|in:admin,editor,author',
-            'status' => 'required|in:active,inactive',
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated['password'])) {
             unset($validated['password']);
@@ -63,10 +52,8 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        return response()->json([
-            'message' => 'Data pengguna berhasil diperbarui.',
-            'data' => $user
-        ]);
+        return (new UserResource($user))
+            ->additional(['message' => 'Data pengguna berhasil diperbarui.']);
     }
 
     public function destroy(User $user)
@@ -103,7 +90,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Profil berhasil diperbarui.',
-            'user' => $user
+            'user' => new UserResource($user)
         ]);
     }
 }

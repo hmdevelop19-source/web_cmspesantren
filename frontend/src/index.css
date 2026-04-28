@@ -107,6 +107,14 @@
   .prose p {
     margin-bottom: 1.25rem !important;
   }
+
+  /* Support for Resizable Images */
+  .rich-text-content img {
+    display: inline-block;
+    height: auto;
+    max-width: 100%;
+    border-radius: 0.75rem;
+  }
 }
 
 @layer utilities {

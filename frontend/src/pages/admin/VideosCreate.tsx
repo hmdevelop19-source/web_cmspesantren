@@ -11,11 +11,12 @@ import {
   Link as LinkIcon,
   Star
 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 
 export default function VideosCreate() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -25,21 +26,13 @@ export default function VideosCreate() {
     is_featured: false
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.youtube_url) {
-      setError('Judul dan Tautan YouTube wajib diisi.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await api.post('/videos', formData);
+  const createMutation = useMutation({
+    mutationFn: (data: typeof formData) => api.post('/videos', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-videos'] });
       navigate('/admin/videos');
-    } catch (err: any) {
-      console.error('Error creating video:', err);
+    },
+    onError: (err: any) => {
       const errors = err.response?.data?.errors;
       if (errors) {
         const firstError = Object.values(errors)[0];
@@ -47,10 +40,20 @@ export default function VideosCreate() {
       } else {
         setError(err.response?.data?.message || 'Gagal menyimpan video.');
       }
-    } finally {
-      setIsLoading(false);
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.youtube_url) {
+      setError('Judul dan Tautan YouTube wajib diisi.');
+      return;
+    }
+    setError(null);
+    createMutation.mutate(formData);
   };
+
+  const isLoading = createMutation.isPending;
 
   return (
     <div className="max-w-6xl mx-auto pb-20">

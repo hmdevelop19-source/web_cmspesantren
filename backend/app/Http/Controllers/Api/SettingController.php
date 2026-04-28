@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class SettingController extends Controller
 {
@@ -46,6 +47,8 @@ class SettingController extends Controller
                 ['value' => $value]
             );
         }
+
+        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Konfigurasi website berhasil diperbarui.',

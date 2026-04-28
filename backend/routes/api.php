@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\ContactMessageController;
+use App\Http\Controllers\Api\MenuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,9 +34,10 @@ Route::get('/public/categories', [PublicController::class, 'getCategories']);
 Route::get('/public/gallery', [PublicController::class, 'getGallery']);
 Route::get('/public/videos', [PublicController::class, 'getVideos']);
 Route::get('/public/search', [PublicController::class, 'globalSearch']);
+Route::get('/public/menus', [PublicController::class, 'getMenus']);
 
-// Public Contact Form (no auth needed)
-Route::post('/public/contact', [ContactMessageController::class, 'store']);
+// Public Contact Form (no auth needed, with rate limiting)
+Route::middleware('throttle:5,1')->post('/public/contact', [ContactMessageController::class, 'store']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -65,6 +67,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::get('/permissions', [PermissionController::class, 'index']);
     Route::post('/permissions', [PermissionController::class, 'update']);
+    
+    // Menus
+    Route::post('/menus/reorder', [MenuController::class, 'reorder']);
+    Route::apiResource('menus', MenuController::class);
 
     // Contact Messages (Admin)
     Route::get('/contact-messages', [ContactMessageController::class, 'index']);

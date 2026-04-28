@@ -1,8 +1,10 @@
 import { FileText, Edit3, CalendarDays, Megaphone, ArrowRight, Mail, MessageSquare, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import Skeleton from '../../components/ui/Skeleton';
+import type { Category } from '../../types';
 
 interface DashboardStats {
   posts: number;
@@ -15,76 +17,78 @@ interface DashboardStats {
   unread_messages: number;
 }
 
+interface DashboardData {
+  stats: DashboardStats;
+  recent_posts: any[];
+  trends: any[];
+  recent_messages: any[];
+  system: any;
+}
+
 export default function Dashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentPosts, setRecentPosts] = useState<any[]>([]);
-  const [trends, setTrends] = useState<any[]>([]);
-  const [recentMessages, setRecentMessages] = useState<any[]>([]);
-  const [system, setSystem] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // Quick Draft State
+  const queryClient = useQueryClient();
   const [draftTitle, setDraftTitle] = useState('');
   const [draftContent, setDraftContent] = useState('');
-  const [isDraftSaving, setIsDraftSaving] = useState(false);
   const [defaultCatId, setDefaultCatId] = useState<number | null>(null);
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      const [dashRes, catRes] = await Promise.all([
-        api.get('/dashboard'),
-        api.get('/categories')
-      ]);
-      
-      setStats(dashRes.data.stats);
-      setRecentPosts(dashRes.data.recent_posts);
-      setTrends(dashRes.data.trends || []);
-      setRecentMessages(dashRes.data.recent_messages || []);
-      setSystem(dashRes.data.system);
-
-      // Find Uncategorized or first
-      const cats = catRes.data.data || catRes.data;
-      if (Array.isArray(cats) && cats.length > 0) {
-        const uncategorized = cats.find(c => c.name.toLowerCase().includes('uncategorized') || c.name.toLowerCase().includes('umum'));
-        setDefaultCatId(uncategorized ? uncategorized.id : cats[0].id);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setIsLoading(false);
+  const { data: dashboardData, isLoading } = useQuery<DashboardData>({
+    queryKey: ['admin-dashboard'],
+    queryFn: async () => {
+      const response = await api.get('/dashboard');
+      return response.data;
     }
-  };
+  });
+
+  const { data: categoriesData } = useQuery<Category[]>({
+    queryKey: ['admin-categories-simple'],
+    queryFn: async () => {
+      const response = await api.get('/categories');
+      return Array.isArray(response.data) ? response.data : response.data.data || [];
+    }
+  });
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (categoriesData && categoriesData.length > 0) {
+      const uncategorized = categoriesData.find(c => c.name.toLowerCase().includes('uncategorized') || c.name.toLowerCase().includes('umum'));
+      setDefaultCatId(uncategorized ? uncategorized.id : categoriesData[0].id);
+    }
+  }, [categoriesData]);
 
-  const handleSaveDraft = async () => {
+  const draftMutation = useMutation({
+    mutationFn: (data: any) => api.post('/posts', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
+      setDraftTitle('');
+      setDraftContent('');
+      alert('Draf berhasil disimpan!');
+    },
+    onError: (error: any) => {
+      console.error('Error saving draft:', error);
+      alert('Gagal menyimpan draf. Pastikan sistem siap.');
+    }
+  });
+
+  const handleSaveDraft = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!draftTitle.trim()) {
       alert('Judul draf tidak boleh kosong.');
       return;
     }
 
-    setIsDraftSaving(true);
-    try {
-      await api.post('/posts', {
-        title: draftTitle,
-        content: draftContent || 'Draf konten...',
-        status: 'draft',
-        category_id: defaultCatId || 1, // Fallback to 1 if not found
-      });
-      setDraftTitle('');
-      setDraftContent('');
-      alert('Draf berhasil disimpan!');
-      fetchDashboardData();
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      alert('Gagal menyimpan draf. Pastikan sistem siap.');
-    } finally {
-      setIsDraftSaving(false);
-    }
+    draftMutation.mutate({
+      title: draftTitle,
+      content: draftContent || 'Draf konten...',
+      status: 'draft',
+      category_id: defaultCatId || 1,
+    });
   };
+
+  const stats = dashboardData?.stats;
+  const recentPosts = dashboardData?.recent_posts || [];
+  const trends = dashboardData?.trends || [];
+  const recentMessages = dashboardData?.recent_messages || [];
+  const system = dashboardData?.system;
+  const isDraftSaving = draftMutation.isPending;
 
   return (
     <div className="max-w-6xl">
@@ -165,7 +169,7 @@ export default function Dashboard() {
               <h2 className="font-bold text-gray-700 text-xs uppercase tracking-wider">Draf Cepat</h2>
            </div>
            <div className="p-5">
-              <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSaveDraft(); }}>
+              <form className="space-y-4" onSubmit={handleSaveDraft}>
                  <div>
                     <input 
                       type="text" 

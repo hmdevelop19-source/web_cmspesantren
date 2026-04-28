@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Loader2, ArrowLeft, Calendar, BookOpen } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { useSettingsStore } from '../../store/settingsStore';
 import { getImageUrl } from '../../lib/utils';
 import SEO from '../../components/SEO';
+import type { Page } from '../../types';
 
 export default function PageDetail() {
   const { slug } = useParams<{ slug: string }>();
-  const [page, setPage] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   
   const { settings, fetchSettings } = useSettingsStore();
 
@@ -19,22 +18,15 @@ export default function PageDetail() {
     if (!settings) fetchSettings();
   }, []);
 
-  useEffect(() => {
-    const fetchPage = async () => {
-      try {
-        setIsLoading(true);
-        const response = await api.get(`/public/pages/${slug}`);
-        setPage(response.data);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching page:', err);
-        setError('Halaman tidak ditemukan');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const { data: page, isLoading, error } = useQuery<Page>({
+    queryKey: ['public-page', slug],
+    queryFn: async () => {
+      const response = await api.get(`/public/pages/${slug}`);
+      return response.data;
+    },
+  });
 
-    fetchPage();
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
 
@@ -50,7 +42,7 @@ export default function PageDetail() {
   if (error || !page) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-32 text-center">
-        <h2 className="text-3xl font-black text-gray-900 mb-4">{error}</h2>
+        <h2 className="text-3xl font-black text-gray-900 mb-4">Halaman Tidak Ditemukan</h2>
         <Link to="/profil" className="text-primary font-bold hover:underline flex items-center justify-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Kembali ke Profil
         </Link>

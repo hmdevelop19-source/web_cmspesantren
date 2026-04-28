@@ -11,13 +11,14 @@ import {
   Megaphone,
   Bell
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
+import type { Announcement } from '../../types';
 
 export default function PengumumansEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -27,48 +28,49 @@ export default function PengumumansEdit() {
     status: 'published' as 'published' | 'draft'
   });
 
+  const { data: announcement, isLoading } = useQuery<Announcement>({
+    queryKey: ['admin-announcement', id],
+    queryFn: async () => {
+      const response = await api.get(`/announcements/${id}`);
+      return response.data.data || response.data;
+    },
+    enabled: !!id
+  });
+
   useEffect(() => {
-    const fetchAnnouncement = async () => {
-      try {
-        const response = await api.get(`/announcements/${id}`);
-        const data = response.data;
-        setFormData({
-          title: data.title || '',
-          content: data.content || '',
-          priority: data.priority || 'normal',
-          status: data.status || 'published'
-        });
-      } catch (err) {
-        console.error('Error fetching announcement:', err);
-        setError('Gagal memuat data pengumuman.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (announcement) {
+      setFormData({
+        title: announcement.title || '',
+        content: announcement.content || '',
+        priority: announcement.priority || 'normal',
+        status: announcement.status || 'published'
+      });
+    }
+  }, [announcement]);
 
-    fetchAnnouncement();
-  }, [id]);
+  const updateMutation = useMutation({
+    mutationFn: (data: typeof formData) => api.put(`/announcements/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-announcement', id] });
+      navigate('/admin/pengumumans');
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal memperbarui pengumuman.');
+    }
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) {
       setError('Judul pengumuman wajib diisi.');
       return;
     }
-
-    setIsSaving(true);
     setError(null);
-
-    try {
-      await api.put(`/announcements/${id}`, formData);
-      navigate('/admin/pengumumans');
-    } catch (err: any) {
-      console.error('Error updating announcement:', err);
-      setError(err.response?.data?.message || 'Gagal memperbarui pengumuman.');
-    } finally {
-      setIsSaving(false);
-    }
+    updateMutation.mutate(formData);
   };
+
+  const isSaving = updateMutation.isPending;
 
   if (isLoading) {
     return (

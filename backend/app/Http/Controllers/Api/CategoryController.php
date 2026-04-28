@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Http\Requests\CategoryRequest;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -14,46 +16,35 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        // Return all categories ordered by name for the dropdowns
-        return response()->json(Category::orderBy('name')->get());
+        return CategoryResource::collection(Category::orderBy('name')->get());
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
-        ]);
-
+        $validated = $request->validated();
         $validated['slug'] = Str::slug($validated['name']);
 
         $category = Category::create($validated);
 
-        return response()->json([
-            'message' => 'Kategori berhasil ditambahkan.',
-            'data' => $category
-        ], 201);
+        return (new CategoryResource($category))
+            ->additional(['message' => 'Kategori berhasil ditambahkan.']);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(CategoryRequest $request, Category $category)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
-        ]);
-
+        $validated = $request->validated();
         $validated['slug'] = Str::slug($validated['name']);
 
         $category->update($validated);
 
-        return response()->json([
-            'message' => 'Kategori berhasil diperbarui.',
-            'data' => $category
-        ]);
+        return (new CategoryResource($category))
+            ->additional(['message' => 'Kategori berhasil diperbarui.']);
     }
 
     /**
@@ -61,7 +52,6 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        // Check if category has posts before deleting (optional/advanced)
         $category->delete();
 
         return response()->json([

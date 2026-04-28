@@ -12,11 +12,12 @@ import {
   Calendar,
   Eye
 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 
 export default function AgendasCreate() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -27,21 +28,13 @@ export default function AgendasCreate() {
     status: 'published' as 'published' | 'draft'
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.event_date) {
-      setError('Judul dan Tanggal Kegiatan wajib diisi.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await api.post('/agendas', formData);
+  const createMutation = useMutation({
+    mutationFn: (data: typeof formData) => api.post('/agendas', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agendas'] });
       navigate('/admin/agendas');
-    } catch (err: any) {
-      console.error('Error creating agenda:', err);
+    },
+    onError: (err: any) => {
       const errors = err.response?.data?.errors;
       if (errors) {
         const firstError = Object.values(errors)[0];
@@ -49,10 +42,20 @@ export default function AgendasCreate() {
       } else {
         setError(err.response?.data?.message || 'Gagal menyimpan agenda.');
       }
-    } finally {
-      setIsLoading(false);
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.event_date) {
+      setError('Judul dan Tanggal Kegiatan wajib diisi.');
+      return;
+    }
+    setError(null);
+    createMutation.mutate(formData);
   };
+
+  const isLoading = createMutation.isPending;
 
   return (
     <div className="max-w-6xl mx-auto pb-20">

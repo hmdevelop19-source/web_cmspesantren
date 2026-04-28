@@ -1,44 +1,48 @@
 import { Search, Megaphone, Loader2, Trash2, Edit3, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import type { Announcement, PaginatedResponse } from '../../types';
 
 export default function Pengumumans() {
-  const [announcements, setAnnouncements] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [total, setTotal] = useState(0);
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const queryClient = useQueryClient();
 
-  const fetchAnnouncements = async () => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<Announcement>>({
+    queryKey: ['admin-announcements', triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/announcements', {
-        params: { search: searchTerm }
+        params: { search: triggerSearch }
       });
-      setAnnouncements(response.data.data);
-      setTotal(response.data.total);
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
-      try {
-        await api.delete(`/announcements/${id}`);
-        fetchAnnouncements();
-      } catch (error) {
-        alert('Gagal menghapus pengumuman.');
+      const resData = response.data;
+      if (resData.meta) {
+        return { ...resData.meta, data: resData.data, links: resData.links };
       }
+      return resData;
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/announcements/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal menghapus pengumuman. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
+      deleteMutation.mutate(id);
     }
   };
+
+  const announcements = data?.data || [];
+  const total = data?.total || 0;
 
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('pengumumans');
@@ -55,7 +59,7 @@ export default function Pengumumans() {
            )}
         </div>
         
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); fetchAnnouncements(); }}>
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
            <div className="relative">
               <input 
                 type="text" 
@@ -67,7 +71,7 @@ export default function Pengumumans() {
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
            </div>
            <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 flex items-center gap-1 h-10 font-bold transition-all">
-              Cari
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cari'}
            </button>
         </form>
       </div>

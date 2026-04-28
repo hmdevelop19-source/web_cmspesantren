@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Page;
+use App\Http\Requests\StorePageRequest;
+use App\Http\Requests\UpdatePageRequest;
+use App\Http\Resources\PageResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -12,49 +15,33 @@ class PageController extends Controller
 {
     public function index(Request $request)
     {
-        $pages = Page::when($request->search, function ($query, $search) {
+        $pages = Page::with(['imageRelation'])
+            ->when($request->search, function ($query, $search) {
                 $query->where('title', 'like', "%{$search}%");
             })
             ->latest()
             ->paginate($request->per_page ?? 10);
 
-        return response()->json($pages);
+        return PageResource::collection($pages);
     }
 
-    public function store(Request $request)
+    public function store(StorePageRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required',
-            'status' => 'required|in:published,draft',
-            'slug' => 'nullable|string|unique:pages,slug',
-            'image_id' => 'nullable|exists:media,id',
-        ]);
-
-        $validated['slug'] = $validated['slug'] ?? Str::slug($validated['title']);
+        $validated = $request->validated();
         $page = Page::create($validated);
 
-        return response()->json([
-            'message' => 'Halaman berhasil dibuat.',
-            'data' => $page->load('imageRelation')
-        ], 201);
+        return (new PageResource($page->load('imageRelation')))
+            ->additional(['message' => 'Halaman berhasil dibuat.']);
     }
 
     public function show(Page $page)
     {
-        return response()->json($page->load('imageRelation'));
+        return new PageResource($page->load('imageRelation'));
     }
 
-    public function update(Request $request, Page $page)
+    public function update(UpdatePageRequest $request, Page $page)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required',
-            'status' => 'required|in:published,draft',
-            'slug' => 'nullable|string|unique:pages,slug,' . $page->id,
-            'image' => 'nullable|image|max:2048',
-            'image_id' => 'nullable|exists:media,id',
-        ]);
+        $validated = $request->validated();
 
         if ($request->hasFile('image')) {
             if ($page->image) {
@@ -64,19 +51,15 @@ class PageController extends Controller
             $validated['image'] = $path;
         }
 
-        // If slug is provided and different, or if title changed and no slug provided
+        // If slug is provided and different
         if ($request->has('slug')) {
             $validated['slug'] = $request->slug;
-        } elseif ($page->title !== ($validated['title'] ?? $page->title)) {
-            $validated['slug'] = Str::slug($validated['title']);
         }
 
         $page->update($validated);
 
-        return response()->json([
-            'message' => 'Halaman berhasil diperbarui.',
-            'data' => $page->load('imageRelation')
-        ]);
+        return (new PageResource($page->load('imageRelation')))
+            ->additional(['message' => 'Halaman berhasil diperbarui.']);
     }
 
     public function destroy(Page $page)
@@ -90,7 +73,7 @@ class PageController extends Controller
 
     public function getBySlug($slug)
     {
-        $page = Page::where('slug', $slug)->with('imageRelation')->first();
-        return response()->json($page);
+        $page = Page::where('slug', $slug)->with('imageRelation')->firstOrFail();
+        return new PageResource($page);
     }
 }

@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Loader2, Megaphone, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { getImageUrl } from '../../lib/utils';
 import SEO from '../../components/SEO';
+import Skeleton from '../../components/ui/Skeleton';
+import type { HomeData } from '../../types';
 
 const RevealOnScroll = ({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -29,27 +32,18 @@ const RevealOnScroll = ({ children, delay = 0, className = "" }: { children: Rea
 };
 
 export default function Home() {
-  const [data, setData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const { data, isLoading } = useQuery<HomeData>({
+    queryKey: ['home-data'],
+    queryFn: async () => {
+      const response = await api.get('/public/home');
+      return response.data;
+    },
+  });
 
   useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const response = await api.get('/public/home');
-        setData(response.data);
-      } catch (error) {
-        console.error('Error fetching home data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchHomeData();
-  }, []);
-
-  useEffect(() => {
-    if (data?.banners?.length > 0) {
+    if (data?.banners?.length && data.banners.length > 0) {
       const timer = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % data.banners.length);
       }, 7000);
@@ -71,9 +65,36 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[600px] gap-6">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">Sinkronisasi Portal...</p>
+      <div className="bg-white">
+        {/* Hero Skeleton */}
+        <div className="h-[600px] bg-primary relative overflow-hidden flex items-center justify-center">
+           <div className="max-w-5xl mx-auto w-full px-4 text-center space-y-6">
+              <Skeleton width="120px" height="30px" className="mx-auto rounded-full bg-white/10" />
+              <Skeleton width="80%" height="60px" className="mx-auto rounded-xl bg-white/10" />
+              <Skeleton width="60%" height="24px" className="mx-auto rounded-lg bg-white/10" />
+              <div className="flex justify-center gap-4">
+                 <Skeleton width="160px" height="48px" className="rounded-xl bg-white/10" />
+                 <Skeleton width="160px" height="48px" className="rounded-xl bg-white/10" />
+              </div>
+           </div>
+        </div>
+        
+        {/* Stats Skeleton */}
+        <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-10">
+           <div className="bg-white rounded-3xl p-10 shadow-2xl grid grid-cols-2 md:grid-cols-4 gap-8">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} height="80px" className="rounded-2xl" />)}
+           </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="max-w-7xl mx-auto px-4 py-24 grid grid-cols-1 lg:grid-cols-3 gap-16">
+           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map(i => <Skeleton key={i} height="120px" className="rounded-2xl" />)}
+           </div>
+           <div className="space-y-6">
+              <Skeleton height="400px" className="rounded-3xl" />
+           </div>
+        </div>
       </div>
     );
   }
@@ -123,6 +144,7 @@ export default function Home() {
                              <img 
                                 src={getImageUrl(banner.image_path)} 
                                 alt={banner.title} 
+                                loading={index === 0 ? "eager" : "lazy"}
                                 className="w-full h-full object-cover opacity-70 transition-transform duration-[10s]" 
                              />
                             <div className="absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/50 to-transparent"></div>
@@ -284,12 +306,17 @@ export default function Home() {
                 </RevealOnScroll>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-                {(posts as any[]).map((b, i) => (
+                {posts.map((b, i) => (
                     <RevealOnScroll key={b.id} delay={i * 150}>
                         <div className="bg-white rounded-3xl shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group flex flex-col h-full">
                             <div className="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
                                 {b.cover_image ? (
-                                    <img src={getImageUrl(b.cover_image)} alt={b.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    <img 
+                                      src={getImageUrl(b.cover_image)} 
+                                      alt={b.title} 
+                                      loading="lazy"
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                                    />
                                 ) : (
                                     <div className="text-primary/20 opacity-50"><BookOpen className="w-16 h-16" /></div>
                                 )}
@@ -324,8 +351,13 @@ export default function Home() {
                     <div className="aspect-video bg-gray-900 rounded-2xl mb-8 relative flex items-center justify-center cursor-pointer overflow-hidden border-2 border-primary/5 shadow-inner">
                         {video ? (
                             <>
-                                <img src={`https://img.youtube.com/vi/${video.youtube_url.split('v=')[1]}/maxresdefault.jpg`} alt="Video cover" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" />
-                                <a href={video.youtube_url} target="_blank" rel="noreferrer" className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center z-10 text-primary shadow-2xl shadow-secondary/50 hover:scale-110 active:scale-95 transition-all outline outline-8 outline-secondary/10">
+                                <img 
+                                    src={`https://img.youtube.com/vi/${(video.youtube_url || video.video_url || '').split('v=')[1]?.split('&')[0] || ''}/maxresdefault.jpg`} 
+                                    alt="Video cover" 
+                                    loading="lazy"
+                                    className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" 
+                                />
+                                <a href={video.youtube_url || video.video_url} target="_blank" rel="noreferrer" className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center z-10 text-primary shadow-2xl shadow-secondary/50 hover:scale-110 active:scale-95 transition-all outline outline-8 outline-secondary/10">
                                     <Play className="w-8 h-8 ml-1 fill-primary" />
                                 </a>
                             </>
@@ -367,6 +399,7 @@ export default function Home() {
                     <img 
                       src={getImageUrl(item.file_path)} 
                       alt={item.file_name || 'Galeri'} 
+                      loading="lazy"
                       className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700" 
                     />
                     <div className="absolute inset-x-4 bottom-4 bg-primary/90 backdrop-blur-md opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 flex flex-col items-center justify-center py-3 rounded-2xl border border-white/10">

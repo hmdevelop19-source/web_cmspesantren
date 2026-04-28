@@ -12,8 +12,12 @@ use App\Models\Banner;
 use App\Models\Setting;
 use App\Models\Category;
 use App\Models\ContactMessage;
+use App\Models\Menu;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\PageResource;
+use App\Http\Resources\AgendaResource;
+use App\Http\Resources\AnnouncementResource;
+use App\Http\Resources\VideoResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -34,22 +38,26 @@ class PublicController extends Controller
             return [
                 'banners' => Banner::orderBy('order', 'asc')->get(),
                 'latest_posts' => PostResource::collection(
-                    Post::with(['user', 'category'])
+                    Post::with(['user', 'category', 'coverImage'])
                         ->where('status', 'published')
                         ->latest()
                         ->take(4)
                         ->get()
                 ),
-                'agendas' => Agenda::where('status', 'published')
-                    ->where('event_date', '>=', now())
-                    ->orderBy('event_date', 'asc')
-                    ->take(3)
-                    ->get(),
-                'announcements' => Announcement::where('status', 'published')
-                    ->latest()
-                    ->take(8)
-                    ->get(),
-                'featured_video' => Video::where('is_featured', true)->first(),
+                'agendas' => AgendaResource::collection(
+                    Agenda::where('status', 'published')
+                        ->where('event_date', '>=', now())
+                        ->orderBy('event_date', 'asc')
+                        ->take(3)
+                        ->get()
+                ),
+                'announcements' => AnnouncementResource::collection(
+                    Announcement::where('status', 'published')
+                        ->latest()
+                        ->take(8)
+                        ->get()
+                ),
+                'featured_video' => new VideoResource(Video::where('is_featured', true)->first()),
                 'gallery' => \App\Models\Media::where('show_in_gallery', true)->latest()->take(8)->get(),
                 'stats' => [
                     'santri' => $statsSettings['stats_santri'] ?? '3.275',
@@ -110,7 +118,7 @@ class PublicController extends Controller
             $query->where('title', 'like', '%' . $request->search . '%');
         }
 
-        return response()->json($query->orderBy('event_date', 'desc')->paginate(12));
+        return AgendaResource::collection($query->orderBy('event_date', 'desc')->paginate(12));
     }
 
     public function getAgendaBySlug($slug)
@@ -119,7 +127,7 @@ class PublicController extends Controller
             ->where('status', 'published')
             ->firstOrFail();
 
-        return response()->json($agenda);
+        return new AgendaResource($agenda);
     }
 
     public function getAnnouncements(Request $request)
@@ -130,7 +138,7 @@ class PublicController extends Controller
             $query->where('title', 'like', '%' . $request->search . '%');
         }
 
-        return response()->json($query->latest()->paginate(10));
+        return AnnouncementResource::collection($query->latest()->paginate(10));
     }
 
     public function getAnnouncementBySlug($slug)
@@ -139,7 +147,7 @@ class PublicController extends Controller
             ->where('status', 'published')
             ->firstOrFail();
 
-        return response()->json($announcement);
+        return new AnnouncementResource($announcement);
     }
 
     public function getCategories()
@@ -156,7 +164,7 @@ class PublicController extends Controller
     public function getVideos(Request $request)
     {
         $videos = Video::latest()->paginate(12);
-        return response()->json($videos);
+        return VideoResource::collection($videos);
     }
 
     public function globalSearch(Request $request)
@@ -197,5 +205,18 @@ class PublicController extends Controller
             'agendas' => $agendas,
             'announcements' => $announcements
         ]);
+    }
+
+    public function getMenus()
+    {
+        return response()->json(
+            Menu::with(['children' => function($q) {
+                    $q->where('is_active', true)->orderBy('order');
+                }])
+                ->where('is_active', true)
+                ->whereNull('parent_id')
+                ->orderBy('order')
+                ->get()
+        );
     }
 }

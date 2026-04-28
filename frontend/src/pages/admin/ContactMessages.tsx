@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Mail, Trash2, Eye, RefreshCw, Loader2, MailOpen, CheckCheck, Clock, Search, AlertCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
+import type { ContactMessage } from '../../types';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   unread:  { label: 'Belum Dibaca', color: 'bg-blue-50 text-blue-600 border-blue-100',   icon: <Mail className="w-3 h-3" /> },
@@ -9,72 +11,73 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.R
 };
 
 export default function ContactMessages() {
-  const [messages, setMessages] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const queryClient = useQueryClient();
+  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
-  const fetchMessages = async () => {
-    setIsLoading(true);
-    try {
-      const [msgRes, countRes] = await Promise.all([
-        api.get('/contact-messages', { params: { status: filterStatus } }),
-        api.get('/contact-messages/unread-count'),
-      ]);
-      setMessages(msgRes.data.data || msgRes.data);
-      setUnreadCount(countRes.data.count);
-    } catch (err) {
-      console.error('Failed to fetch messages:', err);
-    } finally {
-      setIsLoading(false);
+  const { data: messagesData, isLoading } = useQuery({
+    queryKey: ['admin-messages', filterStatus],
+    queryFn: async () => {
+      const response = await api.get('/contact-messages', { params: { status: filterStatus } });
+      return response.data.data || response.data;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchMessages();
-  }, [filterStatus]);
+  const { data: unreadCountData } = useQuery({
+    queryKey: ['admin-messages-unread-count'],
+    queryFn: async () => {
+      const response = await api.get('/contact-messages/unread-count');
+      return response.data.count;
+    }
+  });
 
-  const handleView = async (msg: any) => {
-    setSelectedMessage(msg);
-    // Jika belum dibaca, fetch detail (auto mark read di backend)
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number, status: string }) => api.patch(`/contact-messages/${id}/status`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-messages-unread-count'] });
+    }
+  });
+
+  const viewMutation = useMutation({
+    mutationFn: (id: number) => api.get(`/contact-messages/${id}`),
+    onSuccess: (res) => {
+      setSelectedMessage(res.data);
+      queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-messages-unread-count'] });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/contact-messages/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-messages-unread-count'] });
+      setSelectedMessage(null);
+    }
+  });
+
+  const handleView = (msg: any) => {
     if (msg.status === 'unread') {
-      try {
-        const res = await api.get(`/contact-messages/${msg.id}`);
-        setSelectedMessage(res.data);
-        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, status: 'read' } : m));
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      } catch { /* ignore */ }
+      viewMutation.mutate(msg.id);
+    } else {
+      setSelectedMessage(msg);
     }
   };
 
-  const handleUpdateStatus = async (id: number, status: string) => {
-    try {
-      await api.patch(`/contact-messages/${id}/status`, { status });
-      setMessages(prev => prev.map(m => m.id === id ? { ...m, status } : m));
-      if (selectedMessage?.id === id) setSelectedMessage((prev: any) => ({ ...prev, status }));
-      fetchMessages(); // refresh count
-    } catch (err) {
-      console.error('Failed to update status:', err);
-    }
+  const handleUpdateStatus = (id: number, status: string) => {
+    updateStatusMutation.mutate({ id, status });
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!confirm('Hapus pesan ini secara permanen?')) return;
-    setIsDeleting(id);
-    try {
-      await api.delete(`/contact-messages/${id}`);
-      setMessages(prev => prev.filter(m => m.id !== id));
-      if (selectedMessage?.id === id) setSelectedMessage(null);
-      fetchMessages();
-    } catch (err) {
-      console.error('Failed to delete message:', err);
-    } finally {
-      setIsDeleting(null);
-    }
+    deleteMutation.mutate(id);
   };
+
+  const messages = (messagesData as ContactMessage[]) || [];
+  const unreadCount = unreadCountData || 0;
+  const isDeleting = deleteMutation.isPending ? deleteMutation.variables : null;
 
   const filtered = messages.filter(m =>
     m.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,7 +101,10 @@ export default function ContactMessages() {
             </div>
           )}
           <button
-            onClick={fetchMessages}
+            onClick={() => {
+              queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
+              queryClient.invalidateQueries({ queryKey: ['admin-messages-unread-count'] });
+            }}
             className="p-2.5 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
           >
             <RefreshCw className="w-4 h-4" />

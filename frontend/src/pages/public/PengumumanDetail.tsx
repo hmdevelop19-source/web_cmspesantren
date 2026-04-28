@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Megaphone, Calendar, Clock, ChevronLeft, Share2, Printer, Loader2, Bell, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
 import { useSeoMeta } from '../../hooks/useSeoMeta';
 import { useSettingsStore } from '../../store/settingsStore';
+import type { Announcement } from '../../types';
 
 export default function AnnouncementDetail() {
   const { slug } = useParams();
-  const [announcement, setAnnouncement] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { settings } = useSettingsStore();
   const siteName = settings?.site_name || 'Portal Pesantren';
+
+  const { data: announcement, isLoading, error } = useQuery<Announcement>({
+    queryKey: ['public-announcement', slug],
+    queryFn: async () => {
+      const response = await api.get(`/public/announcements/${slug}`);
+      return response.data;
+    },
+  });
 
   // ── Inject SEO + OpenGraph meta for this announcement ────────
   useSeoMeta({
@@ -26,23 +33,6 @@ export default function AnnouncementDetail() {
   });
 
   useEffect(() => {
-    const fetchAnnouncement = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.get(`/public/announcements/${slug}`);
-        setAnnouncement(response.data);
-        if (response.data.title) {
-          document.title = `${response.data.title} - Pengumuman Pesantren`;
-        }
-      } catch (err: any) {
-        console.error('Error fetching announcement details:', err);
-        setError('Informasi pengumuman tidak ditemukan atau telah kadaluarsa.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAnnouncement();
     window.scrollTo(0, 0);
   }, [slug]);
 

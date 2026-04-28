@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, FileText, Settings, User, Menu, Image, Edit3, Bell, ExternalLink, X, 
-  CalendarDays, Megaphone, PlaySquare, LayoutPanelTop, Users as UsersIcon, ShieldCheck,
-  LogOut, Tag, BookOpen, Mail
+  CalendarDays, Megaphone, PlaySquare, Users as UsersIcon, ShieldCheck,
+  LogOut, Tag, Mail, LayoutPanelTop
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
@@ -107,11 +107,12 @@ export default function AdminLayout() {
           <nav className="space-y-1.5">
             <Link to="/admin" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin')}`}>
               <Home className={`w-[18px] h-[18px] ${location.pathname === '/admin' ? 'text-secondary' : ''}`} />
-              Beranda
+              Dashboard
             </Link>
             
+            {/* GRUP 1: PUBLIKASI */}
             <div className="pt-6 pb-2">
-               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Konten Digital</p>
+               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Publikasi & Berita</p>
             </div>
             
             {canAccess('posts') && (
@@ -122,7 +123,7 @@ export default function AdminLayout() {
                 </Link>
                 <Link to="/admin/categories" onClick={closeMobileMenu} className={`mx-3 ml-12 flex items-center gap-3 px-4 py-2 text-xs font-bold rounded-xl transition-all duration-300 ease-out ${isActive('/admin/categories')}`}>
                   <Tag className="w-[14px] h-[14px]" />
-                  Kategori
+                  Kategori Berita
                 </Link>
               </>
             )}
@@ -137,16 +138,58 @@ export default function AdminLayout() {
             {canAccess('agendas') && (
               <Link to="/admin/agendas" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/agendas')}`}>
                 <CalendarDays className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/agendas') ? 'text-secondary' : ''}`} />
-                Agenda
+                Agenda Kegiatan
               </Link>
             )}
 
-            {/* Pesan Masuk - always visible for admin */}
+            {/* GRUP 2: PROFIL LEMBAGA */}
+            <div className="pt-6 pb-2">
+               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Profil Lembaga</p>
+            </div>
+
+            {canAccess('pages') && (
+              <Link to="/admin/pages" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/pages')}`}>
+                <FileText className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/pages') ? 'text-secondary' : ''}`} />
+                Laman Statis
+              </Link>
+            )}
+
+            {/* GRUP 3: MEDIA & VISUAL */}
+            <div className="pt-6 pb-2">
+               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Media & Visual</p>
+            </div>
+
+            {canAccess('media') && (
+              <Link to="/admin/media" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/media')}`}>
+                <Image className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/media') ? 'text-secondary' : ''}`} />
+                Pustaka Media
+              </Link>
+            )}
+
+            {canAccess('videos') && (
+              <Link to="/admin/videos" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/videos')}`}>
+                <PlaySquare className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/videos') ? 'text-secondary' : ''}`} />
+                Video Dokumentasi
+              </Link>
+            )}
+
+            {canAccess('hero') && (
+              <Link to="/admin/hero" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/hero')}`}>
+                <LayoutPanelTop className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/hero') ? 'text-secondary' : ''}`} />
+                Slider Beranda
+              </Link>
+            )}
+
+            {/* GRUP 4: KOMUNIKASI */}
+            <div className="pt-6 pb-2">
+               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Interaksi & Pesan</p>
+            </div>
+
             <Link to="/admin/contact-messages" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/contact-messages')}`}>
               <span className="relative">
                 <Mail className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/contact-messages') ? 'text-secondary' : ''}`} />
                 {unreadMsgCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-500 rounded-full text-[7px] text-white font-black flex items-center justify-center">{unreadMsgCount > 9 ? '9+' : unreadMsgCount}</span>
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-500 rounded-full text-[7px] text-white font-black flex items-center justify-center border-2 border-[#101931]">{unreadMsgCount > 9 ? '9+' : unreadMsgCount}</span>
                 )}
               </span>
               <span>Pesan Masuk</span>
@@ -155,56 +198,22 @@ export default function AdminLayout() {
               )}
             </Link>
 
-            {canAccess('videos') && (
-              <Link to="/admin/videos" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/videos')}`}>
-                <PlaySquare className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/videos') ? 'text-secondary' : ''}`} />
-                Video Kegiatan
-              </Link>
-            )}
-            
-            {canAccess('media') && (
-              <Link to="/admin/media" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/media')}`}>
-                <Image className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/media') ? 'text-secondary' : ''}`} />
-                Arsip Media
-              </Link>
-            )}
-            
-            {canAccess('pages') && (
-              <>
-                <Link to="/admin/pages" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/pages')}`}>
-                  <FileText className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/pages') ? 'text-secondary' : ''}`} />
-                  Laman Statis
-                </Link>
-                <Link to="/admin/profil-lembaga" onClick={closeMobileMenu} className={`mx-3 ml-12 flex items-center gap-3 px-4 py-2 text-xs font-bold rounded-xl transition-all duration-300 ease-out ${isActive('/admin/profil-lembaga')}`}>
-                  <BookOpen className="w-[14px] h-[14px]" />
-                  Profil Portal
-                </Link>
-              </>
-            )}
-
+            {/* GRUP 5: SISTEM */}
             <div className="pt-6 pb-2">
-               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Sistem & Tampilan</p>
+               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Konfigurasi Sistem</p>
             </div>
             
-            {canAccess('header') && (
-              <Link to="/admin/header" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/header')}`}>
-                <LayoutPanelTop className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/header') ? 'text-secondary' : ''}`} />
-                Desain Tata Letak
-              </Link>
-            )}
-
-            {canAccess('hero') && (
-              <Link to="/admin/hero" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/hero')}`}>
-                <Image className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/hero') ? 'text-secondary' : ''}`} />
-                Spanduk Utama
-              </Link>
-            )}
-
             {canAccess('settings') && (
-              <Link to="/admin/sidebar-banner" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/sidebar-banner')}`}>
-                <Megaphone className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/sidebar-banner') ? 'text-secondary' : ''}`} />
-                Banner Sidebar
-              </Link>
+              <>
+                <Link to="/admin/menus" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/menus')}`}>
+                  <Menu className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/menus') ? 'text-secondary' : ''}`} />
+                  Navigasi Utama
+                </Link>
+                <Link to="/admin/settings" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/settings')}`}>
+                  <Settings className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/settings') ? 'text-secondary' : ''}`} />
+                  Pengaturan Umum
+                </Link>
+              </>
             )}
             
             {canAccess('users') && (
@@ -218,13 +227,6 @@ export default function AdminLayout() {
               <Link to="/admin/permissions" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/permissions')}`}>
                 <ShieldCheck className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/permissions') ? 'text-secondary' : ''}`} />
                 Izin & Peranan
-              </Link>
-            )}
-
-            {canAccess('settings') && (
-              <Link to="/admin/settings" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/settings')}`}>
-                <Settings className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/settings') ? 'text-secondary' : ''}`} />
-                Pengaturan Umum
               </Link>
             )}
 

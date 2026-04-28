@@ -1,44 +1,48 @@
 import { Search, CalendarDays, Loader2, Trash2, Edit3, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import type { Agenda, PaginatedResponse } from '../../types';
 
 export default function Agendas() {
-  const [agendas, setAgendas] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [total, setTotal] = useState(0);
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const queryClient = useQueryClient();
 
-  const fetchAgendas = async () => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<Agenda>>({
+    queryKey: ['admin-agendas', triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/agendas', {
-        params: { search: searchTerm }
+        params: { search: triggerSearch }
       });
-      setAgendas(response.data.data);
-      setTotal(response.data.total);
-    } catch (error) {
-      console.error('Error fetching agendas:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAgendas();
-  }, []);
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus agenda ini?')) {
-      try {
-        await api.delete(`/agendas/${id}`);
-        fetchAgendas();
-      } catch (error) {
-        alert('Gagal menghapus agenda.');
+      const resData = response.data;
+      if (resData.meta) {
+        return { ...resData.meta, data: resData.data, links: resData.links };
       }
+      return resData;
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/agendas/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agendas'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal menghapus agenda. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus agenda ini?')) {
+      deleteMutation.mutate(id);
     }
   };
+
+  const agendas = data?.data || [];
+  const total = data?.total || 0;
 
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('agendas');
@@ -55,7 +59,7 @@ export default function Agendas() {
            )}
         </div>
         
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); fetchAgendas(); }}>
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
            <div className="relative">
               <input 
                 type="text" 
@@ -67,7 +71,7 @@ export default function Agendas() {
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
            </div>
            <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 flex items-center gap-1 h-10 font-bold transition-all">
-              Cari
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cari'}
            </button>
         </form>
       </div>

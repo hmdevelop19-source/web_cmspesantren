@@ -5,9 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Support\Str;
 
 class Page extends Model
 {
+    use SoftDeletes;
+
+    protected static function booted()
+    {
+        static::creating(function ($page) {
+            if (!$page->slug) {
+                $page->slug = Str::slug($page->title);
+            }
+        });
+
+        static::updating(function ($page) {
+            if ($page->isDirty('title') && !$page->isDirty('slug')) {
+                $page->slug = Str::slug($page->title);
+            }
+        });
+    }
+
     protected $fillable = [
         'title',
         'slug',

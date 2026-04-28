@@ -11,11 +11,12 @@ import {
   Megaphone,
   Bell
 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 
 export default function PengumumansCreate() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -25,26 +26,28 @@ export default function PengumumansCreate() {
     status: 'published' as 'published' | 'draft'
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const createMutation = useMutation({
+    mutationFn: (data: typeof formData) => api.post('/announcements', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
+      navigate('/admin/pengumumans');
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal menyimpan pengumuman.');
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) {
       setError('Judul pengumuman wajib diisi.');
       return;
     }
-
-    setIsLoading(true);
     setError(null);
-
-    try {
-      await api.post('/announcements', formData);
-      navigate('/admin/pengumumans');
-    } catch (err: any) {
-      console.error('Error creating announcement:', err);
-      setError(err.response?.data?.message || 'Gagal menyimpan pengumuman.');
-    } finally {
-      setIsLoading(false);
-    }
+    createMutation.mutate(formData);
   };
+
+  const isLoading = createMutation.isPending;
 
   return (
     <div className="max-w-6xl mx-auto pb-20">

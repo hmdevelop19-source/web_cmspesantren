@@ -3,15 +3,18 @@ import {
   Loader2, Save, Settings, X
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import MediaSelector from '../../components/admin/MediaSelector';
 import RichTextEditor from '../../components/admin/RichTextEditor';
 
 export default function PagesCreate() {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
+  const [mediaMode, setMediaMode] = useState<'cover' | 'editor'>('cover');
+  const editorRef = useRef<any>(null);
   
   // Form states
   const [title, setTitle] = useState('');
@@ -21,7 +24,18 @@ export default function PagesCreate() {
   const [imageId, setImageId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent, targetStatus?: 'published' | 'draft') => {
+  const createMutation = useMutation({
+    mutationFn: (data: any) => api.post('/pages', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+      navigate('/admin/pages');
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal menyimpan laman.');
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent, targetStatus?: 'published' | 'draft') => {
     e.preventDefault();
     
     if (!title.trim()) {
@@ -29,31 +43,24 @@ export default function PagesCreate() {
       return;
     }
     
-    setIsLoading(true);
     setError(null);
-
     const postStatus = targetStatus || status;
 
-    try {
-      await api.post('/pages', {
-        title,
-        content,
-        status: postStatus,
-        image_id: imageId || null
-      });
-      navigate('/admin/pages');
-    } catch (err: any) {
-      console.error('Error creating page:', err);
-      setError(err.response?.data?.message || 'Gagal menyimpan laman.');
-      setIsLoading(false);
-    }
+    createMutation.mutate({
+      title,
+      content,
+      status: postStatus,
+      image_id: imageId || null
+    });
   };
 
+  const isLoading = createMutation.isPending;
+
   return (
-    <div className="max-w-7xl">
+    <div className="max-w-7xl text-left">
       {/* Top Header & Quick Actions */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 bg-slate-50/80 backdrop-blur-md py-4 z-20">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 text-left">
            <Link to="/admin/pages" className="p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm">
               <ArrowLeft className="w-5 h-5 text-gray-500" />
            </Link>
@@ -98,22 +105,27 @@ export default function PagesCreate() {
 
             <div className="bg-white border border-gray-100 shadow-sm rounded-3xl overflow-hidden">
                {/* Title Input */}
-               <div className="p-8 border-b border-gray-50">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] block mb-4">Judul Utama Halaman</label>
+               <div className="p-8 border-b border-gray-50 text-left">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] block mb-4 text-left">Judul Utama Halaman</label>
                   <input 
                      type="text" 
                      value={title}
                      onChange={(e) => setTitle(e.target.value)}
                      placeholder="Contoh: Denah Pesantren Al-Hikmah..." 
-                     className="w-full text-4xl font-black text-gray-800 border-none focus:outline-none focus:ring-0 placeholder:text-gray-100"
+                     className="w-full text-4xl font-black text-gray-800 border-none focus:outline-none focus:ring-0 placeholder:text-gray-100 bg-transparent"
                   />
                </div>
                
                {/* Rich Text Editor */}
                <div className="p-2 bg-slate-50/30">
                   <RichTextEditor 
+                    ref={editorRef}
                     content={content}
                     onChange={setContent}
+                    onOpenMediaLibrary={() => {
+                      setMediaMode('editor');
+                      setIsMediaSelectorOpen(true);
+                    }}
                   />
                </div>
             </div>
@@ -124,11 +136,11 @@ export default function PagesCreate() {
             
             {/* Status Widget */}
             <div className="bg-white border border-gray-100 shadow-sm rounded-3xl p-6 space-y-6">
-               <h3 className="text-xs font-black text-gray-800 uppercase tracking-widest border-b border-gray-50 pb-4">Pengaturan</h3>
+               <h3 className="text-xs font-black text-gray-800 uppercase tracking-widest border-b border-gray-50 pb-4 text-left">Pengaturan</h3>
                
                <div className="space-y-4">
-                  <div className="space-y-2">
-                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Status Publikasi</label>
+                  <div className="space-y-2 text-left">
+                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block text-left">Status Publikasi</label>
                      <div className="relative group">
                         <select 
                           value={status}
@@ -154,7 +166,10 @@ export default function PagesCreate() {
                <div className="flex items-center justify-between border-b border-gray-50 pb-4">
                   <h3 className="text-xs font-black text-gray-800 uppercase tracking-widest">Gambar Utama</h3>
                   <button 
-                    onClick={() => setIsMediaSelectorOpen(true)}
+                    onClick={() => {
+                      setMediaMode('cover');
+                      setIsMediaSelectorOpen(true);
+                    }}
                     className="p-2 hover:bg-primary/5 rounded-xl text-primary transition-all active:scale-95"
                   >
                      <Plus className="w-4 h-4" />
@@ -167,7 +182,10 @@ export default function PagesCreate() {
                     <img src={image} alt="Preview" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                        <button 
-                        onClick={() => setIsMediaSelectorOpen(true)}
+                        onClick={() => {
+                          setMediaMode('cover');
+                          setIsMediaSelectorOpen(true);
+                        }}
                         className="bg-white/20 backdrop-blur-md text-white p-2 rounded-xl border border-white/20 hover:bg-white/40 transition-all"
                        >
                           <ImageIcon className="w-4 h-4" />
@@ -182,7 +200,10 @@ export default function PagesCreate() {
                   </div>
                 ) : (
                   <button 
-                    onClick={() => setIsMediaSelectorOpen(true)}
+                    onClick={() => {
+                      setMediaMode('cover');
+                      setIsMediaSelectorOpen(true);
+                    }}
                     className="w-full aspect-video bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-primary hover:border-primary/30 hover:bg-primary/5 transition-all group"
                   >
                      <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -204,8 +225,13 @@ export default function PagesCreate() {
          isOpen={isMediaSelectorOpen}
          onClose={() => setIsMediaSelectorOpen(false)}
          onSelect={(media) => {
-            setImage(`http://localhost:8000${media.file_path}`);
-            setImageId(media.id);
+            const imageUrl = `${import.meta.env.VITE_STORAGE_URL}${media.file_path}`;
+            if (mediaMode === 'cover') {
+              setImage(imageUrl);
+              setImageId(media.id);
+            } else {
+              editorRef.current?.insertImage(imageUrl);
+            }
             setIsMediaSelectorOpen(false);
          }}
       />

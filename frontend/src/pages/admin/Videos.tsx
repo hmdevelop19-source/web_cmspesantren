@@ -1,65 +1,74 @@
 import { Search, PlayCircle, Loader2, Trash2, Edit3, Play, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import type { Video, PaginatedResponse } from '../../types';
 
 export default function Videos() {
-  const [videos, setVideos] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [meta, setMeta] = useState<any>(null);
-  const [total, setTotal] = useState(0);
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
 
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('videos');
 
-  const fetchVideos = async (page = 1) => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<Video>>({
+    queryKey: ['admin-videos', page, triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/videos', {
         params: { 
-          search: searchTerm,
+          search: triggerSearch,
           page: page
         }
       });
-      setVideos(response.data.data);
-      setTotal(response.data.total);
-      setMeta(response.data);
-    } catch (error) {
-      console.error('Error fetching videos:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchVideos();
-  }, []);
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus video ini?')) {
-      try {
-        await api.delete(`/videos/${id}`);
-        fetchVideos();
-      } catch (error) {
-        alert('Gagal menghapus video.');
+      const resData = response.data;
+      if (resData.meta) {
+        return { ...resData.meta, data: resData.data, links: resData.links };
       }
+      return resData;
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/videos/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-videos'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal menghapus video. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const featuredMutation = useMutation({
+    mutationFn: (video: Video) => api.put(`/videos/${video.id}`, { 
+      title: video.title,
+      youtube_url: video.youtube_url,
+      is_featured: true 
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-videos'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal mengatur video utama. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus video ini?')) {
+      deleteMutation.mutate(id);
     }
   };
 
-  const handleSetFeatured = async (id: number) => {
-    try {
-      await api.put(`/videos/${id}`, { 
-        title: videos.find(v => v.id === id).title,
-        youtube_url: videos.find(v => v.id === id).youtube_url,
-        is_featured: true 
-      });
-      fetchVideos();
-    } catch (error) {
-      alert('Gagal mengatur video utama.');
-    }
+  const handleSetFeatured = (video: Video) => {
+    featuredMutation.mutate(video);
   };
+
+  const videos = data?.data || [];
+  const total = data?.total || 0;
+  const meta = data;
 
   const getYouTubeID = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -79,7 +88,7 @@ export default function Videos() {
            )}
         </div>
         
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); fetchVideos(); }}>
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); setPage(1); }}>
            <div className="relative">
               <input 
                 type="text" 
@@ -91,7 +100,7 @@ export default function Videos() {
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
            </div>
            <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 flex items-center gap-1 h-10 font-bold transition-all">
-              Cari
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cari'}
            </button>
         </form>
       </div>
@@ -173,11 +182,11 @@ export default function Videos() {
                                </span>
                             ) : (
                                 <button 
-                                  onClick={() => hasWriteAccess && handleSetFeatured(row.id)}
-                                  disabled={!hasWriteAccess}
+                                  onClick={() => hasWriteAccess && handleSetFeatured(row)}
+                                  disabled={!hasWriteAccess || featuredMutation.isPending}
                                   className={`text-[10px] uppercase font-bold text-gray-400 border border-gray-200 rounded-full px-4 py-1.5 transition-all focus:ring-2 focus:ring-gray-100 ${hasWriteAccess ? 'hover:bg-gray-50 hover:text-gray-700 hover:border-gray-300' : 'opacity-50 cursor-not-allowed'}`}
                                 >
-                                   Jadikan Utama
+                                   {featuredMutation.isPending && featuredMutation.variables?.id === row.id ? 'Loading...' : 'Jadikan Utama'}
                                 </button>
                             )}
                          </td>
@@ -203,7 +212,7 @@ export default function Videos() {
               {Array.from({ length: meta.last_page }).map((_, i) => (
                 <button 
                   key={i}
-                  onClick={() => fetchVideos(i + 1)}
+                  onClick={() => setPage(i + 1)}
                   className={`px-3 py-1 border border-gray-300 rounded ${meta.current_page === i + 1 ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-50'}`}
                 >
                   {i + 1}

@@ -1,51 +1,55 @@
 import { Search, MessageSquare, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import type { Page, PaginatedResponse } from '../../types';
 
 export default function Pages() {
-  const [pages, setPages] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [meta, setMeta] = useState<any>(null);
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const queryClient = useQueryClient();
 
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('pages');
 
-  const fetchPages = async (page = 1) => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<Page>>({
+    queryKey: ['admin-pages', page, triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/pages', {
         params: { 
-          search: searchTerm,
+          search: triggerSearch,
           page: page
         }
       });
-      setPages(response.data.data);
-      setMeta(response.data);
-    } catch (error) {
-      console.error('Error fetching pages:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPages();
-  }, []);
-
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus laman ini?')) {
-      try {
-        await api.delete(`/pages/${id}`);
-        setPages(prev => prev.filter(p => p.id !== id));
-        fetchPages();
-      } catch (error) {
-        alert('Gagal menghapus laman.');
+      const resData = response.data;
+      if (resData.meta) {
+        return { ...resData.meta, data: resData.data, links: resData.links };
       }
+      return resData;
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/pages/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal menghapus laman. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus laman ini?')) {
+      deleteMutation.mutate(id);
     }
   };
+
+  const pages = data?.data || [];
+  const meta = data;
 
   return (
     <div className="max-w-6xl">
@@ -59,19 +63,19 @@ export default function Pages() {
            )}
         </div>
         
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); fetchPages(); }}>
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); setPage(1); }}>
            <div className="relative">
               <input 
                 type="text" 
                 placeholder="Cari laman..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 border border-gray-300 rounded px-3 py-1.5 pl-8 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" 
+                className="w-full sm:w-64 border border-gray-300 rounded px-3 py-1.5 pl-8 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9" 
               />
               <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" />
            </div>
-           <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-50 flex items-center gap-1 font-medium transition-colors">
-              Pencarian
+           <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-50 flex items-center gap-1 font-medium transition-colors h-9">
+              {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Pencarian'}
            </button>
         </form>
       </div>

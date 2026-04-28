@@ -12,7 +12,6 @@ import PagesEdit from '../pages/admin/PagesEdit';
 import Media from '../pages/admin/Media';
 import Settings from '../pages/admin/Settings';
 import HeroSettings from '../pages/admin/HeroSettings';
-import HeaderSettings from '../pages/admin/HeaderSettings';
 import Agendas from '../pages/admin/Agendas';
 import AgendasCreate from '../pages/admin/AgendasCreate';
 import AgendasEdit from '../pages/admin/AgendasEdit';
@@ -26,11 +25,11 @@ import Users from '../pages/admin/Users';
 import UsersCreate from '../pages/admin/UsersCreate';
 import Permissions from '../pages/admin/Permissions';
 import Categories from '../pages/admin/Categories';
+import MenuManager from '../pages/admin/MenuManager';
 import PostsEdit from '../pages/admin/PostsEdit';
 import Profile from '../pages/admin/Profile';
-import ProfileInstitusi from '../pages/admin/ProfileInstitusi';
+
 import ContactMessages from '../pages/admin/ContactMessages';
-import SidebarBanner from '../pages/admin/SidebarBanner';
 
 import Home from '../pages/public/Home';
 import Profil from '../pages/public/Profil';
@@ -122,10 +121,7 @@ export const router = createBrowserRouter([
             index: true,
             element: <Dashboard />,
           },
-          {
-            path: 'profil-lembaga',
-            element: <ProfileInstitusi />,
-          },
+
           {
             path: 'posts',
             element: <Posts />,
@@ -161,14 +157,6 @@ export const router = createBrowserRouter([
           {
             path: 'hero',
             element: <HeroSettings />,
-          },
-          {
-            path: 'header',
-            element: <HeaderSettings />,
-          },
-          {
-            path: 'sidebar-banner',
-            element: <SidebarBanner />,
           },
           {
             path: 'agendas',
@@ -225,6 +213,10 @@ export const router = createBrowserRouter([
           {
             path: 'categories',
             element: <Categories />,
+          },
+          {
+            path: 'menus',
+            element: <MenuManager />,
           },
           {
             path: 'profile',

@@ -1,55 +1,60 @@
 import { Search, UserPlus, Shield, Mail, MoreHorizontal, Loader2, Trash2, Edit3, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import type { User, PaginatedResponse } from '../../types';
 
 export default function Users() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [total, setTotal] = useState(0);
-  
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
   const currentUser = useAuthStore((state) => state.user);
+  const { isAdmin } = useAuthStore();
+  const isSuperAdmin = isAdmin();
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<User>>({
+    queryKey: ['admin-users', triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/users', {
-        params: { search: searchTerm }
+        params: { search: triggerSearch }
       });
-      setUsers(response.data.data);
-      setTotal(response.data.total);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const resData = response.data;
+      if (resData.meta) {
+        return { ...resData.meta, data: resData.data, links: resData.links };
+      }
+      return resData;
+    },
+    enabled: isSuperAdmin
+  });
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!isSuperAdmin) {
         navigate('/admin/dashboard');
-        return;
     }
-    fetchUsers();
-  }, []);
+  }, [isSuperAdmin, navigate]);
 
-  const handleDelete = async (user: any) => {
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/users/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    },
+    onError: (error: any) => {
+      alert('Gagal menghapus pengguna. ' + (error.response?.data?.message || ''));
+    }
+  });
+
+  const handleDelete = (user: User) => {
     if (user.id === currentUser?.id) {
         alert('Anda tidak bisa menghapus akun sendiri.');
         return;
     }
 
     if (window.confirm(`Apakah Anda yakin ingin menghapus akun ${user.name}?`)) {
-      try {
-        await api.delete(`/users/${user.id}`);
-        fetchUsers();
-      } catch (error) {
-        alert('Gagal menghapus pengguna.');
-      }
+      deleteMutation.mutate(user.id);
     }
   };
 
@@ -64,8 +69,8 @@ export default function Users() {
     }
   };
 
-  const { isAdmin } = useAuthStore();
-  const isSuperAdmin = isAdmin();
+  const users = data?.data || [];
+  const total = data?.total || 0;
 
   return (
     <div className="max-w-6xl">
@@ -81,20 +86,20 @@ export default function Users() {
           )}
         </div>
         
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); fetchUsers(); }}>
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Cari pengguna..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-64 border border-gray-300 rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white shadow-sm h-10 transition-all" 
-            />
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
-          </div>
-          <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 font-bold transition-all h-10">
-              Cari
-          </button>
+        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
+           <div className="relative">
+             <input 
+               type="text" 
+               placeholder="Cari pengguna..." 
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="w-full sm:w-64 border border-gray-300 rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white shadow-sm h-10 transition-all" 
+             />
+             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+           </div>
+           <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 font-bold transition-all h-10 flex items-center justify-center">
+               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cari'}
+           </button>
         </form>
       </div>
 

@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, Calendar, User, ArrowRight, Loader2, BookOpen } from 'lucide-react';
+import { Search, Calendar, User, ArrowRight, BookOpen } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
 import { useSeoMeta } from '../../hooks/useSeoMeta';
 import { useSettingsStore } from '../../store/settingsStore';
+import Skeleton from '../../components/ui/Skeleton';
+import type { Post, PaginatedResponse } from '../../types';
+import { getImageUrl } from '../../lib/utils';
 
 export default function Berita() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [posts, setPosts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const page = parseInt(searchParams.get('page') || '1');
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [meta, setMeta] = useState<any>(null);
+  
   const { settings } = useSettingsStore();
   const siteName = settings?.site_name || 'Portal Pesantren';
 
@@ -23,33 +26,25 @@ export default function Berita() {
     keywords: `berita pesantren, warta, kabar, ${siteName}`,
   });
 
-  const getImageUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    return `http://localhost:8000${path}`;
-  };
-
-  const fetchPosts = async (page = 1) => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading, isError, refetch } = useQuery<PaginatedResponse<Post>>({
+    queryKey: ['public-posts', page, searchParams.get('search'), searchParams.get('category')],
+    queryFn: async () => {
       const response = await api.get('/public/posts', {
         params: {
-          search: searchTerm,
+          search: searchParams.get('search'),
           page: page,
           category: searchParams.get('category')
         }
       });
-      setPosts(response.data.data);
-      setMeta(response.data);
-    } catch (error) {
-      console.error('Error fetching public posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return response.data;
+    },
+    retry: 1,
+  });
+
+  const posts = data?.data || [];
+  const meta = data;
 
   useEffect(() => {
-    fetchPosts();
     window.scrollTo(0, 0);
   }, [searchParams]);
 
@@ -58,10 +53,14 @@ export default function Berita() {
     setSearchParams({ ...Object.fromEntries(searchParams), search: searchTerm, page: '1' });
   };
 
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ ...Object.fromEntries(searchParams), page: newPage.toString() });
+  };
+
   return (
     <div className="bg-white min-h-screen">
       {/* Header Section */}
-      <div className="bg-primary pt-8 pb-16 px-4 relative overflow-hidden">
+      <div className="bg-primary pt-2 pb-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 shadow-xl shadow-secondary/5">
@@ -95,10 +94,36 @@ export default function Berita() {
         
         <Breadcrumbs items={[{ label: 'Berita & Artikel' }]} />
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-             <Loader2 className="w-12 h-12 animate-spin text-primary" />
-             <p className="text-xs font-black uppercase tracking-widest text-gray-400">Menghimpun Data...</p>
+        {isError ? (
+          <div className="py-24 text-center">
+             <div className="bg-red-50 text-red-500 p-8 rounded-[40px] border border-red-100 max-w-xl mx-auto">
+                <h3 className="font-black uppercase tracking-tighter text-xl mb-2">Gagal Memuat Berita</h3>
+                <p className="text-sm font-medium italic opacity-70 mb-6">Terjadi kendala saat menghubungkan ke server. Silakan coba sesaat lagi.</p>
+                <button 
+                  onClick={() => refetch()}
+                  className="bg-red-500 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-200 active:scale-95"
+                >
+                   Coba Lagi Sekarang
+                </button>
+             </div>
+          </div>
+        ) : isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden p-0">
+                <Skeleton height="14rem" className="w-full" />
+                <div className="p-8 space-y-4">
+                  <div className="flex gap-4">
+                    <Skeleton width="40%" height="1rem" />
+                    <Skeleton width="30%" height="1rem" />
+                  </div>
+                  <Skeleton height="2rem" width="90%" />
+                  <Skeleton height="1rem" />
+                  <Skeleton height="1rem" />
+                  <Skeleton height="1rem" width="60%" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : posts.length > 0 ? (
           <>
@@ -107,7 +132,12 @@ export default function Berita() {
                 <div key={post.id} className="bg-white rounded-[32px] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all group flex flex-col">
                   <div className="h-56 bg-gray-100 relative overflow-hidden flex items-center justify-center">
                     {post.cover_image ? (
-                        <img src={getImageUrl(post.cover_image)} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                        <img 
+                          src={getImageUrl(post.cover_image)} 
+                          alt={post.title} 
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                        />
                     ) : (
                         <div className="text-primary/10 opacity-30"><BookOpen className="w-20 h-20" /></div>
                     )}
@@ -139,7 +169,7 @@ export default function Berita() {
                  {Array.from({ length: meta.last_page }).map((_, i) => (
                     <button 
                       key={i}
-                      onClick={() => fetchPosts(i + 1)}
+                      onClick={() => handlePageChange(i + 1)}
                       className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs transition-all ${meta.current_page === i + 1 ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-110' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100'}`}
                     >
                       {i + 1}

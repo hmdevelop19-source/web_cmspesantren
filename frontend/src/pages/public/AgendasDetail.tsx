@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, Share2, Printer, Loader2, ArrowRight, Home } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
 import { useSeoMeta } from '../../hooks/useSeoMeta';
 import { useSettingsStore } from '../../store/settingsStore';
+import type { Agenda } from '../../types';
 
 export default function AgendasDetail() {
   const { slug } = useParams();
-  const [agenda, setAgenda] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { settings } = useSettingsStore();
   const siteName = settings?.site_name || 'Portal Pesantren';
+
+  const { data: agenda, isLoading, error } = useQuery<Agenda>({
+    queryKey: ['public-agenda', slug],
+    queryFn: async () => {
+      const response = await api.get(`/public/agendas/${slug}`);
+      return response.data;
+    },
+  });
 
   // ── Inject SEO + OpenGraph meta for this agenda ────────
   useSeoMeta({
@@ -28,23 +35,6 @@ export default function AgendasDetail() {
   });
 
   useEffect(() => {
-    const fetchAgenda = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.get(`/public/agendas/${slug}`);
-        setAgenda(response.data);
-        if (response.data.title) {
-          document.title = `${response.data.title} - Agenda Pesantren`;
-        }
-      } catch (err: any) {
-        console.error('Error fetching agenda details:', err);
-        setError('Gedung informasi kegiatan tidak ditemukan atau telah dihapus.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAgenda();
     window.scrollTo(0, 0);
   }, [slug]);
 

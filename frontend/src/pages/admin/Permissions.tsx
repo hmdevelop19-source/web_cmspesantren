@@ -1,21 +1,28 @@
+import React, { useEffect, useState } from 'react';
 import { ShieldCheck, Info, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 
 export default function Permissions() {
-  const [matrix, setMatrix] = useState<any>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { isAdmin } = useAuthStore();
+
+  const { data: matrix = {}, isLoading } = useQuery({
+    queryKey: ['admin-permissions'],
+    queryFn: async () => {
+      const response = await api.get('/permissions');
+      return response.data.matrix;
+    },
+    enabled: isAdmin()
+  });
 
   useEffect(() => {
     if (!isAdmin()) {
       navigate('/admin/dashboard');
-      return;
     }
-    fetchPermissions();
   }, [isAdmin, navigate]);
 
   const roles = [
@@ -53,43 +60,20 @@ export default function Permissions() {
     }
   ];
 
-  const fetchPermissions = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get('/permissions');
-      setMatrix(response.data.matrix);
-    } catch (error) {
-      console.error('Error fetching permissions:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPermissions();
-  }, []);
-
-  const handleToggle = async (role: string, menu: string, currentVal: boolean) => {
-    if (role === 'admin') return;
-
-    try {
-      await api.post('/permissions', {
-        role,
-        menu,
-        can_access: !currentVal
-      });
-      
-      // Update local state
-      setMatrix((prev: any) => ({
-        ...prev,
-        [menu]: {
-          ...(prev[menu] || {}),
-          [role]: !currentVal
-        }
-      }));
-    } catch (error) {
+  const toggleMutation = useMutation({
+    mutationFn: ({ role, menu, can_access }: { role: string, menu: string, can_access: boolean }) => 
+      api.post('/permissions', { role, menu, can_access }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-permissions'] });
+    },
+    onError: () => {
       alert('Gagal memperbarui izin.');
     }
+  });
+
+  const handleToggle = (role: string, menu: string, currentVal: boolean) => {
+    if (role === 'admin') return;
+    toggleMutation.mutate({ role, menu, can_access: !currentVal });
   };
 
 
@@ -192,6 +176,3 @@ export default function Permissions() {
     </div>
   );
 }
-
-// Simple React Fragment fix for the loop
-import React from 'react';

@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agenda;
+use App\Http\Requests\StoreAgendaRequest;
+use App\Http\Requests\UpdateAgendaRequest;
+use App\Http\Resources\AgendaResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class AgendaController extends Controller
@@ -17,61 +21,45 @@ class AgendaController extends Controller
             ->latest()
             ->paginate($request->per_page ?? 10);
 
-        return response()->json($agendas);
+        return AgendaResource::collection($agendas);
     }
 
-    public function store(Request $request)
+    public function store(StoreAgendaRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'nullable|string',
-            'location' => 'nullable|string',
-            'event_date' => 'required|date',
-            'status' => 'required|in:published,draft',
-        ]);
-
-        $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
+        $validated = $request->validated();
         $agenda = Agenda::create($validated);
 
-        return response()->json([
-            'message' => 'Agenda berhasil ditambahkan.',
-            'data' => $agenda
-        ], 201);
+        Cache::forget('home_data');
+
+        return (new AgendaResource($agenda))
+            ->additional(['message' => 'Agenda berhasil ditambahkan.']);
     }
 
     public function show(Agenda $agenda)
     {
-        return response()->json($agenda);
+        return new AgendaResource($agenda);
     }
 
-    public function update(Request $request, Agenda $agenda)
+    public function update(UpdateAgendaRequest $request, Agenda $agenda)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'nullable|string',
-            'location' => 'nullable|string',
-            'event_date' => 'required|date',
-            'status' => 'required|in:published,draft',
-        ]);
-
-        if ($agenda->title !== $validated['title']) {
-            $validated['slug'] = Str::slug($validated['title']) . '-' . Str::random(5);
-        }
+        $validated = $request->validated();
 
         $agenda->update($validated);
 
-        return response()->json([
-            'message' => 'Agenda berhasil diperbarui.',
-            'data' => $agenda
-        ]);
+        Cache::forget('home_data');
+
+        return (new AgendaResource($agenda))
+            ->additional(['message' => 'Agenda berhasil diperbarui.']);
     }
 
     public function destroy(Agenda $agenda)
     {
         $agenda->delete();
 
+        Cache::forget('home_data');
+
         return response()->json([
-            'message' => 'Agenda berhasil didelete.'
+            'message' => 'Agenda berhasil dihapus.'
         ]);
     }
 }

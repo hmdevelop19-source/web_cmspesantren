@@ -1,19 +1,13 @@
 import { create } from 'zustand';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
+import type { User } from '../types';
 
 interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
-  permissions: any;
+  permissions: Record<string, Record<string, boolean>>;
   setAuth: (user: User, token: string) => void;
-  setPermissions: (matrix: any) => void;
+  setPermissions: (matrix: Record<string, Record<string, boolean>>) => void;
   canAccess: (menu: string) => boolean;
   canWrite: (menu: string) => boolean;
   isAdmin: () => boolean;

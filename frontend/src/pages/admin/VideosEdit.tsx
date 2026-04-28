@@ -11,13 +11,14 @@ import {
   Link as LinkIcon,
   Star
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
+import type { Video } from '../../types';
 
 export default function VideosEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -27,44 +28,34 @@ export default function VideosEdit() {
     is_featured: false
   });
 
+  const { data: video, isLoading: isFetching } = useQuery<Video>({
+    queryKey: ['admin-video', id],
+    queryFn: async () => {
+      const response = await api.get(`/videos/${id}`);
+      return response.data.data || response.data;
+    },
+    enabled: !!id
+  });
+
   useEffect(() => {
-    const fetchVideo = async () => {
-      try {
-        const response = await api.get(`/videos/${id}`);
-        const video = response.data.data || response.data;
-        setFormData({
-          title: video.title || '',
-          description: video.description || '',
-          youtube_url: video.youtube_url || '',
-          is_featured: video.is_featured || false
-        });
-      } catch (err: any) {
-        console.error('Error fetching video:', err);
-        setError('Gagal memuat data video.');
-      } finally {
-        setIsFetching(false);
-      }
-    };
-    if (id) {
-      fetchVideo();
+    if (video) {
+      setFormData({
+        title: video.title || '',
+        description: video.description || '',
+        youtube_url: video.youtube_url || '',
+        is_featured: video.is_featured || false
+      });
     }
-  }, [id]);
+  }, [video]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.youtube_url) {
-      setError('Judul dan Tautan YouTube wajib diisi.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await api.put(`/videos/${id}`, formData);
+  const updateMutation = useMutation({
+    mutationFn: (data: typeof formData) => api.put(`/videos/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-videos'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-video', id] });
       navigate('/admin/videos');
-    } catch (err: any) {
-      console.error('Error updating video:', err);
+    },
+    onError: (err: any) => {
       const errors = err.response?.data?.errors;
       if (errors) {
         const firstError = Object.values(errors)[0];
@@ -72,10 +63,20 @@ export default function VideosEdit() {
       } else {
         setError(err.response?.data?.message || 'Gagal memperbarui video.');
       }
-    } finally {
-      setIsLoading(false);
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title || !formData.youtube_url) {
+      setError('Judul dan Tautan YouTube wajib diisi.');
+      return;
+    }
+    setError(null);
+    updateMutation.mutate(formData);
   };
+
+  const isLoading = updateMutation.isPending;
 
   if (isFetching) {
     return (

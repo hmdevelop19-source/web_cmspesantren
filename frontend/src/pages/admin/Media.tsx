@@ -1,126 +1,111 @@
 import { List, Grid, Upload, Trash2, Loader2, X, Search, Image as ImageIcon } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import { getImageUrl } from '../../lib/utils';
+import type { PaginatedResponse, Media as MediaType } from '../../types';
 
 export default function Media() {
-  const [media, setMedia] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [meta, setMeta] = useState<any>(null);
-  const [selectedMedia, setSelectedMedia] = useState<any>(null);
+  const [triggerSearch, setTriggerSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [selectedMedia, setSelectedMedia] = useState<MediaType | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isSaved, setIsSaved] = useState(false);
-  const [isBulkLoading, setIsBulkLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('media');
 
-  const fetchMedia = async (page = 1) => {
-    setIsLoading(true);
-    try {
+  const { data: mediaResponse, isLoading } = useQuery<PaginatedResponse<MediaType>>({
+    queryKey: ['admin-media', triggerSearch, page],
+    queryFn: async () => {
       const response = await api.get('/media', {
         params: {
-          search: searchTerm,
+          search: triggerSearch,
           page: page
         }
       });
-      setMedia(response.data.data);
-      setMeta(response.data);
-    } catch (error) {
-      console.error('Error fetching media:', error);
-    } finally {
-      setIsLoading(false);
+      return response.data;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchMedia();
-  }, []);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    setIsUploading(true);
-    try {
-      await api.post('/media', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      fetchMedia();
-    } catch (error) {
+  const uploadMutation = useMutation({
+    mutationFn: (formData: FormData) => api.post('/media', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-media'] });
+    },
+    onError: () => {
       alert('Gagal mengunggah media. Pastikan file adalah gambar dan ukurannya tidak melebihi 2MB.');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  };
+  });
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus media ini secara permanen?')) {
-      try {
-        await api.delete(`/media/${id}`);
-        setMedia(media.filter(m => m.id !== id));
-        setSelectedMedia(null);
-      } catch (error) {
-        alert('Gagal menghapus media.');
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.delete(`/media/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-media'] });
+      setSelectedMedia(null);
+    },
+    onError: () => {
+      alert('Gagal menghapus media.');
+    }
+  });
+
+  const bulkMutation = useMutation({
+    mutationFn: async ({ action, ids }: { action: string, ids: number[] }) => {
+      if (action === 'delete') {
+        return Promise.all(ids.map(id => api.delete(`/media/${id}`)));
       }
-    }
-  };
-
-  const handleBulkAction = async (action: 'publish' | 'unpublish' | 'delete') => {
-    if (selectedIds.length === 0) return;
-    
-    if (action === 'delete') {
-      if (!window.confirm(`Hapus ${selectedIds.length} media terpilih secara permanen?`)) return;
-      setIsBulkLoading(true);
-      try {
-        // Simple loop for delete for now as there's no bulk delete endpoint
-        await Promise.all(selectedIds.map(id => api.delete(`/media/${id}`)));
-        setMedia(media.filter(m => !selectedIds.includes(m.id)));
-        setSelectedIds([]);
-        setSelectedMedia(null);
-      } catch (error) {
-        alert('Beberapa media gagal dihapus.');
-      } finally {
-        setIsBulkLoading(false);
-      }
-      return;
-    }
-
-    setIsBulkLoading(true);
-    try {
-      await api.post('/media/bulk-update', {
-        ids: selectedIds,
+      return api.post('/media/bulk-update', {
+        ids,
         show_in_gallery: action === 'publish'
       });
-      // Update local state
-      setMedia(media.map(m => selectedIds.includes(m.id) ? { ...m, show_in_gallery: action === 'publish' } : m));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-media'] });
       setSelectedIds([]);
+      setSelectedMedia(null);
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
-    } catch (error) {
-      alert('Gagal memperbarui media secara masal.');
-    } finally {
-      setIsBulkLoading(false);
+    },
+    onError: () => {
+      alert('Tindakan massal gagal.');
     }
+  });
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    uploadMutation.mutate(formData);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus media ini secara permanen?')) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleBulkAction = (action: 'publish' | 'unpublish' | 'delete') => {
+    if (selectedIds.length === 0) return;
+    if (action === 'delete' && !window.confirm(`Hapus ${selectedIds.length} media terpilih secara permanen?`)) return;
+    bulkMutation.mutate({ action, ids: selectedIds });
   };
 
   const toggleSelect = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter(i => i !== id));
-    } else {
-      setSelectedIds([...selectedIds, id]);
-    }
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
+
+  const media = mediaResponse?.data || [];
+  const meta = mediaResponse;
+  const isUploading = uploadMutation.isPending;
+  const isBulkLoading = bulkMutation.isPending;
 
   return (
     <div className="max-w-6xl">
@@ -167,7 +152,7 @@ export default function Media() {
              </button>
          </div>
 
-         <form className="flex-1 max-w-xs relative" onSubmit={(e) => { e.preventDefault(); fetchMedia(1); }}>
+         <form className="flex-1 max-w-xs relative" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); setPage(1); }}>
               <input 
                 type="text" 
                 placeholder="Cari media..." 
@@ -195,7 +180,7 @@ export default function Media() {
                  >
                     <img 
                       src={getImageUrl(item.file_path)} 
-                      alt={item.file_name} 
+                      alt={item.filename} 
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors"></div>
@@ -247,7 +232,7 @@ export default function Media() {
            <div className="flex-1 space-y-4 overflow-y-auto pr-2">
               <div>
                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nama File</label>
-                 <p className="text-sm text-gray-700 break-all font-medium">{selectedMedia.file_name}</p>
+                 <p className="text-sm text-gray-700 break-all font-medium">{selectedMedia.filename}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                  <div>
@@ -278,7 +263,7 @@ export default function Media() {
                        try {
                           await api.put(`/media/${selectedMedia.id}`, { category: val });
                           setSelectedMedia({...selectedMedia, category: val});
-                          setMedia(media.map(m => m.id === selectedMedia.id ? {...m, category: val} : m));
+                          queryClient.invalidateQueries({ queryKey: ['admin-media'] });
                           setIsSaved(true);
                           setTimeout(() => setIsSaved(false), 2000);
                        } catch (err) {
@@ -308,8 +293,7 @@ export default function Media() {
                           try {
                             await api.put(`/media/${selectedMedia.id}`, { show_in_gallery: val });
                             setSelectedMedia({...selectedMedia, show_in_gallery: val});
-                            const updatedMedia = media.map(m => m.id === selectedMedia.id ? {...m, show_in_gallery: val} : m);
-                            setMedia(updatedMedia);
+                            queryClient.invalidateQueries({ queryKey: ['admin-media'] });
                             setIsSaved(true);
                             setTimeout(() => setIsSaved(false), 2000);
                           } catch (err) {
@@ -351,7 +335,7 @@ export default function Media() {
               {Array.from({ length: meta.last_page }).map((_, i) => (
                 <button 
                   key={i}
-                  onClick={() => fetchMedia(i + 1)}
+                  onClick={() => setPage(i + 1)}
                   className={`px-3 py-1 border border-gray-300 rounded ${meta.current_page === i + 1 ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-50'}`}
                 >
                   {i + 1}

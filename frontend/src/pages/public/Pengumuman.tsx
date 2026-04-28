@@ -1,43 +1,37 @@
 import { useEffect, useState } from 'react';
 import { Megaphone, Search, ChevronRight, Loader2, Calendar, Bell } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { Link } from 'react-router-dom';
 import api from '../../lib/api';
+import type { Announcement, PaginatedResponse } from '../../types';
 
 export default function Announcements() {
-  const [announcements, setAnnouncements] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [pagination, setPagination] = useState({
-    current_page: 1,
-    last_page: 1,
-    total: 0
-  });
+  const [triggerSearch, setTriggerSearch] = useState('');
 
-  const fetchAnnouncements = async (page = 1) => {
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery<PaginatedResponse<Announcement>>({
+    queryKey: ['public-announcements', page, triggerSearch],
+    queryFn: async () => {
       const response = await api.get('/public/announcements', {
         params: { 
           page,
-          search: searchTerm
+          search: triggerSearch
         }
       });
-      setAnnouncements(response.data.data);
-      setPagination({
-        current_page: response.data.current_page,
-        last_page: response.data.last_page,
-        total: response.data.total
-      });
-    } catch (error) {
-      console.error('Error fetching announcements:', error);
-    } finally {
-      setIsLoading(false);
-    }
+      return response.data;
+    },
+  });
+
+  const announcements = data?.data || [];
+  const pagination = {
+    current_page: data?.current_page || 1,
+    last_page: data?.last_page || 1,
+    total: data?.total || 0
   };
 
   useEffect(() => {
-    fetchAnnouncements();
     document.title = 'Pengumuman Resmi - Pesantren CMS';
     window.scrollTo(0, 0);
     return () => { document.title = 'Pesantren CMS'; };
@@ -45,7 +39,8 @@ export default function Announcements() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchAnnouncements(1);
+    setTriggerSearch(searchTerm);
+    setPage(1);
   };
 
   return (
@@ -167,7 +162,7 @@ export default function Announcements() {
                     {[...Array(pagination.last_page)].map((_, i) => (
                         <button 
                             key={i}
-                            onClick={() => fetchAnnouncements(i + 1)}
+                            onClick={() => setPage(i + 1)}
                             className={`w-12 h-12 rounded-2xl font-black text-xs transition-all ${pagination.current_page === i + 1 ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100'}`}
                         >
                             {i + 1}

@@ -4,9 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
+    use SoftDeletes;
+
+    protected static function booted()
+    {
+        static::creating(function ($post) {
+            if (!$post->slug) {
+                $post->slug = Str::slug($post->title) . '-' . Str::random(5);
+            }
+        });
+
+        static::updating(function ($post) {
+            if ($post->isDirty('title') && !$post->isDirty('slug')) {
+                $post->slug = Str::slug($post->title) . '-' . Str::random(5);
+            }
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'category_id',

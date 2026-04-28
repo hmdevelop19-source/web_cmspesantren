@@ -1,49 +1,77 @@
-import { Calendar, User, Share2, Loader2, BookOpen, Clock } from 'lucide-react';
+import { Calendar, User, Share2, BookOpen, Clock } from 'lucide-react';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { Link, useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { getImageUrl } from '../../lib/utils';
-import { useSettingsStore } from '../../store/settingsStore';
 import SEO from '../../components/SEO';
+import Skeleton from '../../components/ui/Skeleton';
+import type { Post, PaginatedResponse } from '../../types';
 
 export default function BeritaDetail() {
   const { slug } = useParams();
-  const [post, setPost] = useState<any>(null);
-  const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { settings } = useSettingsStore();
-  const siteName = settings?.site_name || 'Portal Pesantren';
 
+  const { data: post, isLoading: isPostLoading, isError, refetch } = useQuery<Post>({
+    queryKey: ['public-post', slug],
+    queryFn: async () => {
+      const response = await api.get(`/public/posts/${slug}`);
+      return response.data;
+    },
+    retry: 1,
+  });
+
+  const { data: relatedPostsData } = useQuery<PaginatedResponse<Post>>({
+    queryKey: ['related-posts', post?.id],
+    queryFn: async () => {
+      const response = await api.get('/public/posts', { params: { limit: 4 } });
+      return response.data;
+    },
+    enabled: !!post?.id,
+  });
 
   useEffect(() => {
-    const fetchPost = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.get(`/public/posts/${slug}`);
-        setPost(response.data);
-        if (response.data.title) {
-            document.title = `${response.data.title} - Pesantren CMS`;
-        }
-        
-        // Fetch related posts (latest 3 for now, excluding current)
-        const relatedRes = await api.get('/public/posts', { params: { limit: 3 } });
-        setRelatedPosts(relatedRes.data.data.filter((p: any) => p.id !== response.data.id).slice(0, 3));
-      } catch (error) {
-        console.error('Error fetching post detail:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchPost();
     window.scrollTo(0, 0);
   }, [slug]);
 
+  const isLoading = isPostLoading;
+  const relatedPosts = (relatedPostsData?.data || [])
+    .filter((p) => p.id !== post?.id)
+    .slice(0, 3);
+
+  if (isError) {
+    return (
+      <div className="max-w-7xl mx-auto py-40 px-4 text-center">
+          <div className="bg-red-50 text-red-500 p-12 rounded-[40px] border border-red-100 max-w-2xl mx-auto shadow-2xl shadow-red-50">
+             <h1 className="text-3xl font-black uppercase tracking-tighter mb-4">Gagal Menghubungkan</h1>
+             <p className="text-red-500/70 font-bold mb-10 italic leading-relaxed">Maaf, kami tidak dapat memuat konten berita saat ini. Pastikan koneksi internet Anda stabil atau coba beberapa saat lagi.</p>
+             <div className="flex justify-center gap-4">
+                <button onClick={() => refetch()} className="bg-red-500 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95">Klik Muat Ulang</button>
+                <Link to="/berita" className="bg-white border border-red-200 text-red-500 px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95">Halaman Berita</Link>
+             </div>
+          </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[600px] gap-6 bg-white">
-        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-300">Memuat Konten...</p>
+      <div className="max-w-7xl mx-auto px-4 py-20 bg-white">
+        <div className="flex flex-col lg:flex-row gap-16">
+          <div className="lg:w-2/3 space-y-8">
+            <Skeleton width="150px" height="24px" className="rounded-lg" />
+            <Skeleton height="400px" className="rounded-3xl w-full" />
+            <div className="space-y-4">
+              <Skeleton height="32px" width="80%" />
+              <Skeleton height="20px" />
+              <Skeleton height="20px" />
+              <Skeleton height="20px" width="60%" />
+            </div>
+          </div>
+          <div className="lg:w-1/3 space-y-8">
+            <Skeleton height="300px" className="rounded-3xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -86,7 +114,7 @@ export default function BeritaDetail() {
 
                {post.cover_image && (
                    <div className="w-full aspect-[16/9] bg-gray-50 rounded-3xl mb-12 overflow-hidden relative shadow-2xl shadow-black/5 ring-1 ring-gray-100">
-                      <img src={getImageUrl(post.cover_image)} alt={post.title} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(post.cover_image)} alt={post.title} loading="lazy" className="w-full h-full object-cover" />
                    </div>
                )}
 
@@ -136,7 +164,7 @@ export default function BeritaDetail() {
                         <Link to={`/berita/${item.slug}`} key={item.id} className="flex gap-5 group items-start">
                              <div className="w-20 h-20 shrink-0 bg-gray-50 rounded-2xl overflow-hidden group-hover:shadow-xl transition-all border border-gray-100 relative">
                                 {item.cover_image ? (
-                                    <img src={getImageUrl(item.cover_image)} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    <img src={getImageUrl(item.cover_image)} alt={item.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center text-primary/10"><BookOpen className="w-8 h-8" /></div>
                                 )}

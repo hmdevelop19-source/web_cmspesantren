@@ -3,18 +3,21 @@ import {
   ChevronDown, Image as ImageIcon
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import RichTextEditor from '../../components/admin/RichTextEditor';
 import MediaSelector from '../../components/admin/MediaSelector';
+import type { Page } from '../../types';
 
 export default function PagesEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const queryClient = useQueryClient();
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
+  const [mediaMode, setMediaMode] = useState<'cover' | 'editor'>('cover');
+  const editorRef = useRef<any>(null);
+  
   // Form states
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -23,37 +26,56 @@ export default function PagesEdit() {
   const [imageId, setImageId] = useState<number | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const { data: page, isLoading: isFetching } = useQuery<Page>({
+    queryKey: ['admin-page', id],
+    queryFn: async () => {
+      const response = await api.get(`/pages/${id}`);
+      return response.data.data || response.data;
+    },
+    enabled: !!id
+  });
 
   useEffect(() => {
-    const fetchPageData = async () => {
-      try {
-        const response = await api.get(`/pages/${id}`);
-        const page = response.data.data || response.data;
-        setTitle(page.title || '');
-        setContent(page.content || '');
-        setStatus(page.status || 'draft');
+    if (page) {
+      setTitle(page.title || '');
+      setContent(page.content || '');
+      setStatus(page.status || 'draft');
+      setImageId(page.image_id || null);
+      if (page.image_obj) {
+        setImage(`${import.meta.env.VITE_STORAGE_URL}${page.image_obj.file_path}`);
+      } else {
         setImage(page.image || '');
-        setImageId(page.image_id || null);
-
-        if (page.image_obj) {
-           setImage(`http://localhost:8000${page.image_obj.file_path}`);
-        }
-      } catch (err: any) {
-        console.error('Error fetching page:', err);
-        setError('Gagal memuat data laman.');
-      } finally {
-        setIsFetching(false);
       }
-    };
-    if (id) {
-      fetchPageData();
     }
-  }, [id]);
+  }, [page]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => api.put(`/pages/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-page', id] });
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal memperbarui laman.');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/pages/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-pages'] });
+      navigate('/admin/pages');
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Gagal menghapus laman.');
+    }
+  });
 
   // Auto-save logic
   useEffect(() => {
-    if (isFetching || status === 'published') return;
+    if (isFetching || status === 'published' || !id || !title) return;
 
     const timer = setTimeout(async () => {
       setIsAutoSaving(true);
@@ -70,12 +92,12 @@ export default function PagesEdit() {
       } finally {
         setIsAutoSaving(false);
       }
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [title, content, imageId, id, isFetching, status]);
 
-  const handleSubmit = async (e: React.FormEvent, targetStatus?: 'published' | 'draft') => {
+  const handleSubmit = (e: React.FormEvent, targetStatus?: 'published' | 'draft') => {
     e.preventDefault();
     
     if (!title.trim()) {
@@ -88,37 +110,24 @@ export default function PagesEdit() {
       return;
     }
 
-    setIsLoading(true);
     setError(null);
-
     const postStatus = targetStatus || status;
 
-    try {
-      await api.put(`/pages/${id}`, {
-        title,
-        content,
-        status: postStatus,
-        image_id: imageId
-      });
-      navigate('/admin/pages');
-    } catch (err: any) {
-      console.error('Error updating page:', err);
-      setError(err.response?.data?.message || 'Gagal memperbarui laman.');
-      setIsLoading(false);
-    }
+    updateMutation.mutate({
+      title,
+      content,
+      status: postStatus,
+      image_id: imageId
+    }, {
+      onSuccess: () => {
+        navigate('/admin/pages');
+      }
+    });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (window.confirm('Apakah Anda yakin ingin menghapus laman ini secara permanen?')) {
-      setIsLoading(true);
-      try {
-        await api.delete(`/pages/${id}`);
-        navigate('/admin/pages');
-      } catch (err: any) {
-        console.error('Failed to delete page:', err);
-        setError('Gagal menghapus laman.');
-        setIsLoading(false);
-      }
+      deleteMutation.mutate();
     }
   };
 
@@ -131,8 +140,10 @@ export default function PagesEdit() {
     );
   }
 
+  const isLoading = updateMutation.isPending || deleteMutation.isPending;
+
   return (
-    <div className="max-w-7xl">
+    <div className="max-w-7xl text-left">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
            <Link to="/admin/pages" className="p-2 border border-gray-300 rounded hover:bg-gray-200 bg-white">
@@ -191,8 +202,13 @@ export default function PagesEdit() {
                
                {/* Rich Text Editor */}
                <RichTextEditor 
-                 content={content}
-                 onChange={setContent}
+                  ref={editorRef}
+                  content={content}
+                  onChange={setContent}
+                  onOpenMediaLibrary={() => {
+                    setMediaMode('editor');
+                    setIsMediaSelectorOpen(true);
+                  }}
                />
             </div>
          </div>
@@ -208,11 +224,11 @@ export default function PagesEdit() {
                </div>
                <div className="p-4 space-y-4">
                   <div className="space-y-2">
-                     <label className="text-sm font-bold text-gray-700 block">Status Laman</label>
+                     <label className="text-sm font-bold text-gray-700 block text-left">Status Laman</label>
                      <select 
                        value={status}
                        onChange={(e) => setStatus(e.target.value as any)}
-                       className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                       className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white"
                      >
                        <option value="draft">Draf (Sembunyikan)</option>
                        <option value="published">Diterbitkan (Publik)</option>
@@ -253,24 +269,30 @@ export default function PagesEdit() {
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                            <button 
                               type="button"
-                              onClick={() => setIsMediaSelectorOpen(true)}
+                              onClick={() => {
+                                setMediaMode('cover');
+                                setIsMediaSelectorOpen(true);
+                              }}
                               className="bg-white/90 text-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white"
                            >
-                               Ganti
+                                Ganti
                            </button>
                            <button 
                               type="button"
                               onClick={() => { setImage(''); setImageId(null); }}
                               className="bg-red-500/90 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-600"
                            >
-                               Hapus
+                                Hapus
                            </button>
                         </div>
                      </div>
                   ) : (
                      <button 
                         type="button"
-                        onClick={() => setIsMediaSelectorOpen(true)}
+                        onClick={() => {
+                           setMediaMode('cover');
+                           setIsMediaSelectorOpen(true);
+                        }}
                         className="text-primary hover:underline w-full p-8 border-2 border-dashed border-gray-200 hover:border-primary hover:bg-primary/5 rounded-xl transition-all flex flex-col items-center gap-2"
                      >
                         <div className="p-3 bg-primary/10 rounded-full text-primary">
@@ -286,8 +308,13 @@ export default function PagesEdit() {
                isOpen={isMediaSelectorOpen}
                onClose={() => setIsMediaSelectorOpen(false)}
                onSelect={(media) => {
-                  setImage(`http://localhost:8000${media.file_path}`);
-                  setImageId(media.id);
+                  const imageUrl = `${import.meta.env.VITE_STORAGE_URL}${media.file_path}`;
+                  if (mediaMode === 'cover') {
+                    setImage(imageUrl);
+                    setImageId(media.id);
+                  } else {
+                    editorRef.current?.insertImage(imageUrl);
+                  }
                   setIsMediaSelectorOpen(false);
                }}
             />
