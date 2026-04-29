@@ -1,10 +1,11 @@
-import { Search, Megaphone, Loader2, Trash2, Edit3, ExternalLink } from 'lucide-react';
+import { Search, Megaphone, Trash2, Edit3, ExternalLink, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import type { Announcement, PaginatedResponse } from '../../types';
+import Skeleton from '../../components/ui/Skeleton';
 
 export default function Pengumumans() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,111 +43,132 @@ export default function Pengumumans() {
   };
 
   const announcements = data?.data || [];
-  const total = data?.total || 0;
-
   const { canWrite } = useAuthStore();
   const hasWriteAccess = canWrite('pengumumans');
 
   return (
-    <div className="max-w-6xl">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-           <h1 className="text-2xl font-normal text-gray-800 tracking-tight">Manajemen Pengumuman</h1>
-           {hasWriteAccess && (
-             <Link to="/admin/pengumumans/create" className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded text-sm transition-all flex items-center gap-2 font-medium">
-                Tambahkan Baru
-             </Link>
-           )}
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Pusat Pengumuman</h1>
+          <p className="text-sm text-slate-500 mt-1">Siarkan informasi penting dan maklumat kepada seluruh santri dan wali</p>
         </div>
-        
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
-           <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Cari pengumuman..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 border border-gray-300 rounded px-3 py-2 pl-9 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-10 transition-all font-medium" 
-              />
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-           </div>
-           <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 flex items-center gap-1 h-10 font-bold transition-all">
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cari'}
-           </button>
+
+        {hasWriteAccess && (
+          <Link to="/admin/pengumumans/create" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/10">
+            <Plus className="w-4 h-4" /> Buat Pengumuman Baru
+          </Link>
+        )}
+      </div>
+
+      {/* Control Bar */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <form className="w-full lg:w-96 relative" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
+           <input 
+             type="text" 
+             placeholder="Cari pengumuman..." 
+             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all outline-none shadow-sm"
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+           />
+           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         </form>
+
+        <div className="flex items-center gap-3">
+           <button 
+             onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-announcements'] })}
+             className="p-2.5 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-lg transition-all border border-slate-200 bg-white"
+             title="Refresh Data"
+           >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+           </button>
+        </div>
       </div>
 
-      <div className="flex justify-between items-center mb-4 text-sm">
-         <div className="flex gap-4">
-            <span className="text-gray-500 font-bold">Semua <span className="text-gray-400 font-normal">({total})</span></span>
-         </div>
-      </div>
-      
-      <div className="flex gap-2 flex-wrap mb-4">
-         <select className="border border-gray-300 rounded px-3 py-1.5 text-[13px] bg-white text-gray-700 focus:ring-1 focus:ring-primary outline-none">
-            <option>Tindakan Massal</option>
-         </select>
-         <button className="bg-white border border-gray-300 text-gray-700 px-4 py-1.5 rounded-md text-[13px] hover:bg-gray-50 font-bold transition-all">Terapkan</button>
-      </div>
-
-      <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden min-h-[400px] relative">
+      {/* Table Section */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden relative">
          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-               <thead className="bg-[#f6f7f7] border-b border-gray-200 text-gray-600">
+            <table className="w-full text-left">
+               <thead className="bg-slate-50/50 border-b border-slate-100">
                   <tr>
-                     <th className="w-10 px-4 py-3"><input type="checkbox" className="rounded text-primary focus:ring-primary" /></th>
-                     <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider">Judul Pengumuman</th>
-                     <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider">Sifat / Prioritas</th>
-                     <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider">Tanggal Rilis</th>
-                     <th className="px-4 py-3 font-bold text-xs uppercase tracking-wider">Status</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Informasi Pengumuman</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Prioritas</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                     <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aksi</th>
                   </tr>
                </thead>
-               <tbody className="divide-y divide-gray-200">
+               <tbody className="divide-y divide-slate-50">
                   {isLoading ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-20 text-center">
-                        <div className="flex flex-col items-center gap-2">
-                          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                          <span className="text-gray-500 font-medium">Memuat pengumuman...</span>
-                        </div>
-                      </td>
-                    </tr>
+                     Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i}>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="70%" height={20} /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="30%" /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="40%" /></td>
+                           <td className="px-8 py-5 text-right"><Skeleton variant="rectangular" width={80} height={32} className="rounded-lg inline-block" /></td>
+                        </tr>
+                     ))
                   ) : announcements.length > 0 ? (
                     announcements.map((row) => (
-                      <tr key={row.id} className="hover:bg-gray-50 group transition-colors">
-                         <td className="px-4 py-4"><input type="checkbox" className="rounded text-primary focus:ring-primary" /></td>
-                         <td className="px-4 py-4 text-left">
-                            <Link to={hasWriteAccess ? `/admin/pengumumans/edit/${row.id}` : '#'} className={`font-bold text-primary group-hover:text-primary-dark transition-colors flex items-center gap-2 text-left ${!hasWriteAccess && 'pointer-events-none'}`}>
-                               <Megaphone className={`w-4 h-4 ${row.priority === 'high' ? 'text-red-500' : 'text-gray-400'}`} /> {row.title}
-                            </Link>
-                            <div className="text-[11px] text-gray-400 opacity-0 group-hover:opacity-100 mt-1.5 flex gap-2.5 transition-all">
-                               {hasWriteAccess && (
-                                 <>
-                                   <Link to={`/admin/pengumumans/edit/${row.id}`} className="hover:text-primary flex items-center gap-1"><Edit3 className="w-3 h-3" /> Sunting</Link> | 
-                                   <button onClick={() => handleDelete(row.id)} className="text-red-500 hover:text-red-700 flex items-center gap-1 font-medium"><Trash2 className="w-3 h-3" /> Hapus</button> | 
-                                 </>
-                               )}
-                               <a href={`/pengumuman/${row.slug}`} target="_blank" rel="noreferrer" className="hover:text-primary flex items-center gap-1"><ExternalLink className="w-3 h-3" /> Tampil</a>
-                            </div>
-                         </td>
-                         <td className="px-4 py-4">
-                            {row.priority === 'high' ? <span className="text-red-600 font-bold bg-red-50 px-2.5 py-1 rounded text-[11px] uppercase border border-red-100 italic">Penting</span> : <span className="text-gray-600 font-medium bg-gray-50 px-2.5 py-1 rounded text-[11px] uppercase border border-gray-100">Biasa</span>}
-                         </td>
-                         <td className="px-4 py-4 font-mono text-[11px] font-bold text-gray-700 italic">
-                            {new Date(row.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                         </td>
-                         <td className="px-4 py-4">
-                            {row.status === 'published' 
-                               ? <span className="text-green-700 font-bold text-[10px] uppercase bg-green-50 px-2 py-1 rounded border border-green-100">Diterbitkan</span> 
-                               : <span className="text-gray-500 font-bold text-[10px] uppercase bg-gray-50 px-2 py-1 rounded border border-gray-100">Draf</span>}
-                         </td>
-                      </tr>
+                       <tr key={row.id} className="group hover:bg-slate-50/50 transition-all">
+                          <td className="px-8 py-5">
+                             <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
+                                   <Megaphone className="w-5 h-5" />
+                                </div>
+                                <div className="min-w-0">
+                                   <p className="text-sm font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{row.title}</p>
+                                   <p className="text-[11px] text-slate-400 mt-0.5 truncate font-medium">
+                                      {new Date(row.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                   </p>
+                                </div>
+                             </div>
+                          </td>
+                          <td className="px-8 py-5">
+                             {row.priority === 'high' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-bold uppercase tracking-wider border border-red-100">
+                                   <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> Penting
+                                </span>
+                             ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                                   Biasa
+                                </span>
+                             )}
+                          </td>
+                          <td className="px-8 py-5">
+                             {row.status === 'published' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
+                                </span>
+                             ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                                   Draf
+                                </span>
+                             )}
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <Link to={`/admin/pengumumans/edit/${row.id}`} className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Edit Pengumuman">
+                                   <Edit3 className="w-4 h-4" />
+                                </Link>
+                                <a href={`/pengumuman/${row.slug}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Lihat Publik">
+                                   <ExternalLink className="w-4 h-4" />
+                                </a>
+                                <button onClick={() => handleDelete(row.id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Hapus Pengumuman">
+                                   <Trash2 className="w-4 h-4" />
+                                </button>
+                             </div>
+                          </td>
+                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-4 py-20 text-center text-gray-500 text-sm italic">
-                        Belum ada pengumuman yang ditambahkan.
-                      </td>
+                       <td colSpan={4} className="px-8 py-24 text-center">
+                          <div className="flex flex-col items-center gap-4 text-slate-300">
+                             <Megaphone className="w-12 h-12 opacity-20" />
+                             <p className="text-sm font-medium italic">Belum ada pengumuman ditemukan</p>
+                          </div>
+                       </td>
                     </tr>
                   )}
                </tbody>

@@ -1,6 +1,6 @@
 import { 
   Menu as MenuIcon, Plus, Trash2, Loader2, Save, X, Edit2, 
-  ExternalLink, Globe 
+  ExternalLink, Globe, ChevronUp, ChevronDown, RefreshCw 
 } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -48,11 +48,44 @@ export default function MenuManager() {
     onError: () => alert('Gagal memperbarui menu.')
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: (reorderedMenus: any[]) => api.post('/menus/reorder', { menus: reorderedMenus }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-menus'] });
+    },
+    onError: () => alert('Gagal memperbarui urutan menu.')
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/menus/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-menus'] }),
     onError: () => alert('Gagal menghapus menu.')
   });
+
+  const handleMove = (index: number, direction: 'up' | 'down', isChild = false, parentIndex?: number) => {
+    let items = [...menus];
+    
+    if (isChild && parentIndex !== undefined) {
+      const parent = { ...items[parentIndex] };
+      const children = [...(parent.children || [])];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      
+      if (targetIndex < 0 || targetIndex >= children.length) return;
+      
+      [children[index], children[targetIndex]] = [children[targetIndex], children[index]];
+      
+      const updatedChildren = children.map((c, i) => ({ id: c.id, order: i + 1 }));
+      reorderMutation.mutate(updatedChildren);
+    } else {
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= items.length) return;
+      
+      [items[index], items[targetIndex]] = [items[targetIndex], items[index]];
+      
+      const updatedMenus = items.map((m, i) => ({ id: m.id, order: i + 1 }));
+      reorderMutation.mutate(updatedMenus);
+    }
+  };
 
   const resetForm = () => {
     setLabel('');
@@ -92,52 +125,50 @@ export default function MenuManager() {
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="max-w-5xl">
-      <div className="mb-8 flex justify-between items-end">
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
         <div>
-          <h1 className="text-2xl font-normal text-gray-800 flex items-center gap-3">
-            <MenuIcon className="w-7 h-7 text-primary" /> Pengaturan Navigasi
-          </h1>
-          <p className="text-sm text-gray-500 mt-1 uppercase tracking-tighter italic">Kelola struktur menu utama pada halaman depan website.</p>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Navigasi</h1>
+          <p className="text-sm text-slate-500 mt-1">Atur struktur menu, tautan, dan urutan navigasi utama website</p>
         </div>
 
         {hasWriteAccess && (
           <button 
             onClick={() => setShowForm(true)}
-            className="bg-primary text-white hover:bg-primary-dark px-6 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 font-black uppercase tracking-widest shadow-xl shadow-primary/20"
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/10"
           >
-            <Plus className="w-4 h-4" /> Tambah Menu
+            <Plus className="w-4 h-4" /> Tambah Menu Baru
           </button>
         )}
       </div>
 
-      {/* Form Modal/Section */}
+      {/* Form Section */}
       {showForm && (
-        <div className="bg-white border border-primary/20 shadow-2xl rounded-3xl p-8 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8 mb-8 animate-in slide-in-from-top-4 duration-300">
            <div className="flex justify-between items-center mb-8">
-              <h2 className="font-black text-gray-900 uppercase tracking-[0.2em] text-xs flex items-center gap-3">
-                <div className="w-2 h-6 bg-secondary rounded-full"></div>
+              <h2 className="text-lg font-bold text-slate-800">
                 {editingMenu ? 'Edit Menu' : 'Tambah Menu Baru'}
               </h2>
-              <button onClick={resetForm} className="text-gray-400 hover:text-red-500 transition-colors p-2 bg-gray-50 rounded-full"><X className="w-5 h-5" /></button>
+              <button onClick={resetForm} className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-slate-50 rounded-lg"><X className="w-5 h-5" /></button>
            </div>
            
            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Label Menu</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Label Menu</label>
                   <input 
                     type="text" 
                     placeholder="Contoh: Tentang Kami" 
                     required
                     value={label}
                     onChange={(e) => setLabel(e.target.value)}
-                    className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                    className="w-full border border-slate-200 bg-slate-50/50 rounded-lg px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">URL / Link Penautan</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">URL / Tautan</label>
                   <div className="relative group">
                     <input 
                       type="text" 
@@ -145,30 +176,29 @@ export default function MenuManager() {
                       required
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
-                      className="w-full border border-gray-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                      className="w-full border border-slate-200 bg-slate-50/50 rounded-lg pl-12 pr-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all"
                     />
-                    <Globe className="w-5 h-5 text-gray-300 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" />
+                    <Globe className="w-5 h-5 text-slate-300 absolute left-4 top-1/2 -translate-y-1/2" />
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-2 ml-1 italic font-medium">Gunakan '/' untuk link internal pesantren.</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Menu Induk (Opsional)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Menu Induk</label>
                   <select 
                     value={parentId || ''}
                     onChange={(e) => setParentId(e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all shadow-inner appearance-none cursor-pointer"
+                    className="w-full border border-slate-200 bg-slate-50/50 rounded-lg px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
                   >
-                    <option value="">-- Jadikan Menu Utama --</option>
+                    <option value="">-- Menu Utama --</option>
                     {menus.filter(m => m.id !== editingMenu?.id).map(m => (
                       <option key={m.id} value={m.id}>{m.label}</option>
                     ))}
                   </select>
                 </div>
 
-                <div className="flex items-center gap-3 pt-4">
+                <div className="flex items-center gap-3 pt-2">
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
                       type="checkbox" 
@@ -176,27 +206,27 @@ export default function MenuManager() {
                       onChange={(e) => setIsActive(e.target.checked)}
                       className="sr-only peer" 
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    <span className="ml-3 text-xs font-black text-gray-600 uppercase tracking-widest">Aktifkan Menu</span>
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    <span className="ml-3 text-sm font-semibold text-slate-600">Aktifkan Menu</span>
                   </label>
                 </div>
               </div>
 
-              <div className="md:col-span-2 pt-4 flex justify-end gap-4 border-t border-gray-50">
+              <div className="md:col-span-2 pt-6 flex justify-end gap-3 border-t border-slate-100">
                 <button 
                   type="button"
                   onClick={resetForm}
-                  className="px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] text-gray-400 hover:text-gray-600 transition-all"
+                  className="px-6 py-2.5 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all"
                 >
-                  Batalkan
+                  Batal
                 </button>
                 <button 
                   type="submit" 
                   disabled={isPending || !label.trim()}
-                  className="bg-primary text-white px-10 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-2xl shadow-primary/30"
+                  className="bg-primary text-white px-8 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-primary/10"
                 >
                   {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {editingMenu ? 'Perbarui Menu' : 'Simpan Menu Baru'}
+                  {editingMenu ? 'Perbarui Menu' : 'Simpan Menu'}
                 </button>
               </div>
            </form>
@@ -204,65 +234,78 @@ export default function MenuManager() {
       )}
 
       {/* Menu List */}
-      <div className="bg-white border border-gray-200 shadow-2xl shadow-black/5 rounded-[2.5rem] overflow-hidden">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         {isLoading ? (
-          <div className="py-32 text-center flex flex-col items-center gap-6">
-             <div className="relative">
-                <div className="w-16 h-16 border-4 border-primary/10 border-t-primary rounded-full animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <MenuIcon className="w-6 h-6 text-primary animate-pulse" />
-                </div>
-             </div>
-             <span className="text-gray-400 font-black text-[10px] uppercase tracking-[0.4em]">Membangun Struktur...</span>
+          <div className="py-24 text-center flex flex-col items-center gap-4">
+             <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+             <span className="text-slate-400 font-medium text-sm">Memuat struktur navigasi...</span>
           </div>
         ) : (
-          <div className="p-2">
-            <div className="bg-gray-50 border-b border-gray-100 px-8 py-4 flex text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+          <div>
+            <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-4 flex text-[11px] font-bold text-slate-400 uppercase tracking-widest">
               <div className="flex-1">Struktur Navigasi</div>
-              <div className="w-40">Status</div>
-              <div className="w-32 text-right">Aksi</div>
+              <div className="w-24">Urutan</div>
+              <div className="w-32">Status</div>
+              <div className="w-28 text-right">Aksi</div>
             </div>
             
-            <div className="divide-y divide-gray-50">
-              {menus.length > 0 ? menus.map((menu) => (
+            <div className="divide-y divide-slate-50">
+              {menus.length > 0 ? menus.map((menu, index) => (
                 <div key={menu.id} className="group">
-                  <div className="flex items-center px-8 py-5 hover:bg-gray-50/80 transition-all">
+                  <div className="flex items-center px-6 py-4 hover:bg-slate-50/50 transition-all">
                     <div className="flex-1 flex items-center gap-4">
                       <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
                         <MenuIcon className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="font-black text-gray-900 uppercase italic tracking-tight group-hover:text-primary transition-colors">{menu.label}</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <code className="text-[9px] text-gray-300 font-mono">{menu.url}</code>
+                        <span className="text-sm font-bold text-slate-800 group-hover:text-primary transition-colors">{menu.label}</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <code className="text-[10px] text-slate-400 font-mono">{menu.url}</code>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="w-40">
+                    <div className="w-24 flex items-center gap-1">
+                       <button 
+                        disabled={index === 0 || reorderMutation.isPending}
+                        onClick={() => handleMove(index, 'up')}
+                        className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-primary hover:border-primary disabled:opacity-30 transition-all"
+                       >
+                         <ChevronUp className="w-3.5 h-3.5" />
+                       </button>
+                       <button 
+                        disabled={index === menus.length - 1 || reorderMutation.isPending}
+                        onClick={() => handleMove(index, 'down')}
+                        className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-primary hover:border-primary disabled:opacity-30 transition-all"
+                       >
+                         <ChevronDown className="w-3.5 h-3.5" />
+                       </button>
+                    </div>
+
+                    <div className="w-32">
                       {menu.is_active ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[9px] font-black uppercase tracking-widest border border-green-100">
-                           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                           <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                           <span className="text-[11px] font-bold text-green-600 uppercase tracking-wider">Aktif</span>
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-50 text-gray-400 text-[9px] font-black uppercase tracking-widest border border-gray-100">
-                           Offline
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                           <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Draft</span>
+                        </div>
                       )}
                     </div>
 
-                    <div className="w-32 flex justify-end gap-1">
+                    <div className="w-28 flex justify-end gap-1">
                       <button 
                         onClick={() => handleEdit(menu)}
-                        className="p-2 text-gray-300 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
-                        title="Edit Menu"
+                        className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => handleDelete(menu.id)}
-                        className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                        title="Hapus Menu"
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -271,17 +314,35 @@ export default function MenuManager() {
 
                   {/* Children Render */}
                   {menu.children && menu.children.length > 0 && (
-                    <div className="bg-gray-50/30 ml-8 border-l-2 border-gray-100 divide-y divide-gray-50">
-                      {menu.children.map(child => (
-                        <div key={child.id} className="flex items-center px-8 py-4 hover:bg-white transition-all group/child">
+                    <div className="bg-slate-50/30 ml-8 border-l-2 border-slate-100 divide-y divide-slate-50">
+                      {menu.children.map((child, cIndex) => (
+                        <div key={child.id} className="flex items-center px-6 py-3 hover:bg-white transition-all group/child">
                            <div className="flex-1 flex items-center gap-3">
-                              <div className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover/child:bg-secondary"></div>
-                              <span className="font-bold text-gray-600 text-xs uppercase tracking-tight">{child.label}</span>
-                              <span className="text-[9px] text-gray-300 font-mono lowercase">({child.url})</span>
+                              <div className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover/child:bg-secondary"></div>
+                              <span className="font-semibold text-slate-600 text-xs">{child.label}</span>
+                              <span className="text-[10px] text-slate-400 font-mono">({child.url})</span>
                            </div>
-                           <div className="w-32 flex justify-end gap-1">
-                              <button onClick={() => handleEdit(child)} className="p-2 text-gray-200 hover:text-primary transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => handleDelete(child.id)} className="p-2 text-gray-200 hover:text-red-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                           
+                           <div className="w-24 flex items-center gap-1">
+                              <button 
+                                disabled={cIndex === 0 || reorderMutation.isPending}
+                                onClick={() => handleMove(cIndex, 'up', true, index)}
+                                className="p-1 rounded-md border border-slate-100 text-slate-300 hover:text-secondary disabled:opacity-20 transition-all"
+                              >
+                                <ChevronUp className="w-3 h-3" />
+                              </button>
+                              <button 
+                                disabled={cIndex === (menu.children?.length || 0) - 1 || reorderMutation.isPending}
+                                onClick={() => handleMove(cIndex, 'down', true, index)}
+                                className="p-1 rounded-md border border-slate-100 text-slate-300 hover:text-secondary disabled:opacity-20 transition-all"
+                              >
+                                <ChevronDown className="w-3 h-3" />
+                              </button>
+                           </div>
+
+                           <div className="w-28 flex justify-end gap-1">
+                              <button onClick={() => handleEdit(child)} className="p-2 text-slate-300 hover:text-primary transition-all"><Edit2 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => handleDelete(child.id)} className="p-2 text-slate-300 hover:text-red-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                            </div>
                         </div>
                       ))}
@@ -289,14 +350,9 @@ export default function MenuManager() {
                   )}
                 </div>
               )) : (
-                <div className="py-20 text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in">
-                   <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center border border-dashed border-gray-200">
-                      <Globe className="w-10 h-10 text-gray-200" />
-                   </div>
-                   <div>
-                     <p className="text-gray-400 font-black uppercase tracking-[0.2em] text-[10px]">Struktur Navigasi Masih Kosong</p>
-                     <p className="text-gray-300 text-[10px] mt-2 italic">Tambahkan menu pertama Anda untuk ditampilkan di website.</p>
-                   </div>
+                <div className="py-20 text-center flex flex-col items-center gap-4">
+                   <Globe className="w-12 h-12 text-slate-200" />
+                   <p className="text-slate-400 font-semibold text-sm">Struktur navigasi masih kosong</p>
                 </div>
               )}
             </div>
@@ -304,12 +360,12 @@ export default function MenuManager() {
         )}
       </div>
 
-      <div className="mt-8 bg-blue-50 border border-blue-100 rounded-2xl p-6 flex items-start gap-4">
-          <div className="bg-blue-500 text-white p-2 rounded-xl"><ExternalLink className="w-5 h-5" /></div>
+      <div className="mt-8 bg-primary/5 border border-primary/10 rounded-xl p-6 flex items-start gap-4">
+          <div className="bg-primary text-white p-2.5 rounded-lg shadow-sm"><ExternalLink className="w-5 h-5" /></div>
           <div>
-             <h4 className="font-black text-blue-900 text-xs uppercase tracking-widest mb-1">Tips Navigasi</h4>
-             <p className="text-blue-700/70 text-[11px] leading-relaxed font-medium">
-               Gunakan link internal seperti <code className="bg-blue-100 px-1 rounded">/berita</code> atau <code className="bg-blue-100 px-1 rounded">/profil/sejarah</code> untuk halaman dalam website. Untuk link luar, pastikan menggunakan awalan <code className="bg-blue-100 px-1 rounded">https://</code>.
+             <h4 className="font-bold text-primary text-sm mb-1">Tips Navigasi</h4>
+             <p className="text-primary/70 text-xs leading-relaxed">
+               Gunakan link internal seperti <code className="bg-primary/10 px-1 rounded">/berita</code> atau <code className="bg-primary/10 px-1 rounded">/profil/sejarah</code> untuk halaman dalam website. Untuk link luar, pastikan menggunakan awalan <code className="bg-primary/10 px-1 rounded">https://</code>.
              </p>
           </div>
       </div>

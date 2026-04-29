@@ -12,6 +12,7 @@ class MediaResource extends JsonResource
         return [
             'id' => $this->id,
             'file_name' => $this->file_name,
+            'filename'  => $this->file_name,
             'file_path' => $this->file_path,
             'file_type' => $this->file_type,
             'file_size' => $this->file_size,

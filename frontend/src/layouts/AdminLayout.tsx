@@ -71,7 +71,7 @@ export default function AdminLayout() {
   const navItemClass = "mx-3 flex items-center gap-3 px-4 py-3 text-[13px] font-bold rounded-2xl transition-all duration-300 ease-out";
 
   return (
-    <div className="flex h-screen bg-slate-50 w-full overflow-hidden font-sans relative text-gray-800">
+    <div className="flex h-screen bg-slate-50 w-full overflow-x-hidden overflow-y-hidden font-sans relative text-gray-800">
       
       {/* Mobile Overlay */}
       {isMobileMenuOpen && (
@@ -253,7 +253,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative">
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative bg-slate-50">
         
         {/* Topbar Glassmorphic */}
         <header className="h-16 bg-white/80 backdrop-blur-xl border-b border-gray-200/60 sticky top-0 z-20 shrink-0 flex items-center justify-between px-6 transition-all shadow-sm">
@@ -288,7 +288,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content area with cool gray background */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 relative">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-50 p-4 md:p-8 relative">
            {/* Subtle background glow */}
            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none -mt-48 -mr-48"></div>
            <div className="relative z-10">

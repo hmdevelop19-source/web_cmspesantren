@@ -55,7 +55,7 @@ export default function Profil() {
   return (
     <div className="bg-white w-full pb-32">
       {/* Page Header (Hero Profil) */}
-      <section className="bg-primary pt-2 pb-32 relative overflow-hidden">
+      <section className="bg-primary pt-28 pb-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center text-white">
             <h1 className="text-3xl md:text-5xl font-black mb-6 tracking-tighter uppercase drop-shadow-2xl">Jejak & Visi</h1>

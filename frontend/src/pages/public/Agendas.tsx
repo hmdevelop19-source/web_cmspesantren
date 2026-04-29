@@ -43,10 +43,14 @@ export default function Agendas() {
     setPage(1);
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Header Section */}
-      <section className="bg-primary pt-8 pb-16 px-4 relative overflow-hidden">
+      <section className="bg-primary pt-28 pb-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto relative z-10 text-center">
             <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 animate-fade-in">
@@ -163,13 +167,13 @@ export default function Agendas() {
             )}
 
             {/* Pagination Section */}
-            {pagination.last_page > 1 && (
-                <div className="mt-20 flex justify-center items-center gap-3">
-                    {[...Array(pagination.last_page)].map((_, i) => (
+            {(pagination.last_page ?? 0) > 1 && (
+                <div className="mt-20 flex justify-center gap-3">
+                    {[...Array(pagination.last_page ?? 0)].map((_, i) => (
                         <button 
                             key={i}
-                            onClick={() => setPage(i + 1)}
-                            className={`w-12 h-12 rounded-2xl font-black text-xs transition-all ${pagination.current_page === i + 1 ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100'}`}
+                            onClick={() => handlePageChange(i + 1)}
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs transition-all ${pagination.current_page === i + 1 ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-110' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-100'}`}
                         >
                             {i + 1}
                         </button>

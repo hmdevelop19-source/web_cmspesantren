@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UserPlus, ArrowLeft, Shield, Mail, Lock, User as UserIcon, CheckCircle2, Loader2, Save } from 'lucide-react';
+import { UserPlus, ArrowLeft, Shield, Mail, Lock, User as UserIcon, Loader2, Save } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
@@ -44,9 +44,7 @@ export default function UsersCreate() {
   const mutation = useMutation({
     mutationFn: (data: typeof formData) => {
       const payload = { ...data };
-      if (isEdit && !payload.password) {
-        delete (payload as any).password;
-      }
+      if (isEdit && !payload.password) delete (payload as any).password;
       return isEdit ? api.put(`/users/${id}`, payload) : api.post('/users', payload);
     },
     onSuccess: () => {
@@ -67,9 +65,9 @@ export default function UsersCreate() {
 
   if (isFetching) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
-        <p className="text-gray-500 text-sm">Memuat data pengguna...</p>
+      <div className="flex flex-col items-center justify-center min-h-[400px] animate-in fade-in duration-500">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Memuat data pengguna...</p>
       </div>
     );
   }
@@ -77,166 +75,131 @@ export default function UsersCreate() {
   const isLoading = mutation.isPending;
 
   return (
-    <div className="max-w-4xl">
-      <div className="mb-6">
-        <Link to="/admin/users" className="text-primary hover:text-primary-dark flex items-center gap-1 text-sm font-bold mb-4 transition-colors w-fit">
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Pengguna
-        </Link>
-        <h1 className="text-2xl font-normal text-gray-800 flex items-center gap-2">
-          {isEdit ? 'Sunting Pengguna' : 'Tambah Pengguna Baru'}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {isEdit ? 'Perbarui informasi akun dan hak akses pengguna ini.' : 'Buat akun baru untuk staf atau pengurus konten pesantren.'}
-        </p>
+    <div className="max-w-4xl space-y-8 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+        <div className="flex items-center gap-4">
+          <Link to="/admin/users" className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+              {isEdit ? 'Sunting Pengguna' : 'Tambah Pengguna Baru'}
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {isEdit ? 'Perbarui informasi akun dan hak akses pengguna ini.' : 'Buat akun baru untuk staf atau pengurus konten.'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {error && <span className="text-red-500 text-xs font-bold bg-red-50 px-3 py-1 rounded-full border border-red-100">{error}</span>}
+          <Link to="/admin/users" className="bg-white border border-slate-200 text-slate-600 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">
+            Batalkan
+          </Link>
+          <button type="submit" form="user-form" disabled={isLoading}
+            className="bg-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md shadow-primary/10 flex items-center gap-2 disabled:opacity-50">
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEdit ? <Save className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />)}
+            {isEdit ? 'Simpan Perubahan' : 'Tambah Pengguna'}
+          </button>
+        </div>
       </div>
 
-      {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
-          <span className="font-medium text-sm">{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <form id="user-form" onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-8">
         {/* Main Form Area */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 md:p-8 space-y-6">
-            <h2 className="text-base font-bold text-gray-800 border-b border-gray-100 pb-4 flex items-center gap-2">
-              <UserIcon className="w-4 h-4 text-primary" /> Informasi Pribadi
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-gray-700">Nama Lengkap</label>
-                <input 
-                  type="text" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                  placeholder="Contoh: Ahmad Faisal, S.Pd" 
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" 
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-gray-700">Alamat Email</label>
-                <div className="relative">
-                  <input 
-                    type="email" 
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    placeholder="email@institusi.ac.id" 
-                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 pl-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" 
-                  />
-                  <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+        <div className="lg:flex-1 space-y-6">
+          {/* Personal Info */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+            <div className="border-b border-slate-100 px-6 py-4 bg-slate-50/50">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                <UserIcon className="w-3.5 h-3.5 text-primary" /> Informasi Pribadi
+              </h2>
+            </div>
+            <div className="p-6 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Nama Lengkap</label>
+                  <input type="text" value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required placeholder="Contoh: Ahmad Faisal, S.Pd"
+                    className="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary/10 outline-none transition-all" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Alamat Email</label>
+                  <div className="relative">
+                    <input type="email" value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required placeholder="email@institusi.ac.id"
+                      className="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 pl-10 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary/10 outline-none transition-all" />
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-gray-700">{isEdit ? 'Kata Sandi Baru (Kosongkan jika tidak diganti)' : 'Kata Sandi'}</label>
-              <div className="relative">
-                <input 
-                  type="password" 
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required={!isEdit}
-                  placeholder="••••••••" 
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 pl-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm" 
-                />
-                <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                  {isEdit ? 'Kata Sandi Baru (Kosongkan jika tidak diganti)' : 'Kata Sandi'}
+                </label>
+                <div className="relative">
+                  <input type="password" value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    required={!isEdit} placeholder="••••••••"
+                    className="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 pl-10 text-sm font-semibold text-slate-700 focus:ring-2 focus:ring-primary/10 outline-none transition-all" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                </div>
+                <p className="text-[10px] text-slate-400">Gunakan minimal 8 karakter.</p>
               </div>
-              <p className="text-[11px] text-gray-400 mt-1 italic">Gunakan minimal 8 karakter.</p>
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 md:p-8">
-            <h2 className="text-base font-bold text-gray-800 border-b border-gray-100 pb-4 flex items-center gap-2 mb-6">
-              <Shield className="w-4 h-4 text-primary" /> Pengaturan Hak Akses
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className="text-sm font-bold text-gray-700 block">Peran / Role</label>
+          {/* Access Rights */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+            <div className="border-b border-slate-100 px-6 py-4 bg-slate-50/50">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-primary" /> Hak Akses
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Peran / Role</label>
                   {[
                     { id: 'admin', label: 'Administrator', desc: 'Akses penuh ke seluruh sistem.' },
-                    { id: 'editor', label: 'Editor', desc: 'Dapat mengelola konten milik sendiri & orang lain.' },
-                    { id: 'author', label: 'Penulis', desc: 'Dapat menulis dan mengelola konten milik sendiri.' }
+                    { id: 'editor', label: 'Editor', desc: 'Kelola konten milik sendiri & orang lain.' },
+                    { id: 'author', label: 'Penulis', desc: 'Tulis dan kelola konten milik sendiri.' }
                   ].map((role) => (
-                    <label key={role.id} className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors group ${formData.role === role.id ? 'border-primary bg-primary/5' : 'border-gray-100 hover:bg-gray-50'}`}>
-                      <input 
-                        type="radio" 
-                        name="role" 
-                        value={role.id} 
+                    <label key={role.id} className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${formData.role === role.id ? 'border-primary/30 bg-primary/5' : 'border-slate-200 hover:bg-slate-50'}`}>
+                      <input type="radio" name="role" value={role.id}
                         checked={formData.role === role.id}
                         onChange={() => setFormData({ ...formData, role: role.id as any })}
-                        className="w-4 h-4 text-primary focus:ring-primary" 
-                      />
+                        className="w-4 h-4 text-primary focus:ring-primary" />
                       <div>
-                        <span className="text-sm font-bold text-gray-800 block">{role.label}</span>
-                        <span className="text-[10px] text-gray-500 block">{role.desc}</span>
+                        <span className="text-sm font-bold text-slate-800 block">{role.label}</span>
+                        <span className="text-[10px] text-slate-400">{role.desc}</span>
                       </div>
                     </label>
                   ))}
                 </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="text-sm font-bold text-gray-700 block">Status Akun</label>
-                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                  <div className="flex flex-col gap-4">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Status Akun</label>
+                  <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3">
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="status" 
-                        value="active" 
+                      <input type="radio" name="status" value="active"
                         checked={formData.status === 'active'}
                         onChange={() => setFormData({ ...formData, status: 'active' })}
-                        className="w-4 h-4 text-primary focus:ring-primary" 
-                      />
-                      <span className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${formData.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}>Aktif</span>
+                        className="w-4 h-4 text-primary focus:ring-primary" />
+                      <span className={`text-sm font-bold px-3 py-1 rounded-lg ${formData.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-500'}`}>Aktif</span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="status" 
-                        value="inactive" 
+                      <input type="radio" name="status" value="inactive"
                         checked={formData.status === 'inactive'}
                         onChange={() => setFormData({ ...formData, status: 'inactive' })}
-                        className="w-4 h-4 text-primary focus:ring-primary" 
-                      />
-                      <span className={`text-sm font-medium px-3 py-1 rounded-lg transition-colors ${formData.status === 'inactive' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-500'}`}>Nonaktif</span>
+                        className="w-4 h-4 text-primary focus:ring-primary" />
+                      <span className={`text-sm font-bold px-3 py-1 rounded-lg ${formData.status === 'inactive' ? 'bg-red-100 text-red-700' : 'bg-slate-200 text-slate-500'}`}>Nonaktif</span>
                     </label>
+                    <p className="text-[10px] text-slate-400 pt-2 leading-relaxed">Akun nonaktif tidak dapat log masuk ke CMS.</p>
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-6 leading-relaxed">Akun nonaktif tidak akan dapat melakukan log masuk ke CMS hingga status diaktifkan kembali.</p>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Sidebar Actions */}
-        <div className="space-y-6">
-          <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 sticky top-20">
-            <h3 className="font-bold text-gray-800 text-sm mb-4 italic text-center border-b border-dashed border-gray-100 pb-4 tracking-widest uppercase">Konfirmasi</h3>
-            
-            <button 
-              type="submit" 
-              disabled={isLoading}
-              className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 mb-3 disabled:opacity-50"
-            >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isEdit ? <Save className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />)}
-              {isEdit ? 'Simpan Perubahan' : 'Terbitkan Pengguna'}
-            </button>
-            
-            <button 
-              type="button" 
-              disabled={isLoading}
-              onClick={() => navigate('/admin/users')}
-              className="w-full bg-white text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all border border-gray-200 text-sm disabled:opacity-50"
-            >
-              Batalkan
-            </button>
           </div>
         </div>
       </form>

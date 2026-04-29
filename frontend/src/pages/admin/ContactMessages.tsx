@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Trash2, Eye, RefreshCw, Loader2, MailOpen, CheckCheck, Clock, Search, AlertCircle } from 'lucide-react';
+import { Mail, Trash2, Eye, RefreshCw, Loader2, MailOpen, CheckCheck, Clock, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import type { ContactMessage } from '../../types';
@@ -86,18 +87,19 @@ export default function ContactMessages() {
   );
 
   return (
-    <div className="max-w-7xl">
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
       {/* Page Header */}
-      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
         <div>
-          <h1 className="text-3xl font-black text-gray-800 tracking-tighter uppercase italic">Pesan Masuk</h1>
-          <p className="text-sm font-bold text-gray-400 mt-1">Formulir kontak dari pengunjung portal publik</p>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Pusat Pesan Kontak</h1>
+          <p className="text-sm text-slate-500 mt-1">Kelola aspirasi, pertanyaan, dan masukan dari pengunjung portal pesantren</p>
         </div>
+
         <div className="flex items-center gap-3">
           {unreadCount > 0 && (
-            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 px-4 py-2 rounded-xl">
-              <Mail className="w-4 h-4" />
-              <span className="text-xs font-black uppercase tracking-widest">{unreadCount} Belum Dibaca</span>
+            <div className="flex items-center gap-2 bg-primary text-white px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg shadow-primary/20">
+              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+              {unreadCount} Pesan Baru
             </div>
           )}
           <button
@@ -105,34 +107,35 @@ export default function ContactMessages() {
               queryClient.invalidateQueries({ queryKey: ['admin-messages'] });
               queryClient.invalidateQueries({ queryKey: ['admin-messages-unread-count'] });
             }}
-            className="p-2.5 bg-white/80 backdrop-blur-xl rounded-xl border border-gray-100 text-gray-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
+            className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-primary hover:border-primary/20 transition-all shadow-sm"
+            title="Refresh Pesan"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="flex gap-8">
+      <div className="flex flex-col lg:flex-row gap-8">
         {/* Left: List Panel */}
-        <div className="w-full lg:w-2/5 flex flex-col gap-4">
-          {/* Filter & Search */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-white p-4 flex flex-col gap-3">
+        <div className="w-full lg:w-[380px] flex flex-col gap-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 space-y-5">
             <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari nama, email, perihal..."
+                placeholder="Cari pengirim..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/10 outline-none transition-all shadow-inner"
               />
             </div>
-            <div className="flex gap-2">
+            
+            <div className="grid grid-cols-2 gap-2">
               {['all', 'unread', 'read', 'replied'].map(s => (
                 <button
                   key={s}
                   onClick={() => setFilterStatus(s)}
-                  className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${filterStatus === s ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 border-gray-100 hover:border-primary/30'}`}
+                  className={`py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${filterStatus === s ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
                 >
                   {s === 'all' ? 'Semua' : statusConfig[s]?.label.split(' ')[1]}
                 </button>
@@ -140,127 +143,125 @@ export default function ContactMessages() {
             </div>
           </div>
 
-          {/* Message List */}
-          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex-1 min-h-[500px]">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="flex flex-col items-center justify-center py-24 gap-4">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Memuat pesan...</p>
+                <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">Memuat...</p>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center">
-                  <AlertCircle className="w-8 h-8 text-gray-200" />
-                </div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Tidak ada pesan</p>
+              <div className="flex flex-col items-center justify-center py-24 text-slate-300 text-center px-8">
+                <Mail className="w-12 h-12 opacity-20 mb-4" />
+                <p className="text-sm font-medium italic">Tidak ada pesan ditemukan</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
-                {filtered.map(msg => (
-                  <button
+              <div className="divide-y divide-slate-50 max-h-[600px] overflow-y-auto custom-scrollbar">
+                {filtered.map((msg) => (
+                  <div
                     key={msg.id}
                     onClick={() => handleView(msg)}
-                    className={`w-full text-left px-5 py-4 hover:bg-gray-50/80 transition-all flex items-start gap-4 ${selectedMessage?.id === msg.id ? 'bg-primary/5 border-l-4 border-primary' : ''}`}
+                    className={`p-6 cursor-pointer transition-all hover:bg-slate-50/80 group relative ${selectedMessage?.id === msg.id ? 'bg-slate-50' : ''}`}
                   >
-                    {/* Avatar */}
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 font-black text-sm uppercase ${msg.status === 'unread' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
-                      {msg.name?.charAt(0)}
+                    {selectedMessage?.id === msg.id && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                    )}
+                    <div className="flex justify-between items-start mb-2">
+                       <span className={`text-sm font-bold truncate ${msg.status === 'unread' ? 'text-slate-900' : 'text-slate-500'}`}>
+                          {msg.name}
+                       </span>
+                       <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap ml-3">
+                          {new Date(msg.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                       </span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className={`text-sm font-black truncate ${msg.status === 'unread' ? 'text-gray-900' : 'text-gray-500'}`}>{msg.name}</span>
-                        <span className="text-[9px] font-bold text-gray-300 shrink-0">
-                          {new Date(msg.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
-                        </span>
-                      </div>
-                      <p className="text-xs font-bold text-gray-400 truncate">{msg.subject || 'Pesan Kontak'}</p>
-                      <p className="text-[11px] text-gray-300 truncate mt-0.5 font-medium">{msg.message}</p>
+                    <p className={`text-xs truncate leading-relaxed ${msg.status === 'unread' ? 'text-slate-700 font-semibold' : 'text-slate-400'}`}>
+                       {msg.subject || 'Tanpa Subjek'}
+                    </p>
+                    
+                    <div className="mt-3 flex items-center gap-2">
+                       <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider ${statusConfig[msg.status]?.color}`}>
+                          {statusConfig[msg.status]?.icon}
+                          {statusConfig[msg.status]?.label}
+                       </div>
                     </div>
-                    {msg.status === 'unread' && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />}
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Right: Detail Panel */}
-        <div className="hidden lg:block lg:w-3/5">
+        {/* Right: Message Detail */}
+        <div className="flex-1">
           {selectedMessage ? (
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden sticky top-28">
-              {/* Detail Header */}
-              <div className="px-8 py-6 border-b border-gray-50 flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="font-black text-gray-900 text-lg tracking-tight">{selectedMessage.name}</h2>
-                  <p className="text-xs text-gray-400 font-bold mt-1">{selectedMessage.email}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Status badge */}
-                  <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase px-3 py-1.5 rounded-xl border ${statusConfig[selectedMessage.status]?.color}`}>
-                    {statusConfig[selectedMessage.status]?.icon}
-                    {statusConfig[selectedMessage.status]?.label}
-                  </span>
-                </div>
-              </div>
-
-              {/* Message Body */}
-              <div className="p-8">
-                <div className="flex items-center gap-2 mb-6">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Perihal:</span>
-                  <span className="text-xs font-black text-gray-700 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                    {selectedMessage.subject || 'Pesan Kontak'}
-                  </span>
-                  <span className="ml-auto flex items-center gap-1 text-[10px] text-gray-300 font-bold">
-                    <Clock className="w-3 h-3" />
-                    {new Date(selectedMessage.created_at).toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                <div className="bg-gray-50 rounded-3xl p-6 border border-gray-100">
-                  <p className="text-sm text-gray-700 leading-relaxed font-medium whitespace-pre-wrap">{selectedMessage.message}</p>
-                </div>
-              </div>
-
-              {/* Action Bar */}
-              <div className="px-8 py-5 border-t border-gray-50 flex items-center gap-3 flex-wrap">
-                <a
-                  href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
-                  className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
-                >
-                  <Mail className="w-4 h-4" /> Balas via Email
-                </a>
-                {selectedMessage.status !== 'replied' && (
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-full animate-in fade-in slide-in-from-right-4 duration-500">
+               <div className="p-8 border-b border-slate-100 flex justify-between items-start">
+                  <div className="space-y-4 max-w-2xl">
+                     <div className="space-y-1">
+                        <h2 className="text-xl font-bold text-slate-800 leading-tight">
+                           {selectedMessage.subject || '(Tanpa Subjek)'}
+                        </h2>
+                        <div className="flex items-center gap-3 text-sm">
+                           <span className="font-bold text-primary">{selectedMessage.name}</span>
+                           <span className="text-slate-300">•</span>
+                           <span className="text-slate-500 font-medium">{selectedMessage.email}</span>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {new Date(selectedMessage.created_at).toLocaleString('id-ID')}</span>
+                        <span className="flex items-center gap-1.5 bg-slate-100 text-slate-600 px-2 py-0.5 rounded">IP: {selectedMessage.ip_address || 'Unknown'}</span>
+                     </div>
+                  </div>
+                  
                   <button
-                    onClick={() => handleUpdateStatus(selectedMessage.id, 'replied')}
-                    className="flex items-center gap-2 bg-green-50 text-green-600 border border-green-100 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-green-100 transition-all"
+                    onClick={() => handleDelete(selectedMessage.id)}
+                    className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100"
+                    title="Hapus Pesan"
                   >
-                    <CheckCheck className="w-4 h-4" /> Tandai Dibalas
+                    <Trash2 className="w-5 h-5" />
                   </button>
-                )}
-                {selectedMessage.status !== 'unread' && (
-                  <button
-                    onClick={() => handleUpdateStatus(selectedMessage.id, 'unread')}
-                    className="flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-100 transition-all"
+               </div>
+
+               <div className="p-8 flex-1 bg-slate-50/30">
+                  <div className="bg-white border border-slate-100 rounded-xl p-8 shadow-sm text-slate-700 text-sm leading-relaxed whitespace-pre-wrap min-h-[300px]">
+                     {selectedMessage.message}
+                  </div>
+               </div>
+
+               <div className="p-8 border-t border-slate-100 bg-white flex flex-wrap items-center gap-4">
+                  <a
+                    href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
+                    className="flex items-center gap-2 bg-primary text-white px-8 py-3 rounded-lg text-sm font-bold hover:opacity-90 transition-all shadow-md shadow-primary/10"
                   >
-                    <Mail className="w-4 h-4" /> Tandai Belum Baca
-                  </button>
-                )}
-                <button
-                  onClick={() => handleDelete(selectedMessage.id)}
-                  disabled={isDeleting === selectedMessage.id}
-                  className="ml-auto flex items-center gap-2 bg-red-50 text-red-500 border border-red-100 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-all disabled:opacity-50"
-                >
-                  {isDeleting === selectedMessage.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  Hapus
-                </button>
-              </div>
+                    <Mail className="w-4 h-4" /> Balas Pesan
+                  </a>
+
+                  <div className="flex items-center gap-2 ml-auto">
+                    {selectedMessage.status !== 'replied' && (
+                      <button
+                        onClick={() => handleUpdateStatus(selectedMessage.id, 'replied')}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all"
+                      >
+                        <CheckCheck className="w-4 h-4 text-green-500" /> Tandai Dibalas
+                      </button>
+                    )}
+                    {selectedMessage.status !== 'unread' && (
+                      <button
+                        onClick={() => handleUpdateStatus(selectedMessage.id, 'unread')}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all"
+                      >
+                        <Mail className="w-4 h-4 text-blue-500" /> Belum Baca
+                      </button>
+                    )}
+                  </div>
+               </div>
             </div>
           ) : (
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl shadow-gray-200/50 border border-white flex flex-col items-center justify-center py-32 gap-4">
-              <div className="w-20 h-20 bg-primary/5 rounded-3xl flex items-center justify-center">
-                <Eye className="w-10 h-10 text-primary/20" />
-              </div>
-              <p className="text-sm font-black text-gray-400 uppercase tracking-widest">Pilih pesan untuk dibaca</p>
+            <div className="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col items-center justify-center py-48 text-center px-12 h-full">
+               <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                  <Eye className="w-10 h-10 text-slate-200" />
+               </div>
+               <h3 className="text-lg font-bold text-slate-400">Pilih Pesan</h3>
+               <p className="text-sm text-slate-300 mt-1">Silakan pilih pesan dari daftar di samping untuk melihat rincian isi pesan</p>
             </div>
           )}
         </div>

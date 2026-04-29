@@ -1,32 +1,32 @@
-import { Search, MessageSquare, Loader2 } from 'lucide-react';
+import { Search, Newspaper, Trash2, Edit2, Globe, Plus, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
-import Skeleton from '../../components/ui/Skeleton';
 import type { Post, PaginatedResponse } from '../../types';
+import Skeleton from '../../components/ui/Skeleton';
 
 export default function Posts() {
-  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [triggerSearch, setTriggerSearch] = useState('');
+  const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
+
+  const { canWrite } = useAuthStore();
+  const hasWriteAccess = canWrite('posts');
 
   const { data, isLoading } = useQuery<PaginatedResponse<Post>>({
     queryKey: ['admin-posts', page, triggerSearch],
     queryFn: async () => {
       const response = await api.get('/posts', {
         params: { 
+          page, 
           search: triggerSearch,
-          page: page
+          per_page: 10
         }
       });
-      const resData = response.data;
-      if (resData.meta) {
-        return { ...resData.meta, data: resData.data, links: resData.links };
-      }
-      return resData;
+      return response.data;
     }
   });
 
@@ -34,154 +34,157 @@ export default function Posts() {
     mutationFn: (id: number) => api.delete(`/posts/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
-    },
-    onError: (error: any) => {
-      alert('Gagal menghapus pos. ' + (error.response?.data?.message || ''));
     }
   });
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus pos ini?')) {
+    if (window.confirm('Hapus berita ini secara permanen?')) {
       deleteMutation.mutate(id);
     }
   };
 
   const posts = data?.data || [];
-  const meta = data;
-
-  const { canWrite } = useAuthStore();
-  const hasWriteAccess = canWrite('posts');
+  const meta = data?.meta;
 
   return (
-    <div className="max-w-6xl">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-           <h1 className="text-2xl font-normal text-gray-800 tracking-tight">Pos</h1>
-           {hasWriteAccess && (
-             <Link to="/admin/posts/create" className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-white px-3 py-1 rounded text-sm transition-colors flex items-center gap-1">
-                Tambahkan Baru
-             </Link>
-           )}
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Warta</h1>
+          <p className="text-sm text-slate-500 mt-1">Publikasikan berita, artikel, dan informasi terkini pesantren</p>
         </div>
-        
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); setPage(1); }}>
-           <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Cari pos..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 border border-gray-300 rounded px-3 py-1.5 pl-8 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9" 
-              />
-              <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" />
-           </div>
-           <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded text-sm hover:bg-gray-50 flex items-center gap-1 h-9 font-medium">
-              {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Cari'}
-           </button>
+
+        {hasWriteAccess && (
+          <Link to="/admin/posts/create" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/10">
+            <Plus className="w-4 h-4" /> Tambah Warta Baru
+          </Link>
+        )}
+      </div>
+
+      {/* Control Bar */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <form className="w-full lg:w-96 relative" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); setPage(1); }}>
+           <input 
+             type="text" 
+             placeholder="Cari berita atau artikel..." 
+             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all outline-none shadow-sm"
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+           />
+           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         </form>
+
+        <div className="flex items-center gap-3">
+           <button 
+             onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-posts'] })}
+             className="p-2.5 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-lg transition-all border border-slate-200 bg-white"
+             title="Refresh Data"
+           >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+           </button>
+        </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex justify-between items-center mb-4 text-sm">
-         <div className="flex gap-4">
-            <span className="text-gray-500 font-bold">Semua <span className="text-gray-400 font-normal">({meta?.total || 0})</span></span>
-         </div>
-      </div>
-      
-      <div className="flex gap-2 flex-wrap mb-4">
-         <select className="border border-gray-300 rounded px-2 py-1 text-sm bg-white">
-            <option>Tindakan Massal</option>
-         </select>
-         <button className="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-50 text-wrap">Terapkan</button>
-         
-         <select className="border border-gray-300 rounded px-2 py-1 text-sm bg-white ml-2">
-            <option>Semua tanggal</option>
-         </select>
-         
-         <select className="border border-gray-300 rounded px-2 py-1 text-sm bg-white">
-            <option>Semua kategori</option>
-         </select>
-         
-         <button className="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-50">Saring</button>
-      </div>
-
-      {/* WP Style Table */}
-      <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden min-h-[400px] relative">
+      {/* Table Section */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden relative">
          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-               <thead className="bg-[#f6f7f7] border-b border-gray-200 text-gray-700">
+            <table className="w-full text-left">
+               <thead className="bg-slate-50/50 border-b border-slate-100">
                   <tr>
-                     <th className="w-10 px-4 py-3"><input type="checkbox" className="rounded text-primary focus:ring-primary" /></th>
-                     <th className="px-4 py-3 font-semibold text-xs tracking-tight">Judul</th>
-                     <th className="px-4 py-3 font-semibold text-xs tracking-tight">Penulis</th>
-                     <th className="px-4 py-3 font-semibold text-xs tracking-tight">Kategori</th>
-                     <th className="px-4 py-3 font-semibold text-xs tracking-tight"><MessageSquare className="w-4 h-4" /></th>
-                     <th className="px-4 py-3 font-semibold text-xs tracking-tight">Tanggal</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Informasi Warta</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Kategori</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                     <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aksi</th>
                   </tr>
                </thead>
-               <tbody className="divide-y divide-gray-200">
+               <tbody className="divide-y divide-slate-50">
                   {isLoading ? (
                      Array.from({ length: 5 }).map((_, i) => (
                         <tr key={i}>
-                           <td className="px-4 py-3"><Skeleton variant="rectangular" width={16} height={16} className="rounded" /></td>
-                           <td className="px-4 py-3">
-                              <Skeleton variant="text" width="70%" className="mb-2" />
-                              <Skeleton variant="text" width="30%" />
-                           </td>
-                           <td className="px-4 py-3"><Skeleton variant="text" width="50%" /></td>
-                           <td className="px-4 py-3"><Skeleton variant="text" width="40%" /></td>
-                           <td className="px-4 py-3"><Skeleton variant="rectangular" width={20} height={20} className="rounded" /></td>
-                           <td className="px-4 py-3"><Skeleton variant="text" width="60%" /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="70%" height={20} /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="40%" /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="30%" /></td>
+                           <td className="px-8 py-5 text-right"><Skeleton variant="rectangular" width={80} height={32} className="rounded-lg inline-block" /></td>
                         </tr>
                      ))
                   ) : posts.length > 0 ? (
                     posts.map((post) => (
-                       <tr key={post.id} className="hover:bg-gray-50 group">
-                          <td className="px-4 py-3"><input type="checkbox" className="rounded text-primary focus:ring-primary" /></td>
-                          <td className="px-4 py-3">
-                             <Link to={hasWriteAccess ? `/admin/posts/edit/${post.id}` : '#'} className={`font-bold text-primary group-hover:text-primary-light transition-colors ${!hasWriteAccess && 'pointer-events-none'}`}>{post.title}</Link>
-                             {post.status === 'draft' && <span className="ml-2 text-gray-400 font-normal italic">— Draf</span>}
-                             <div className="text-[11px] text-gray-400 opacity-0 group-hover:opacity-100 mt-1 flex gap-2 transition-opacity">
-                                {hasWriteAccess && (
-                                  <>
-                                    <Link to={`/admin/posts/edit/${post.id}`} className="hover:text-primary cursor-pointer">Sunting</Link> | 
-                                    <button onClick={() => handleDelete(post.id)} className="text-red-600 hover:text-red-800 cursor-pointer">Buang</button> | 
-                                  </>
-                                )}
-                                <a href={`/berita/${post.slug}`} target="_blank" rel="noreferrer" className="hover:text-primary cursor-pointer">Tampil</a>
+                       <tr key={post.id} className="group hover:bg-slate-50/50 transition-all">
+                          <td className="px-8 py-5">
+                             <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
+                                   <Newspaper className="w-5 h-5" />
+                                </div>
+                                <div className="min-w-0">
+                                   <p className="text-sm font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{post.title}</p>
+                                   <p className="text-[11px] text-slate-400 mt-0.5 truncate font-medium flex items-center gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-slate-300"></div> {post.user?.name || 'Admin'}
+                                   </p>
+                                </div>
                              </div>
                           </td>
-                          <td className="px-4 py-3 text-primary font-medium">{post.user?.name || 'Admin'}</td>
-                          <td className="px-4 py-3 text-primary font-medium">{post.category?.name || '—'}</td>
-                          <td className="px-4 py-3 text-gray-400">0</td>
-                          <td className="px-4 py-3 whitespace-pre-line text-[11px] leading-tight text-gray-600">
-                            {post.status === 'published' ? 'Telah Terbit' : 'Terakhir Disunting'}<br />
-                            {new Date(post.updated_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          <td className="px-8 py-5">
+                             <span className="inline-flex px-3 py-1 rounded-full bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                                {post.category?.name || 'Umum'}
+                             </span>
+                          </td>
+                          <td className="px-8 py-5">
+                             {post.status === 'published' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Terbit
+                                </span>
+                             ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                                   Draf
+                                </span>
+                             )}
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <Link to={`/admin/posts/edit/${post.id}`} className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Edit Berita">
+                                   <Edit2 className="w-4 h-4" />
+                                </Link>
+                                <a href={`/berita/${post.slug}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Lihat Publik">
+                                   <Globe className="w-4 h-4" />
+                                </a>
+                                <button onClick={() => handleDelete(post.id)} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Hapus Berita">
+                                   <Trash2 className="w-4 h-4" />
+                                </button>
+                             </div>
                           </td>
                        </tr>
                     ))
                   ) : (
-                     <tr>
-                       <td colSpan={6} className="px-4 py-20 text-center text-gray-500 text-xs italic">
-                         Tidak ada pos ditemukan.
+                    <tr>
+                       <td colSpan={4} className="px-8 py-24 text-center">
+                          <div className="flex flex-col items-center gap-4 text-slate-300">
+                             <Newspaper className="w-12 h-12 opacity-20" />
+                             <p className="text-sm font-medium italic">Belum ada berita ditemukan</p>
+                          </div>
                        </td>
-                     </tr>
+                    </tr>
                   )}
                </tbody>
             </table>
          </div>
       </div>
       
-      {/* Pagination */}
-      {meta && meta.last_page > 1 && (
-        <div className="flex justify-between items-center mt-4 text-xs font-medium text-gray-600">
-           <div>Menampilkan {posts.length} dari {meta.total} item</div>
-           <div className="flex gap-1">
-              {Array.from({ length: meta.last_page }).map((_, i) => (
+      {/* Pagination Section */}
+      {meta && (meta.last_page ?? 0) > 1 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center mt-10 gap-6">
+           <p className="text-[11px] font-bold text-slate-400">
+              Menampilkan <span className="text-slate-900">{posts.length}</span> Berita dari Total <span className="text-slate-900">{meta.total}</span>
+           </p>
+           <div className="flex gap-1.5">
+              {Array.from({ length: meta.last_page ?? 0 }).map((_, i) => (
                 <button 
                   key={i}
-                  onClick={() => setPage(i + 1)}
-                  className={`px-3 py-1 border border-gray-300 rounded ${meta.current_page === i + 1 ? 'bg-primary text-white border-primary' : 'bg-white hover:bg-gray-50'}`}
+                  onClick={() => {
+                    setPage(i + 1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`w-9 h-9 rounded-lg font-bold text-xs transition-all flex items-center justify-center border ${meta.current_page === i + 1 ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-slate-400 border-slate-200 hover:border-primary hover:text-primary shadow-sm'}`}
                 >
                   {i + 1}
                 </button>

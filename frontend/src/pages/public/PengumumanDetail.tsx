@@ -63,7 +63,7 @@ export default function AnnouncementDetail() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Header Section */}
-      <section className={`pt-8 pb-32 px-4 relative overflow-hidden transition-colors duration-500 text-left ${announcement.priority === 'high' ? 'bg-primary-dark' : 'bg-primary'}`}>
+      <section className={`pt-28 pb-32 px-4 relative overflow-hidden transition-colors duration-500 text-left ${announcement.priority === 'high' ? 'bg-primary-dark' : 'bg-primary'}`}>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto relative z-10">
             <div className="mb-6">

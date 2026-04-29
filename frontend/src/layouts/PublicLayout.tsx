@@ -5,7 +5,7 @@ import { getImageUrl } from '../lib/utils';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import {
   Camera, Globe, Play, Send, Mail, Phone, MapPin,
-  ArrowRight, LayoutDashboard, Heart, Menu as MenuIcon, Search, X as CloseIcon, Calendar, Megaphone, Newspaper, Loader2, AlertCircle, ChevronDown
+  ArrowRight, LayoutDashboard, Heart, Menu as MenuIcon, Search, X as CloseIcon, Calendar, Megaphone, Newspaper, AlertCircle, ChevronDown
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
@@ -99,7 +99,25 @@ export default function PublicLayout() {
         document.documentElement.style.setProperty('--color-accent', settings.secondary_color);
       }
     }
-  }, [settings]);
+  }, [settings, location.pathname]);
+
+  // Keyboard shortcuts for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle search with Ctrl+K or Cmd+K
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(prev => !prev);
+      }
+      // Close search with ESC
+      if (e.key === 'Escape' && isSearchOpen) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchOpen]);
 
   const isHomepage = location.pathname === '/';
   const isTransparent = isHomepage && !isScrolled;
@@ -144,17 +162,41 @@ export default function PublicLayout() {
                   </Link>
 
                   {item.children && item.children.length > 0 && (
-                    <div className={`absolute top-full left-0 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 transition-all duration-300 origin-top-left ${activeDropdown === item.id ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
-                      <div className="absolute top-0 left-6 w-3 h-3 bg-white border-t border-l border-gray-100 -translate-y-1.5 rotate-45"></div>
-                      {item.children.map(child => (
-                        <Link 
-                          key={child.id} 
-                          to={child.url}
-                          className="block px-6 py-2.5 text-[10px] font-black text-gray-500 hover:text-primary hover:bg-gray-50 uppercase tracking-widest transition-all"
-                        >
-                          {child.label}
-                        </Link>
-                      ))}
+                    <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-4 transition-all duration-300 transform origin-top ${activeDropdown === item.id ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
+                      <div className="bg-white/95 backdrop-blur-xl rounded-[1.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-gray-100 p-2 min-w-[240px] overflow-hidden relative">
+                        {/* Decorative Top Arrow */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-3 h-3 bg-white border-t border-l border-gray-50 rotate-45"></div>
+                        
+                        <div className="flex flex-col relative z-10">
+                          {item.children.map(child => (
+                            <Link 
+                              key={child.id} 
+                              to={child.url}
+                              className="flex items-center justify-between px-5 py-3.5 rounded-xl hover:bg-primary/5 group/item transition-all"
+                            >
+                              <div className="flex items-center gap-3">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-secondary scale-0 group-hover/item:scale-100 transition-transform"></div>
+                                 <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest group-hover/item:text-primary transition-colors whitespace-nowrap italic">
+                                   {child.label}
+                                 </span>
+                              </div>
+                              <ArrowRight className="w-3.5 h-3.5 text-primary opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all" />
+                            </Link>
+                          ))}
+                        </div>
+
+                        {/* Dropdown Footer Hint */}
+                        <div className="mt-1 pt-3 border-t border-gray-50 px-5 pb-2">
+                           <div className="flex items-center justify-between">
+                              <span className="text-[7px] font-black text-gray-300 uppercase tracking-[0.2em]">Pusat Informasi</span>
+                              <div className="flex gap-1">
+                                 <div className="w-1 h-1 rounded-full bg-secondary/30"></div>
+                                 <div className="w-1 h-1 rounded-full bg-secondary/60"></div>
+                                 <div className="w-1 h-1 rounded-full bg-secondary animate-pulse"></div>
+                              </div>
+                           </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -241,7 +283,7 @@ export default function PublicLayout() {
         </div>
       </div>
 
-      <main className={`flex-grow bg-white ${isHomepage ? '' : 'pt-[64px]'}`}>
+      <main className={`flex-grow bg-white ${isHomepage ? '' : 'pt-0'}`}>
         <Outlet />
       </main>
 
@@ -382,142 +424,127 @@ export default function PublicLayout() {
         </div>
       </footer>
 
-      {/* Modern Search Overlay (Glassmorphism) */}
-      <div className={`fixed inset-0 z-[100] transition-all duration-500 flex items-start justify-center p-4 sm:p-8 ${isSearchOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-[#0B1120]/80 backdrop-blur-2xl" onClick={() => setIsSearchOpen(false)}></div>
+      {/* Modern Command Center Search (Spotlight Style) */}
+      <div className={`fixed inset-0 z-[100] transition-all duration-500 flex items-start justify-center p-4 sm:p-24 ${isSearchOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-primary-dark/60 backdrop-blur-md" onClick={() => setIsSearchOpen(false)}></div>
 
-        <div className={`relative w-full max-w-2xl transition-all duration-500 ease-out transform ${isSearchOpen ? 'translate-y-0 scale-100' : '-translate-y-8 scale-95'}`}>
-          {/* Close Button */}
-          <button
-            onClick={() => setIsSearchOpen(false)}
-            className="absolute -top-10 sm:-top-12 right-0 text-white/50 hover:text-white transition-colors flex items-center gap-2 uppercase text-[9px] font-black tracking-[0.3em] group"
-          >
-            Close <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center group-hover:border-white/50 group-hover:rotate-90 transition-all duration-500"><CloseIcon className="w-3 h-3" /></div>
-          </button>
-
-          {/* Search Bar */}
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-3xl blur-xl opacity-10 group-hover:opacity-20 transition-opacity"></div>
-            <div className="relative flex items-center bg-white/10 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-              <div className="pl-6 text-white/30">
-                {isSearching ? <Loader2 className="w-5 h-5 animate-spin text-secondary" /> : <Search className="w-5 h-5" />}
-              </div>
+        <div className={`relative w-full max-w-xl transition-all duration-500 ease-out transform ${isSearchOpen ? 'translate-y-0 scale-100' : '-translate-y-12 scale-95'}`}>
+          
+          <div className="bg-white/95 backdrop-blur-2xl rounded-[2rem] shadow-[0_32px_128px_rgba(0,0,0,0.2)] border border-white/20 overflow-hidden flex flex-col max-h-[75vh]">
+            
+            {/* Compact Search Input Area */}
+            <div className="relative border-b border-gray-100 p-5 sm:p-6">
+              <Search className={`w-5 h-5 absolute left-10 top-1/2 -translate-y-1/2 transition-colors ${isSearching ? 'text-secondary animate-pulse' : 'text-gray-300'}`} />
               <input
                 autoFocus={isSearchOpen}
                 type="text"
-                placeholder="Cari berita atau agenda..."
+                placeholder="Cari berita, agenda, atau info..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent border-none focus:ring-0 text-white px-5 py-5 sm:py-6 text-lg font-bold placeholder:text-white/20"
+                className="w-full bg-gray-50 border-none focus:ring-0 text-gray-900 pl-12 pr-12 py-3.5 rounded-xl text-sm font-bold placeholder:text-gray-300 placeholder:font-medium italic"
               />
+              <button 
+                onClick={() => setIsSearchOpen(false)}
+                className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-300 hover:text-red-500 transition-colors"
+              >
+                <div className="bg-white shadow-sm border border-gray-100 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest hidden sm:block">ESC</div>
+                <CloseIcon className="w-4 h-4 sm:hidden" />
+              </button>
             </div>
-          </div>
 
-          {/* Results Area */}
-          <div className="mt-8 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
-            {searchQuery.trim() === '' ? (
-              <div className="text-center py-20">
-                <p className="text-white/20 text-xs font-black uppercase tracking-[0.5em]">Tuliskan kata kunci untuk memulai pencarian</p>
-              </div>
-            ) : isSearching ? (
-              <div className="text-center py-20 flex flex-col items-center gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-secondary" />
-                <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.3em]">Menelusuri semesta data...</p>
-              </div>
-            ) : (!searchResults || (searchResults.posts.length === 0 && searchResults.agendas.length === 0 && searchResults.announcements.length === 0)) ? (
-              <div className="text-center py-20 flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
-                <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/5">
-                  <AlertCircle className="w-10 h-10 text-white/10" />
+            {/* Compact Results Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-6">
+              {searchQuery.trim() === '' ? (
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <h4 className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-secondary rounded-full"></span> Pintasan Cepat
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {[
+                      { label: 'Warta Terbaru', path: '/berita', icon: <Newspaper className="w-4 h-4" />, color: 'bg-blue-50 text-blue-500' },
+                      { label: 'Agenda Santri', path: '/agenda', icon: <Calendar className="w-4 h-4" />, color: 'bg-yellow-50 text-yellow-600' },
+                      { label: 'Pengumuman', path: '/pengumuman', icon: <Megaphone className="w-4 h-4" />, color: 'bg-red-50 text-red-500' },
+                    ].map((link, idx) => (
+                      <Link 
+                        key={idx} 
+                        to={link.path} 
+                        onClick={() => setIsSearchOpen(false)}
+                        className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-50 hover:bg-white hover:shadow-lg hover:shadow-black/5 border border-transparent hover:border-gray-100 transition-all group"
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${link.color} group-hover:scale-105 transition-transform shadow-inner`}>
+                          {link.icon}
+                        </div>
+                        <span className="text-xs font-black text-gray-600 uppercase tracking-tight italic group-hover:text-primary">{link.label}</span>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-white font-black text-xl uppercase italic tracking-tight">Tidak Ditemukan</p>
-                  <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-2">Maaf, kata kunci "{searchQuery}" tidak cocok dengan data apapun</p>
+              ) : isSearching ? (
+                <div className="py-12 text-center flex flex-col items-center gap-4">
+                   <div className="w-10 h-10 border-4 border-gray-100 border-t-secondary rounded-full animate-spin"></div>
+                   <p className="text-gray-400 font-black text-[9px] uppercase tracking-[0.3em] italic">Mencari...</p>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-12 pb-20">
-                {/* Berita Results */}
-                {searchResults.posts.length > 0 && (
-                  <div className="animate-in slide-in-from-bottom-4 duration-500">
-                    <h4 className="text-secondary text-[10px] font-black uppercase tracking-[0.4em] mb-6 flex items-center gap-4">
-                      <span className="w-8 h-px bg-secondary/30"></span> Warta / Berita
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {searchResults.posts.map((post: any) => (
-                        <Link
-                          key={post.id}
-                          to={`/berita/${post.slug}`}
-                          onClick={() => setIsSearchOpen(false)}
-                          className="group flex items-center gap-6 p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all"
-                        >
-                          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden border border-white/10">
-                            <Newspaper className="w-6 h-6 text-white/20 group-hover:scale-110 transition-transform" />
-                          </div>
-                          <div>
-                            <h5 className="text-white font-bold group-hover:text-secondary transition-colors line-clamp-1">{post.title}</h5>
-                            <p className="text-white/40 text-[11px] mt-1 line-clamp-1">{post.content.replace(/<[^>]*>?/gm, '').substring(0, 100)}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+              ) : (!searchResults || (searchResults.posts.length === 0 && searchResults.agendas.length === 0 && searchResults.announcements.length === 0)) ? (
+                <div className="py-12 text-center flex flex-col items-center gap-6 animate-in zoom-in duration-300">
+                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-dashed border-gray-200">
+                    <AlertCircle className="w-8 h-8 text-gray-200" />
                   </div>
-                )}
+                  <div>
+                    <h5 className="text-sm font-black text-gray-900 uppercase italic tracking-tighter">Tidak Ditemukan</h5>
+                    <p className="text-gray-400 text-[10px] font-medium mt-1">"{searchQuery}" tidak tersedia.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-8 pb-4">
+                  {[
+                    { title: 'Berita', data: searchResults.posts, path: '/berita', icon: <Newspaper className="w-3.5 h-3.5" />, color: 'text-blue-500' },
+                    { title: 'Agenda', data: searchResults.agendas, path: '/agenda', icon: <Calendar className="w-3.5 h-3.5" />, color: 'text-yellow-600' },
+                    { title: 'Informasi', data: searchResults.announcements, path: '/pengumuman', icon: <Megaphone className="w-3.5 h-3.5" />, color: 'text-red-500' }
+                  ].filter(cat => cat.data.length > 0).map((cat, idx) => (
+                    <div key={idx} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <h4 className={`text-[8px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2 ${cat.color}`}>
+                        {cat.title}
+                        <span className="bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-full text-[7px]">{cat.data.length}</span>
+                      </h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {cat.data.map((item: any) => (
+                          <Link
+                            key={item.id}
+                            to={`${cat.path}/${item.slug}`}
+                            onClick={() => setIsSearchOpen(false)}
+                            className="group flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all"
+                          >
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-gray-100 group-hover:bg-white group-hover:shadow-md transition-all ${cat.color}`}>
+                              {cat.icon}
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="text-gray-900 font-bold text-[13px] group-hover:text-primary transition-colors line-clamp-1 italic uppercase tracking-tight leading-none">{item.title}</h5>
+                              <p className="text-gray-400 text-[9px] mt-1 line-clamp-1 font-medium italic opacity-70">{item.content?.replace(/<[^>]*>?/gm, '').substring(0, 80)}</p>
+                            </div>
+                            <ArrowRight className="w-3.5 h-3.5 text-gray-200 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                {/* Agenda Results */}
-                {searchResults.agendas.length > 0 && (
-                  <div className="animate-in slide-in-from-bottom-4 duration-700">
-                    <h4 className="text-blue-400 text-[10px] font-black uppercase tracking-[0.4em] mb-6 flex items-center gap-4">
-                      <span className="w-8 h-px bg-blue-400/30"></span> Agenda Kegiatan
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {searchResults.agendas.map((item: any) => (
-                        <Link
-                          key={item.id}
-                          to={`/agenda/${item.slug}`}
-                          onClick={() => setIsSearchOpen(false)}
-                          className="group flex items-center gap-6 p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all"
-                        >
-                          <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center shrink-0 overflow-hidden border border-white/10">
-                            <Calendar className="w-6 h-6 text-blue-400/40 group-hover:scale-110 transition-transform" />
-                          </div>
-                          <div>
-                            <h5 className="text-white font-bold group-hover:text-blue-400 transition-colors line-clamp-1">{item.title}</h5>
-                            <p className="text-blue-400/40 text-[10px] font-black uppercase tracking-widest mt-1">{item.location}</p>
-                          </div>
-                        </Link>
-                      ))}
+            {/* Compact Footer */}
+            <div className="bg-gray-50/80 px-6 py-3 flex items-center justify-between border-t border-gray-100">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                        <kbd className="bg-white border border-gray-200 rounded px-1 py-0.5 text-[8px] font-black text-gray-400 shadow-sm">Enter</kbd>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Pilih</span>
                     </div>
-                  </div>
-                )}
-
-                {/* Pengumuman Results */}
-                {searchResults.announcements.length > 0 && (
-                  <div className="animate-in slide-in-from-bottom-4 duration-1000">
-                    <h4 className="text-red-400 text-[10px] font-black uppercase tracking-[0.4em] mb-6 flex items-center gap-4">
-                      <span className="w-8 h-px bg-red-400/30"></span> Pengumuman
-                    </h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      {searchResults.announcements.map((item: any) => (
-                        <Link
-                          key={item.id}
-                          to={`/pengumuman/${item.slug}`}
-                          onClick={() => setIsSearchOpen(false)}
-                          className="group flex items-center gap-6 p-4 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/20 transition-all"
-                        >
-                          <div className="w-16 h-16 rounded-2xl bg-red-500/20 flex items-center justify-center shrink-0 overflow-hidden border border-white/10">
-                            <Megaphone className="w-6 h-6 text-red-400/40 group-hover:scale-110 transition-transform" />
-                          </div>
-                          <div>
-                            <h5 className="text-white font-bold group-hover:text-red-400 transition-colors line-clamp-1">{item.title}</h5>
-                            <p className="text-white/40 text-[11px] mt-1 line-clamp-1">{item.content.replace(/<[^>]*>?/gm, '').substring(0, 100)}</p>
-                          </div>
-                        </Link>
-                      ))}
+                    <div className="flex items-center gap-1.5">
+                        <kbd className="bg-white border border-gray-200 rounded px-1 py-0.5 text-[8px] font-black text-gray-400 shadow-sm">K</kbd>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Cari</span>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+                <p className="text-[8px] font-black text-primary/40 uppercase tracking-widest italic opacity-50">Spotlight Search v2.1</p>
+            </div>
           </div>
         </div>
       </div>

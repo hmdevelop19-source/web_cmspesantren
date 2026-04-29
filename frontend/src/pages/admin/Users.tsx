@@ -1,4 +1,5 @@
-import { Search, UserPlus, Shield, Mail, MoreHorizontal, Loader2, Trash2, Edit3, LogOut } from 'lucide-react';
+import { Search, UserPlus, Shield, Trash2, Edit3, LogOut } from 'lucide-react';
+import Skeleton from '../../components/ui/Skeleton';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,151 +70,159 @@ export default function Users() {
     }
   };
 
+  const { canWrite } = useAuthStore();
+  const hasWriteAccess = canWrite('users');
   const users = data?.data || [];
-  const total = data?.total || 0;
 
   return (
-    <div className="max-w-6xl">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-normal text-gray-800 tracking-tight flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" /> Manajemen Pengguna
-          </h1>
-          {isSuperAdmin && (
-            <Link to="/admin/users/create" className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 font-medium">
-              <UserPlus className="w-4 h-4" /> Tambah Pengguna
-            </Link>
-          )}
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Pengguna</h1>
+          <p className="text-sm text-slate-500 mt-1">Kelola administrator, guru, dan hak akses staf pesantren</p>
         </div>
-        
-        <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
-           <div className="relative">
-             <input 
-               type="text" 
-               placeholder="Cari pengguna..." 
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               className="w-full sm:w-64 border border-gray-300 rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white shadow-sm h-10 transition-all" 
-             />
-             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
-           </div>
-           <button type="submit" className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm hover:bg-gray-50 font-bold transition-all h-10 flex items-center justify-center">
-               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cari'}
-           </button>
+
+        {hasWriteAccess && (
+          <Link to="/admin/users/create" className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/10">
+            <UserPlus className="w-4 h-4" /> Tambah Pengguna Baru
+          </Link>
+        )}
+      </div>
+
+      {/* Control Bar */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <form className="w-full lg:w-96 relative" onSubmit={(e) => { e.preventDefault(); setTriggerSearch(searchTerm); }}>
+           <input 
+             type="text" 
+             placeholder="Cari nama atau email..." 
+             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all outline-none shadow-sm"
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+           />
+           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         </form>
       </div>
 
-      <div className="flex justify-between items-center mb-4 text-sm px-1">
-        <div className="flex gap-4">
-          <span className="text-gray-900 font-bold border-b-2 border-primary pb-1 cursor-pointer">Semua ({total})</span>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden min-h-[400px] relative">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] font-bold tracking-wider">
-              <tr>
-                <th className="px-6 py-4">Nama & Email</th>
-                <th className="px-6 py-4">Peran</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                    <td colSpan={4} className="px-6 py-20 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            <span className="text-gray-500 font-medium">Memuat data pengguna...</span>
-                        </div>
-                    </td>
-                </tr>
-              ) : users.length > 0 ? (
-                users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors group">
-                    <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 uppercase">
-                            {user.name.charAt(0)}
-                        </div>
-                        <div className="flex flex-col">
-                            <span className={`font-bold text-gray-900 transition-colors ${isSuperAdmin ? 'group-hover:text-primary' : ''}`}>{user.name}</span>
-                            <span className="text-xs text-gray-500 flex items-center gap-1">
-                            <Mail className="w-3 h-3" /> {user.email}
-                            </span>
-                        </div>
-                        </div>
-                    </td>
-                    <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-tight
-                        ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 
-                            user.role === 'editor' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 
-                            'bg-orange-100 text-orange-700 border border-orange-200'}`}>
-                        {user.role}
-                        </span>
-                    </td>
-                    <td className="px-6 py-4">
-                        <span className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-tighter ${user.status === 'active' ? 'text-green-600' : 'text-gray-400'}`}>
-                        <span className={`w-2 h-2 rounded-full ${user.status === 'active' ? 'bg-green-500 animate-pulse outline ring-2 ring-green-100' : 'bg-gray-300'}`}></span>
-                        {user.status === 'active' ? 'Aktif' : 'Nonaktif'}
-                        </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {isSuperAdmin && (
-                          <>
-                            <Link to={`/admin/users/edit/${user.id}`} className="text-primary font-bold text-xs hover:text-primary-dark uppercase hover:shadow-sm px-2 py-1 flex items-center gap-1 transition-all">
-                              <Edit3 className="w-3 h-3" /> Sunting
-                            </Link>
-                            <button 
-                              disabled={user.id === currentUser?.id}
-                              onClick={() => handleDelete(user)}
-                              className="text-red-500 font-bold text-xs hover:text-red-700 uppercase disabled:opacity-20 flex items-center gap-1 transition-all"
-                            >
-                              <Trash2 className="w-3 h-3" /> Hapus
-                            </button>
-                          </>
-                        )}
-                        </div>
-                        <button className="p-1 text-gray-400 hover:text-gray-600 md:hidden">
-                        <MoreHorizontal className="w-5 h-5" />
-                        </button>
-                    </td>
+      {/* Table Section */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+         <div className="overflow-x-auto">
+            <table className="w-full text-left">
+               <thead className="bg-slate-50/50 border-b border-slate-100">
+                  <tr>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Informasi Personel</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Hak Akses</th>
+                     <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
+                     <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aksi</th>
+                  </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-50">
+                  {isLoading ? (
+                     Array.from({ length: 5 }).map((_, i) => (
+                        <tr key={i}>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="60%" /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="40%" /></td>
+                           <td className="px-8 py-5"><Skeleton variant="text" width="30%" /></td>
+                           <td className="px-8 py-5 text-right"><Skeleton variant="rectangular" width={80} height={32} className="rounded-lg inline-block" /></td>
+                        </tr>
+                     ))
+                  ) : users.length > 0 ? (
+                    users.map((user) => (
+                       <tr key={user.id} className="group hover:bg-slate-50/50 transition-all">
+                          <td className="px-8 py-5">
+                             <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary border border-primary/10 font-bold">
+                                   {user.name.charAt(0)}
+                                </div>
+                                <div className="min-w-0">
+                                   <p className="text-sm font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{user.name}</p>
+                                   <p className="text-[11px] text-slate-400 mt-0.5 truncate font-medium">{user.email}</p>
+                                </div>
+                             </div>
+                          </td>
+                          <td className="px-8 py-5">
+                             <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border
+                                ${user.role === 'admin' ? 'bg-purple-50 text-purple-600 border-purple-100' : 
+                                  user.role === 'editor' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
+                                  'bg-slate-50 text-slate-600 border-slate-200'}`}>
+                                {user.role}
+                             </span>
+                          </td>
+                          <td className="px-8 py-5">
+                             {user.status === 'active' ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
+                                </span>
+                             ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
+                                   Nonaktif
+                                </span>
+                             )}
+                          </td>
+                          <td className="px-8 py-5 text-right">
+                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                {isSuperAdmin && (
+                                   <>
+                                      <Link to={`/admin/users/edit/${user.id}`} className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Edit Pengguna">
+                                         <Edit3 className="w-4 h-4" />
+                                      </Link>
+                                      <button 
+                                         disabled={user.id === currentUser?.id}
+                                         onClick={() => handleDelete(user)}
+                                         className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-0"
+                                         title="Hapus Pengguna"
+                                      >
+                                         <Trash2 className="w-4 h-4" />
+                                      </button>
+                                   </>
+                                )}
+                             </div>
+                          </td>
+                       </tr>
+                    ))
+                  ) : (
+                    <tr>
+                       <td colSpan={4} className="px-8 py-24 text-center">
+                          <div className="flex flex-col items-center gap-4 text-slate-300">
+                             <Shield className="w-12 h-12 opacity-20" />
+                             <p className="text-sm font-medium italic">Belum ada personel terdaftar</p>
+                          </div>
+                       </td>
                     </tr>
-                ))
-              ) : (
-                <tr>
-                    <td colSpan={4} className="px-6 py-20 text-center text-gray-500 text-sm italic">
-                        Tidak ada pengguna ditemukan.
-                    </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  )}
+               </tbody>
+            </table>
+         </div>
       </div>
 
-      {/* Profil Saya Section Quick Access */}
-      <div className="mt-12 bg-primary-dark text-white rounded-2xl p-8 shadow-xl relative overflow-hidden group">
-         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
-            <Shield className="w-32 h-32" />
-         </div>
-         <div className="relative z-10">
-            <h2 className="text-xl font-bold mb-2 uppercase tracking-wide">Profil Saya</h2>
-            <p className="text-gray-300 text-sm mb-6 max-w-md">Anda masuk sebagai <span className="text-secondary font-bold font-mono">{currentUser?.name}</span> ({currentUser?.role}). Jaga kerahasiaan kata sandi Anda.</p>
-            <div className="flex flex-wrap gap-4">
-               <button className="bg-secondary text-gray-900 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-yellow-400 transition-colors shadow-lg shadow-secondary/20 flex items-center gap-2">
-                  <Edit3 className="w-4 h-4" /> Edit Profil & Sandi
-               </button>
+      {/* My Profile Quick Access */}
+      <div className="mt-12 bg-slate-900 rounded-2xl p-8 text-white shadow-xl shadow-slate-900/10 relative overflow-hidden">
+         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="flex items-center gap-6">
+               <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-secondary text-2xl font-bold shadow-2xl">
+                  {currentUser?.name.charAt(0)}
+               </div>
+               <div>
+                  <h2 className="text-xl font-bold mb-1">Pusat Kendali Profil</h2>
+                  <p className="text-slate-400 text-xs">
+                     Anda masuk sebagai <span className="text-secondary font-bold">{currentUser?.name}</span> • <span className="uppercase tracking-wider opacity-80">{currentUser?.role}</span>
+                  </p>
+               </div>
+            </div>
+            <div className="flex gap-3">
+               <Link to="/admin/profile" className="bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-secondary" /> Perbarui Profil
+               </Link>
                <button 
                  onClick={handleLogout}
-                 className="bg-white/10 hover:bg-red-500/20 px-6 py-2.5 rounded-xl font-bold text-sm transition-all border border-white/10 backdrop-blur-sm flex items-center gap-2"
+                 className="bg-red-500/20 hover:bg-red-500/40 px-6 py-2.5 rounded-xl text-xs font-bold transition-all border border-red-500/20 flex items-center gap-2"
                >
-                  <LogOut className="w-4 h-4 text-red-400" /> Keluar Sesi
+                  <LogOut className="w-4 h-4 text-red-400" /> Akhiri Sesi
                </button>
             </div>
+         </div>
+         <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12 translate-x-4 -translate-y-4">
+            <Shield className="w-48 h-48" />
          </div>
       </div>
     </div>

@@ -60,7 +60,7 @@ export default function Berita() {
   return (
     <div className="bg-white min-h-screen">
       {/* Header Section */}
-      <div className="bg-primary pt-2 pb-16 px-4 relative overflow-hidden">
+      <div className="bg-primary pt-28 pb-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 shadow-xl shadow-secondary/5">
@@ -164,9 +164,9 @@ export default function Berita() {
             </div>
 
             {/* Pagination */}
-            {meta && meta.last_page > 1 && (
+            {meta && (meta.last_page ?? 0) > 1 && (
               <div className="mt-20 flex justify-center gap-3">
-                 {Array.from({ length: meta.last_page }).map((_, i) => (
+                 {Array.from({ length: meta.last_page ?? 0 }).map((_, i) => (
                     <button 
                       key={i}
                       onClick={() => handlePageChange(i + 1)}

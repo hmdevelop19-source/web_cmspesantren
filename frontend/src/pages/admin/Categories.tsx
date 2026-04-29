@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import type { Category } from '../../types';
+import Skeleton from '../../components/ui/Skeleton';
 
 export default function Categories() {
   const queryClient = useQueryClient();
@@ -81,47 +82,49 @@ export default function Categories() {
     setEditCatName(cat.name);
   };
 
-  const isSaving = createMutation.isPending;
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="max-w-4xl">
-      <div className="mb-8 flex justify-between items-end">
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
         <div>
-          <h1 className="text-2xl font-normal text-gray-800 flex items-center gap-2">
-            <Tag className="w-6 h-6 text-primary" /> Manajemen Kategori
-          </h1>
-          <p className="text-sm text-gray-500 mt-1 uppercase tracking-tighter">Kelola pengelompokan berita dan artikel pesantren.</p>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Kategori Konten</h1>
+          <p className="text-sm text-slate-500 mt-1">Kelola kategori untuk mengorganisir berita, artikel, dan pengumuman pesantren</p>
         </div>
 
-        {hasWriteAccess && !showForm && (
+        {hasWriteAccess && (
           <button 
-            onClick={() => setShowForm(true)}
-            className="bg-primary text-white hover:bg-primary-dark px-4 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 font-bold shadow-md shadow-primary/20"
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/10"
           >
-            <Plus className="w-4 h-4" /> Kategori Baru
+            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showForm ? 'Batal Tambah' : 'Tambah Kategori'}
           </button>
         )}
       </div>
 
+      {/* Form Section */}
       {showForm && (
-        <div className="bg-white border border-primary/20 shadow-xl rounded-2xl p-6 mb-8 animate-slide-up">
-           <div className="flex justify-between items-center mb-6">
-              <h2 className="font-bold text-gray-800 uppercase tracking-widest text-xs">Tambah Kategori Baru</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-red-500 transition-colors"><X className="w-5 h-5" /></button>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8 animate-in slide-in-from-top-4 duration-300">
+           <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-800">Tambah Kategori Baru</h2>
            </div>
-           <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-4">
-              <input 
-                type="text" 
-                placeholder="Nama Kategori (Contoh: Warta Santri)" 
-                autoFocus
-                value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-all shadow-inner"
-              />
+           <form onSubmit={handleCreate} className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <input 
+                  type="text" 
+                  placeholder="Contoh: Kegiatan Santri, Warta Utama..." 
+                  autoFocus
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  className="w-full bg-slate-50/50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-all"
+                />
+              </div>
               <button 
                 type="submit" 
                 disabled={isSaving || !newCatName.trim()}
-                className="bg-primary text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary-dark transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                className="bg-primary text-white px-8 py-3 rounded-lg text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-primary/10"
               >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Simpan Kategori
@@ -130,78 +133,107 @@ export default function Categories() {
         </div>
       )}
 
-      <div className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+      {/* Table Section */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden relative">
         {isLoading ? (
-          <div className="py-20 text-center flex flex-col items-center gap-4">
-             <Loader2 className="w-10 h-10 animate-spin text-primary" />
-             <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Sinkronisasi Data...</span>
+          <div className="overflow-x-auto">
+             <table className="w-full text-left">
+                <thead className="bg-slate-50/50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Nama Kategori</th>
+                    <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Identitas Slug</th>
+                    <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                   {Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i}>
+                         <td className="px-8 py-5"><Skeleton variant="text" width="60%" height={20} /></td>
+                         <td className="px-8 py-5"><Skeleton variant="text" width="40%" /></td>
+                         <td className="px-8 py-5 text-right"><Skeleton variant="rectangular" width={80} height={32} className="rounded-lg inline-block" /></td>
+                      </tr>
+                   ))}
+                </tbody>
+             </table>
           </div>
         ) : (
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[10px] font-black tracking-[0.15em]">
-              <tr>
-                <th className="px-8 py-5">Nama Kategori</th>
-                <th className="px-8 py-5">Slug Penautan</th>
-                <th className="px-8 py-5 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {categories.length > 0 ? categories.map((cat) => (
-                <tr key={cat.id} className="group hover:bg-gray-50 transition-colors">
-                  {editingId === cat.id ? (
-                    <td colSpan={2} className="px-8 py-4">
-                      <div className="flex items-center gap-3">
-                        <input 
-                          type="text" 
-                          value={editCatName}
-                          onChange={(e) => setEditCatName(e.target.value)}
-                          className="flex-1 border border-primary/50 focus:border-primary rounded px-3 py-1.5 text-sm outline-none"
-                          autoFocus
-                          onKeyDown={(e) => e.key === 'Enter' && handleUpdate(cat.id)}
-                        />
-                        <button onClick={() => handleUpdate(cat.id)} className="text-green-600 hover:text-green-800 font-bold text-xs uppercase">Simpan</button>
-                        <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 font-bold text-xs uppercase">Batal</button>
-                      </div>
-                    </td>
-                  ) : (
-                    <>
-                      <td className="px-8 py-5">
-                        <span className="font-bold text-gray-900 group-hover:text-primary transition-colors tracking-tight text-sm uppercase italic">{cat.name}</span>
-                      </td>
-                      <td className="px-8 py-5">
-                        <code className="text-[10px] bg-gray-100 px-2 py-1 rounded text-gray-500 font-mono">/berita?cat={cat.slug}</code>
-                      </td>
-                    </>
-                  )}
-                  
-                  <td className="px-8 py-5 text-right">
-                    {hasWriteAccess && editingId !== cat.id && (
-                      <div className="flex justify-end gap-2">
-                        <button 
-                          onClick={() => startEdit(cat)}
-                          className="text-gray-300 hover:text-primary transition-colors p-2"
-                          title="Edit Kategori"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(cat.id)}
-                          className="text-gray-300 hover:text-red-500 transition-colors p-2"
-                          title="Hapus Kategori"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              )) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-slate-50/50 border-b border-slate-100">
                 <tr>
-                   <td colSpan={3} className="px-8 py-12 text-center text-gray-400 italic text-sm">Belum ada kategori ditambahkan.</td>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Nama Kategori</th>
+                  <th className="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-widest">Identitas Slug</th>
+                  <th className="px-8 py-5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aksi</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {categories.length > 0 ? categories.map((cat) => (
+                  <tr key={cat.id} className="group hover:bg-slate-50/50 transition-all">
+                    {editingId === cat.id ? (
+                      <td colSpan={2} className="px-8 py-5">
+                        <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-lg border border-primary/20">
+                          <input 
+                            type="text" 
+                            value={editCatName}
+                            onChange={(e) => setEditCatName(e.target.value)}
+                            className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700"
+                            autoFocus
+                            onKeyDown={(e) => e.key === 'Enter' && handleUpdate(cat.id)}
+                          />
+                          <div className="flex gap-1">
+                             <button onClick={() => handleUpdate(cat.id)} className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition-all"><Save className="w-4 h-4" /></button>
+                             <button onClick={() => setEditingId(null)} className="bg-slate-200 text-slate-500 p-2 rounded-md hover:bg-slate-300 transition-all"><X className="w-4 h-4" /></button>
+                          </div>
+                        </div>
+                      </td>
+                    ) : (
+                      <>
+                        <td className="px-8 py-5">
+                          <div className="flex items-center gap-3">
+                             <div className="w-1.5 h-1.5 rounded-full bg-slate-200 group-hover:bg-primary transition-colors"></div>
+                             <span className="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">{cat.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
+                          <code className="text-xs text-slate-400 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">{cat.slug}</code>
+                        </td>
+                      </>
+                    )}
+                    
+                    <td className="px-8 py-5 text-right">
+                      {hasWriteAccess && editingId !== cat.id && (
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button 
+                            onClick={() => startEdit(cat)}
+                            className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
+                            title="Edit Kategori"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(cat.id)}
+                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Hapus Kategori"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                     <td colSpan={3} className="px-8 py-24 text-center">
+                        <div className="flex flex-col items-center gap-4 text-slate-300">
+                           <Tag className="w-12 h-12 opacity-20" />
+                           <p className="text-sm font-medium italic">Belum ada kategori ditemukan</p>
+                        </div>
+                     </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

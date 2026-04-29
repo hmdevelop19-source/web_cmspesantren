@@ -14,8 +14,12 @@ class MediaController extends Controller
     {
         $query = Media::latest();
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $query->where('file_name', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
         }
 
         $media = $query->paginate($request->per_page ?? 24);
@@ -48,16 +52,18 @@ class MediaController extends Controller
         return response()->json(['message' => 'Gagal mengunggah file.'], 400);
     }
 
-    public function update(Request $request, Media $media)
+    public function update(Request $request, Media $medium)
     {
+        \Log::info('Updating Media ID: ' . $medium->id, $request->all());
+
         $validated = $request->validate([
             'show_in_gallery' => 'sometimes|boolean',
             'category' => 'sometimes|nullable|string',
         ]);
 
-        $media->update($validated);
+        $medium->update($validated);
 
-        return (new MediaResource($media))
+        return (new MediaResource($medium))
             ->additional(['message' => 'Status galeri media berhasil diperbarui.']);
     }
 
@@ -79,20 +85,20 @@ class MediaController extends Controller
         return response()->json(['message' => 'Status media berhasil diperbarui secara massal.']);
     }
 
-    public function destroy(Media $media)
+    public function destroy(Media $medium)
     {
-        $isUsedInPost = \App\Models\Post::where('cover_image_id', $media->id)->exists();
-        $isUsedInPage = \App\Models\Page::where('image_id', $media->id)->exists();
+        $isUsedInPost = \App\Models\Post::where('cover_image_id', $medium->id)->exists();
+        $isUsedInPage = \App\Models\Page::where('image_id', $medium->id)->exists();
         
         if ($isUsedInPost || $isUsedInPage) {
             return response()->json(['message' => 'Gagal: Media ini sedang digunakan oleh Artikel atau Halaman.'], 400);
         }
 
         // Delete the physical file - removing Storage::url prefix to get the relative path
-        $relativePath = str_replace('/storage/', '', $media->file_path);
+        $relativePath = str_replace('/storage/', '', $medium->file_path);
         Storage::disk('public')->delete($relativePath);
 
-        $media->delete();
+        $medium->delete();
 
         return response()->json([
             'message' => 'Media berhasil dihapus.'

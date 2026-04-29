@@ -65,7 +65,7 @@ export default function AgendasDetail() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Header Section */}
-      <section className="bg-primary pt-8 pb-32 px-4 relative overflow-hidden text-left">
+      <section className="bg-primary pt-28 pb-32 px-4 relative overflow-hidden text-left">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto relative z-10">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 animate-fade-in">
