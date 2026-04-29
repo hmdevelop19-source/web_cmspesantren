@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, History, Award, BookOpen, Loader2 } from 'lucide-react';
+import { Users, History, Loader2 } from 'lucide-react';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
 import { getImageUrl } from '../../lib/utils';
@@ -81,9 +81,9 @@ export default function Leaders() {
                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Data pengasuh belum tersedia.</p>
             </div>
          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+            <div className="flex overflow-x-auto pb-16 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16 snap-x snap-mandatory scrollbar-hide">
                {leaders.map((leader, idx) => (
-                  <div key={leader.id} className="group flex flex-col items-center text-center">
+                  <div key={leader.id} className="group flex flex-col items-center text-center min-w-[300px] md:min-w-0 snap-center">
                      {/* Photo Frame */}
                      <div className="relative w-full max-w-[320px] mb-10">
                         {/* Decorative background circle */}
@@ -121,17 +121,6 @@ export default function Leaders() {
                         <h2 className="text-2xl font-black text-gray-900 mb-3 tracking-tighter uppercase leading-tight group-hover:text-primary transition-colors duration-500">{leader.name}</h2>
                         <div className="inline-flex items-center gap-3 text-gray-400 font-bold text-[10px] uppercase tracking-widest bg-gray-50 px-5 py-2 rounded-full border border-gray-100">
                            <History className="w-3.5 h-3.5 text-secondary" /> Masa Jabatan: {leader.period}
-                        </div>
-                        
-                        <div className="mt-8 grid grid-cols-2 gap-4">
-                           <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                              <Award className="w-5 h-5 text-secondary mb-2 mx-auto" />
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Kharisma</span>
-                           </div>
-                           <div className="p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                              <BookOpen className="w-5 h-5 text-secondary mb-2 mx-auto" />
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Keilmuan</span>
-                           </div>
                         </div>
                      </div>
                   </div>

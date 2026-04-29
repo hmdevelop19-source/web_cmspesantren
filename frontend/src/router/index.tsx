@@ -73,7 +73,7 @@ export const router = createBrowserRouter([
         element: <PageDetail />,
       },
       {
-        path: 'berita',
+        path: 'news-pesantren',
         element: <Berita />,
       },
       {
@@ -85,7 +85,7 @@ export const router = createBrowserRouter([
         element: <Berita />,
       },
       {
-        path: 'berita/:slug',
+        path: 'news-pesantren/:slug',
         element: <BeritaDetail />,
       },
       {

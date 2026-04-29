@@ -158,28 +158,28 @@ export default function Home() {
                             <div className="absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/50 to-transparent"></div>
                         </div>
                     )}
-                    <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
+                    <div className="max-w-5xl mx-auto px-4 relative z-10 text-center pt-10 sm:pt-0">
                         {banner.link_url && (
-                             <div className="inline-block bg-secondary text-primary font-black text-[10px] uppercase px-5 py-2 rounded-full mb-8 shadow-2xl shadow-secondary/40 tracking-[0.2em]">
+                             <div className="inline-block bg-secondary text-primary font-black text-[9px] uppercase px-4 py-1.5 rounded-full mb-4 sm:mb-8 shadow-2xl shadow-secondary/40 tracking-[0.2em]">
                                 Info Terkini
                             </div>
                         )}
-                        <h1 className="text-3xl md:text-6xl font-black mb-8 leading-tight tracking-tighter drop-shadow-2xl uppercase italic">
+                        <h1 className="text-2xl md:text-6xl font-black mb-4 sm:mb-8 leading-tight tracking-tighter drop-shadow-2xl uppercase italic px-2">
                             {banner.title}
                         </h1>
-                        <p className="text-gray-200 mb-12 max-w-3xl mx-auto text-sm md:text-lg leading-relaxed font-medium opacity-90 italic">
+                        <p className="text-gray-200 mb-6 sm:mb-12 max-w-2xl mx-auto text-[11px] md:text-lg leading-relaxed font-medium opacity-90 italic line-clamp-3 sm:line-clamp-none px-4">
                             {banner.subtitle}
                         </p>
-                        <div className="flex flex-col sm:flex-row justify-center gap-6">
+                        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-6 px-8 sm:px-0">
                             {banner.link_url && (
                                 <a 
                                   href={banner.link_url || '#'} 
-                                  className="bg-white text-primary font-black px-12 py-4 rounded-xl hover:bg-secondary hover:text-primary transition-all text-xs uppercase tracking-widest shadow-xl active:scale-95 text-center"
+                                  className="bg-white text-primary font-black px-8 py-3 sm:px-12 sm:py-4 rounded-xl hover:bg-secondary hover:text-primary transition-all text-[10px] sm:text-xs uppercase tracking-widest shadow-xl active:scale-95 text-center"
                                 >
                                   Selengkapnya
                                 </a>
                             )}
-                            <Link to="/profil" className="bg-primary-light/30 border border-white/20 backdrop-blur-md text-white font-black px-12 py-4 rounded-xl hover:bg-white/20 transition-all text-xs uppercase tracking-widest shadow-xl active:scale-95 text-center">
+                            <Link to="/profil" className="bg-primary-light/30 border border-white/20 backdrop-blur-md text-white font-black px-8 py-3 sm:px-12 sm:py-4 rounded-xl hover:bg-white/20 transition-all text-[10px] sm:text-xs uppercase tracking-widest shadow-xl active:scale-95 text-center">
                                 Profil Kami
                             </Link>
                         </div>
@@ -247,7 +247,7 @@ export default function Home() {
                     <img 
                       src={getImageUrl(activeLeader.photo)} 
                       alt={activeLeader.name} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 grayscale group-hover:grayscale-0"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
                     <div className="absolute bottom-8 left-8">
@@ -363,9 +363,9 @@ export default function Home() {
                     </Link>
                 </RevealOnScroll>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                <div className="flex overflow-x-auto pb-10 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 gap-10 snap-x snap-mandatory scrollbar-hide">
                 {posts.map((b, i) => (
-                    <RevealOnScroll key={b.id} delay={i * 150}>
+                    <RevealOnScroll key={b.id} delay={i * 150} className="min-w-[280px] sm:min-w-0 snap-center">
                         <div className="bg-white rounded-3xl shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group flex flex-col h-full">
                             <div className="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
                                 {b.cover_image ? (
@@ -382,7 +382,7 @@ export default function Home() {
                                     {b.category?.name || 'UMUM'}
                                 </span>
                             </div>
-                            <div className="p-8 flex-1 flex flex-col">
+                            <div className="p-8 flex-1 flex flex-col text-left">
                                 <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 mb-4 uppercase tracking-widest">
                                     <Calendar className="w-3.5 h-3.5 text-secondary" />
                                     <span>{new Date(b.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
@@ -450,9 +450,9 @@ export default function Home() {
             <p className="text-gray-400 text-xs font-black uppercase tracking-[0.4em] mt-8">Capture the Essence & Vision</p>
           </RevealOnScroll>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="flex overflow-x-auto pb-10 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 gap-6 snap-x snap-mandatory scrollbar-hide">
             {(data?.gallery && data.gallery.length > 0) ? data.gallery.map((item: any, i: number) => (
-              <RevealOnScroll key={item.id} delay={i * 100}>
+              <RevealOnScroll key={item.id} delay={i * 100} className="min-w-[240px] md:min-w-0 snap-center">
                   <div className="aspect-square bg-gray-50 rounded-3xl relative overflow-hidden group cursor-pointer border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500">
                     <img 
                       src={getImageUrl(item.file_path)} 
@@ -467,7 +467,7 @@ export default function Home() {
                   </div>
               </RevealOnScroll>
             )) : [1, 2, 3, 4, 5, 6, 7, 8].map((item, i) => (
-              <RevealOnScroll key={item} delay={i * 100}>
+              <RevealOnScroll key={item} delay={i * 100} className="min-w-[240px] md:min-w-0 snap-center">
                   <div className="aspect-square bg-gray-50 rounded-3xl relative overflow-hidden group cursor-pointer border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500 h-full">
                     <div className="absolute inset-0 bg-primary opacity-5 group-hover:opacity-10 transition-opacity"></div>
                     <div className="absolute inset-0 flex items-center justify-center flex-col gap-2">

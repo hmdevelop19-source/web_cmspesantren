@@ -198,9 +198,10 @@ export default function Profil() {
                      </Link>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+                  {/* Carousel Container: Scroll on Mobile, Grid on Desktop */}
+                  <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 snap-x snap-mandatory scrollbar-hide">
                      {leaders.map((leader, idx) => (
-                        <div key={leader.id} className="group relative">
+                        <div key={leader.id} className="group relative min-w-[280px] sm:min-w-0 snap-center">
                            <div className="relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/10 border-4 border-white group-hover:shadow-primary/20 transition-all duration-700 bg-slate-50">
                               <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/20 to-transparent opacity-80 z-10"></div>
                               {leader.photo ? (
@@ -232,85 +233,6 @@ export default function Profil() {
                   </div>
                </div>
             )}
-
-            {/* Sambutan Pengasuh (Replacing Jajaran Pimpinan) */}
-            {leaders.length > 0 && (
-               <div className="pt-32 border-t border-gray-100">
-                  <div className="bg-primary-dark rounded-[3.5rem] overflow-hidden shadow-2xl shadow-primary/20 relative group">
-                     {/* Decorative Elements */}
-                     <div className="absolute top-0 right-0 w-1/2 h-full bg-primary/5 -skew-x-12 translate-x-20"></div>
-                     
-                     <div className="flex flex-col lg:flex-row items-stretch relative z-10">
-                        {/* Photo Side */}
-                        <div className="lg:w-1/3 min-h-[450px] relative overflow-hidden">
-                           <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/80 via-transparent to-transparent z-10 hidden lg:block"></div>
-                           <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/80 via-transparent to-transparent z-10 lg:hidden"></div>
-                           
-                           {/* Pick the most recent/active leader for the greeting */}
-                           {(() => {
-                              // Sort by sort_order DESC, then by id DESC to get the latest active leader
-                              const activeLeader = [...leaders].sort((a, b) => {
-                                 if (b.sort_order !== a.sort_order) return b.sort_order - a.sort_order;
-                                 return b.id - a.id;
-                              })[0];
-                              
-                              return (
-                                 <>
-                                    <img 
-                                       src={getImageUrl(activeLeader.photo)} 
-                                       alt={activeLeader.name} 
-                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                                    />
-                                    <div className="absolute bottom-10 left-10 z-20">
-                                       <h3 className="text-white font-black text-xl uppercase tracking-tight mb-1">{activeLeader.name}</h3>
-                                       <span className="text-secondary font-black text-[10px] uppercase tracking-[0.3em]">Pengasuh Saat Ini</span>
-                                    </div>
-                                 </>
-                              );
-                           })()}
-                        </div>
-
-                        {/* Content Side */}
-                        <div className="lg:w-2/3 p-12 lg:p-20 flex flex-col justify-center text-white">
-                           <div className="w-16 h-1 bg-secondary mb-10 rounded-full"></div>
-                           <h2 className="text-3xl md:text-5xl font-black mb-8 tracking-tighter uppercase leading-none italic">
-                              Sambutan <span className="text-secondary">Pengasuh</span>
-                           </h2>
-                           
-                           <div className="relative">
-                              <span className="absolute -top-10 -left-6 text-8xl font-serif text-white/10 select-none">“</span>
-                              <div className="prose prose-invert prose-lg max-w-none">
-                                 <p className="text-gray-300 font-medium leading-relaxed italic text-lg md:text-xl">
-                                    {(() => {
-                                       const activeLeader = [...leaders].sort((a, b) => {
-                                          if (b.sort_order !== a.sort_order) return b.sort_order - a.sort_order;
-                                          return b.id - a.id;
-                                       })[0];
-                                       return activeLeader?.message || "Pesantren bukan sekadar tempat menimba ilmu, melainkan kawah candradimuka bagi pembentukan karakter dan akhlak mulia. Mari bersama-sama menjaga nyala api keilmuan dan spiritualitas demi kejayaan umat.";
-                                    })()}
-                                 </p>
-                              </div>
-                              <span className="absolute -bottom-16 -right-6 text-8xl font-serif text-white/10 select-none">”</span>
-                           </div>
-
-                           <div className="mt-16 flex items-center gap-6">
-                              <div className="flex -space-x-3">
-                                 {[1, 2, 3].map(i => (
-                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-primary-dark bg-primary/20 flex items-center justify-center">
-                                       <Users className="w-4 h-4 text-secondary/40" />
-                                    </div>
-                                 ))}
-                              </div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 italic">
-                                 Meneruskan Estafet Perjuangan
-                              </p>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
-
          </section>
       </div>
    );

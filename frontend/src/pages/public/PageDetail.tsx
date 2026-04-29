@@ -59,7 +59,7 @@ export default function PageDetail() {
         type="article"
       />
       {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[400px] flex items-end pb-20 overflow-hidden bg-primary">
+      <section className="relative h-[45vh] min-h-[350px] flex items-end pb-24 overflow-hidden bg-primary">
         {page.image_url ? (
           <>
             <img 
@@ -86,7 +86,7 @@ export default function PageDetail() {
       </section>
 
       {/* Content Area */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
         <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-16 border border-gray-100 flex flex-col md:flex-row gap-16">
           
           {/* Main Column */}

@@ -80,7 +80,8 @@ class PublicController extends Controller
 
         if ($request->category) {
             $query->whereHas('category', function($q) use ($request) {
-                $q->where('slug', $request->category);
+                $q->where('slug', $request->category)
+                  ->orWhere('name', $request->category);
             });
         }
 
