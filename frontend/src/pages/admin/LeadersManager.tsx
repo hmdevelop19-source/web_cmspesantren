@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   Users, Plus, Trash2, Edit2, Save, X, 
   Upload, Image as ImageIcon, Loader2, 
-  ArrowUp, ArrowDown, History
+  History
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
@@ -16,6 +16,7 @@ interface Leader {
   period: string;
   sort_order: number;
   is_active: boolean;
+  message: string | null;
 }
 
 export default function LeadersManager() {
@@ -29,6 +30,7 @@ export default function LeadersManager() {
   const [period, setPeriod] = useState('');
   const [sortOrder, setSortOrder] = useState(0);
   const [isActive, setIsActive] = useState(true);
+  const [message, setMessage] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const { data: leaders = [], isLoading } = useQuery<Leader[]>({
@@ -70,6 +72,7 @@ export default function LeadersManager() {
     setPeriod('');
     setSortOrder(0);
     setIsActive(true);
+    setMessage('');
     setPhotoFile(null);
     setPhotoPreview(null);
     setEditingLeader(null);
@@ -82,6 +85,7 @@ export default function LeadersManager() {
     setPeriod(leader.period);
     setSortOrder(leader.sort_order);
     setIsActive(leader.is_active);
+    setMessage(leader.message || '');
     setPhotoPreview(leader.photo ? getImageUrl(leader.photo) : null);
     setShowForm(true);
   };
@@ -93,9 +97,16 @@ export default function LeadersManager() {
     formData.append('period', period);
     formData.append('sort_order', sortOrder.toString());
     formData.append('is_active', isActive ? '1' : '0');
+    formData.append('message', message);
     if (photoFile) formData.append('photo', photoFile);
 
     mutation.mutate(formData);
+  };
+
+  const handleDelete = (id: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data pengasuh ini?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,6 +185,19 @@ export default function LeadersManager() {
                       onChange={(e) => setName(e.target.value)}
                       className="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-primary/10 transition-all"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sambutan / Pesan Pengasuh</label>
+                      <textarea 
+                        placeholder="Tuliskan kata-kata sambutan atau pesan untuk pengunjung..." 
+                        rows={4}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all resize-none"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">

@@ -12,5 +12,6 @@ class Leader extends Model
         'period',
         'sort_order',
         'is_active',
+        'message',
     ];
 }

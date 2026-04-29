@@ -34,6 +34,14 @@ const RevealOnScroll = ({ children, delay = 0, className = "" }: { children: Rea
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const { data: leadersData = [] } = useQuery<any[]>({
+    queryKey: ['public-leaders'],
+    queryFn: async () => {
+      const response = await api.get('/public/leaders');
+      return response.data;
+    },
+  });
+
   const { data, isLoading } = useQuery<HomeData>({
     queryKey: ['home-data'],
     queryFn: async () => {
@@ -220,6 +228,56 @@ export default function Home() {
           </div>
         </RevealOnScroll>
       </section>
+
+      {/* Sambutan Pengasuh (New Section) */}
+      {(() => {
+        const activeLeader = [...leadersData].sort((a, b) => {
+          if (b.sort_order !== a.sort_order) return b.sort_order - a.sort_order;
+          return b.id - a.id;
+        })[0];
+
+        if (!activeLeader) return null;
+
+        return (
+          <section className="bg-white py-24 relative overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <RevealOnScroll className="bg-gray-50 rounded-[3.5rem] overflow-hidden shadow-2xl shadow-black/5 border border-gray-100 relative group">
+                <div className="flex flex-col lg:flex-row items-stretch">
+                  <div className="lg:w-1/3 min-h-[400px] relative overflow-hidden">
+                    <img 
+                      src={getImageUrl(activeLeader.photo)} 
+                      alt={activeLeader.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 grayscale group-hover:grayscale-0"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent"></div>
+                    <div className="absolute bottom-8 left-8">
+                      <h3 className="text-white font-black text-lg uppercase tracking-tight mb-1">{activeLeader.name}</h3>
+                      <span className="text-secondary font-black text-[9px] uppercase tracking-[0.3em]">Pengasuh Saat Ini</span>
+                    </div>
+                  </div>
+                  <div className="lg:w-2/3 p-12 lg:p-16 flex flex-col justify-center">
+                    <div className="w-12 h-1 bg-secondary mb-8 rounded-full"></div>
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic leading-none">
+                      Sambutan <span className="text-primary">Pengasuh</span>
+                    </h2>
+                    <div className="relative">
+                       <span className="absolute -top-6 -left-4 text-6xl font-serif text-primary/5 select-none">“</span>
+                       <p className="text-gray-500 font-medium leading-relaxed italic text-base md:text-lg relative z-10">
+                          {activeLeader.message || "Pesantren bukan sekadar tempat menimba ilmu, melainkan kawah candradimuka bagi pembentukan karakter dan akhlak mulia. Mari bersama-sama menjaga nyala api keilmuan dan spiritualitas demi kejayaan umat."}
+                       </p>
+                    </div>
+                    <div className="mt-10">
+                       <Link to="/profil" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-[0.2em] flex items-center gap-2 group/link">
+                          BACA PROFIL LENGKAP <span className="group-hover/link:translate-x-2 transition-transform">→</span>
+                       </Link>
+                    </div>
+                  </div>
+                </div>
+              </RevealOnScroll>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Main Content: Announcements & Agendas */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">

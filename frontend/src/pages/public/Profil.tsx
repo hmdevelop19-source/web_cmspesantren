@@ -189,7 +189,13 @@ export default function Profil() {
                         Masa ke Masa
                      </div>
                      <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic leading-none">Silsilah Pengasuh</h2>
-                     <p className="text-gray-400 text-sm font-medium italic max-w-xl mx-auto">Mengenang jasa dan perjuangan para Masyayikh yang telah mendedikasikan hidupnya demi perkembangan Pesantren.</p>
+                     <p className="text-gray-400 text-sm font-medium italic max-w-xl mx-auto mb-10">Mengenang jasa dan perjuangan para Masyayikh yang telah mendedikasikan hidupnya demi perkembangan Pesantren.</p>
+                     <Link 
+                        to="/silsilah-pengasuh"
+                        className="inline-flex items-center gap-3 px-8 py-3 bg-primary text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 group"
+                     >
+                        Lihat Silsilah Lengkap <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform text-secondary" />
+                     </Link>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -227,32 +233,83 @@ export default function Profil() {
                </div>
             )}
 
-            {/* Struktur Pimpinan with refined grid */}
-            <div className="pt-24 border-t border-gray-100">
-               <div className="text-center mb-20">
-                  <h2 className="text-4xl font-black text-gray-900 mb-4 tracking-tighter uppercase leading-none">Jajaran Pimpinan</h2>
-                  <div className="w-40 h-2 bg-secondary mx-auto rounded-full shadow-lg shadow-secondary/20"></div>
-                  <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] mt-8">Struktur Organisasi & Kepemimpinan</p>
-               </div>
-
-               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-                  {[
-                     { name: 'Dr. H. Akhmad Fozid', title: 'Ketua LPPM' },
-                     { name: 'Dr. Iswahyudi, M.Si', title: 'Kepala Pusat Inovasi Akademik' },
-                     { name: 'Hj. Siti Aisyah, S.Ag', title: 'Sekretaris Eksekutif' },
-                     { name: 'Ir. Ahmad Zaky, Teknik', title: 'Kepala Bagian Pengabdian' }
-                  ].map((person, idx) => (
-                     <div key={idx} className="bg-white p-10 rounded-[2rem] shadow-xl shadow-black/5 border border-gray-100 text-center hover:-translate-y-3 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="w-28 h-28 mx-auto bg-gray-50 rounded-[2rem] mb-8 flex items-center justify-center overflow-hidden border border-gray-100 shadow-inner group-hover:rotate-6 transition-transform">
-                           <Users className="w-12 h-12 text-primary opacity-20" />
+            {/* Sambutan Pengasuh (Replacing Jajaran Pimpinan) */}
+            {leaders.length > 0 && (
+               <div className="pt-32 border-t border-gray-100">
+                  <div className="bg-primary-dark rounded-[3.5rem] overflow-hidden shadow-2xl shadow-primary/20 relative group">
+                     {/* Decorative Elements */}
+                     <div className="absolute top-0 right-0 w-1/2 h-full bg-primary/5 -skew-x-12 translate-x-20"></div>
+                     
+                     <div className="flex flex-col lg:flex-row items-stretch relative z-10">
+                        {/* Photo Side */}
+                        <div className="lg:w-1/3 min-h-[450px] relative overflow-hidden">
+                           <div className="absolute inset-0 bg-gradient-to-r from-primary-dark/80 via-transparent to-transparent z-10 hidden lg:block"></div>
+                           <div className="absolute inset-0 bg-gradient-to-t from-primary-dark/80 via-transparent to-transparent z-10 lg:hidden"></div>
+                           
+                           {/* Pick the most recent/active leader for the greeting */}
+                           {(() => {
+                              // Sort by sort_order DESC, then by id DESC to get the latest active leader
+                              const activeLeader = [...leaders].sort((a, b) => {
+                                 if (b.sort_order !== a.sort_order) return b.sort_order - a.sort_order;
+                                 return b.id - a.id;
+                              })[0];
+                              
+                              return (
+                                 <>
+                                    <img 
+                                       src={getImageUrl(activeLeader.photo)} 
+                                       alt={activeLeader.name} 
+                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+                                    />
+                                    <div className="absolute bottom-10 left-10 z-20">
+                                       <h3 className="text-white font-black text-xl uppercase tracking-tight mb-1">{activeLeader.name}</h3>
+                                       <span className="text-secondary font-black text-[10px] uppercase tracking-[0.3em]">Pengasuh Saat Ini</span>
+                                    </div>
+                                 </>
+                              );
+                           })()}
                         </div>
-                        <h3 className="font-black text-gray-900 text-sm tracking-tight mb-2 uppercase">{person.name}</h3>
-                        <p className="text-primary text-[10px] font-black uppercase tracking-widest">{person.title}</p>
+
+                        {/* Content Side */}
+                        <div className="lg:w-2/3 p-12 lg:p-20 flex flex-col justify-center text-white">
+                           <div className="w-16 h-1 bg-secondary mb-10 rounded-full"></div>
+                           <h2 className="text-3xl md:text-5xl font-black mb-8 tracking-tighter uppercase leading-none italic">
+                              Sambutan <span className="text-secondary">Pengasuh</span>
+                           </h2>
+                           
+                           <div className="relative">
+                              <span className="absolute -top-10 -left-6 text-8xl font-serif text-white/10 select-none">“</span>
+                              <div className="prose prose-invert prose-lg max-w-none">
+                                 <p className="text-gray-300 font-medium leading-relaxed italic text-lg md:text-xl">
+                                    {(() => {
+                                       const activeLeader = [...leaders].sort((a, b) => {
+                                          if (b.sort_order !== a.sort_order) return b.sort_order - a.sort_order;
+                                          return b.id - a.id;
+                                       })[0];
+                                       return activeLeader?.message || "Pesantren bukan sekadar tempat menimba ilmu, melainkan kawah candradimuka bagi pembentukan karakter dan akhlak mulia. Mari bersama-sama menjaga nyala api keilmuan dan spiritualitas demi kejayaan umat.";
+                                    })()}
+                                 </p>
+                              </div>
+                              <span className="absolute -bottom-16 -right-6 text-8xl font-serif text-white/10 select-none">”</span>
+                           </div>
+
+                           <div className="mt-16 flex items-center gap-6">
+                              <div className="flex -space-x-3">
+                                 {[1, 2, 3].map(i => (
+                                    <div key={i} className="w-10 h-10 rounded-full border-2 border-primary-dark bg-primary/20 flex items-center justify-center">
+                                       <Users className="w-4 h-4 text-secondary/40" />
+                                    </div>
+                                 ))}
+                              </div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 italic">
+                                 Meneruskan Estafet Perjuangan
+                              </p>
+                           </div>
+                        </div>
                      </div>
-                  ))}
+                  </div>
                </div>
-            </div>
+            )}
 
          </section>
       </div>

@@ -25,8 +25,9 @@ class LeaderController extends Controller
             'name' => 'required|string|max:255',
             'period' => 'required|string|max:255',
             'sort_order' => 'integer',
-            'is_active' => 'boolean',
-            'photo' => 'nullable|image|max:2048'
+            'is_active' => 'sometimes',
+            'photo' => 'nullable|image|max:5120',
+            'message' => 'nullable|string'
         ]);
 
         if ($request->hasFile('photo')) {
@@ -43,8 +44,9 @@ class LeaderController extends Controller
             'name' => 'required|string|max:255',
             'period' => 'required|string|max:255',
             'sort_order' => 'integer',
-            'is_active' => 'boolean',
-            'photo' => 'nullable|image|max:2048'
+            'is_active' => 'sometimes',
+            'photo' => 'nullable|image|max:5120',
+            'message' => 'nullable|string'
         ]);
 
         if ($request->hasFile('photo')) {

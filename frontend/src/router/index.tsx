@@ -34,6 +34,7 @@ import LeadersManager from '../pages/admin/LeadersManager';
 
 import Home from '../pages/public/Home';
 import Profil from '../pages/public/Profil';
+import Leaders from '../pages/public/Leaders';
 import Berita from '../pages/public/Berita';
 import BeritaDetail from '../pages/public/BeritaDetail';
 import ArtikelDetail from '../pages/public/ArtikelDetail';
@@ -62,6 +63,10 @@ export const router = createBrowserRouter([
       {
         path: 'profil',
         element: <Profil />,
+      },
+      {
+        path: 'silsilah-pengasuh',
+        element: <Leaders />,
       },
       {
         path: 'profil/:slug',
