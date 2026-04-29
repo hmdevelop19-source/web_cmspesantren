@@ -1,4 +1,4 @@
-import { Calendar, User, Share2, BookOpen, Clock } from 'lucide-react';
+import { Calendar, User, Share2, BookOpen, Clock, Play } from 'lucide-react';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -30,6 +30,14 @@ export default function BeritaDetail() {
     enabled: !!post?.id,
   });
 
+  const { data: homeData } = useQuery<any>({
+    queryKey: ['home-data-sidebar'],
+    queryFn: async () => {
+      const response = await api.get('/public/home');
+      return response.data;
+    },
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
@@ -47,7 +55,7 @@ export default function BeritaDetail() {
              <p className="text-red-500/70 font-bold mb-10 italic leading-relaxed">Maaf, kami tidak dapat memuat konten berita saat ini. Pastikan koneksi internet Anda stabil atau coba beberapa saat lagi.</p>
              <div className="flex justify-center gap-4">
                 <button onClick={() => refetch()} className="bg-red-500 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95">Klik Muat Ulang</button>
-                <Link to="/berita" className="bg-white border border-red-200 text-red-500 px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95">Halaman Berita</Link>
+                <Link to="/publikasi" className="bg-white border border-red-200 text-red-500 px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest active:scale-95">HALAMAN PUBLIKASI</Link>
              </div>
           </div>
       </div>
@@ -81,18 +89,37 @@ export default function BeritaDetail() {
           <div className="max-w-7xl mx-auto py-40 px-4 text-center">
               <h1 className="text-4xl font-black text-gray-200 uppercase tracking-tighter mb-4">404 NOT FOUND</h1>
               <p className="text-gray-500 font-bold mb-8">Berita yang Anda cari tidak ditemukan atau telah dihapus.</p>
-              <Link to="/berita" className="bg-primary text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest shadow-xl">Kembali ke Berita</Link>
+              <Link to="/publikasi" className="bg-primary text-white px-8 py-3 rounded-xl font-bold uppercase text-xs tracking-widest shadow-xl">Kembali ke Publikasi</Link>
           </div>
       );
   }
+
+  const articleSchema = post ? {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": post.title,
+    "image": [post.cover_image ? getImageUrl(post.cover_image) : ""],
+    "datePublished": post.created_at,
+    "dateModified": post.updated_at,
+    "author": [{
+        "@type": "Person",
+        "name": post.user?.name || "Redaksi",
+        "url": window.location.origin
+      }]
+  } : undefined;
+
+  const finalCoverImage = post.cover_image_obj 
+    ? getImageUrl(post.cover_image_obj.file_path)
+    : (post.cover_image ? getImageUrl(post.cover_image) : null);
 
   return (
     <div className="bg-white min-h-screen">
       <SEO 
         title={post.title}
         description={post.excerpt || post.content?.replace(/<[^>]+>/g, '').slice(0, 160)}
-        image={post.cover_image ? getImageUrl(post.cover_image) : undefined}
+        image={finalCoverImage || undefined}
         type="article"
+        structuredData={articleSchema}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="flex flex-col lg:flex-row gap-16">
@@ -100,7 +127,7 @@ export default function BeritaDetail() {
           {/* Main Content */}
           <article className="lg:w-2/3">
             <Breadcrumbs items={[
-                { label: 'Berita', path: '/berita' },
+                { label: 'Publikasi', path: '/publikasi' },
                 { label: post?.title || 'Detail Berita' }
             ]} />
             
@@ -112,9 +139,9 @@ export default function BeritaDetail() {
                 <div className="h-px bg-gray-100 flex-1"></div>
                </div>
 
-               {post.cover_image && (
+               {finalCoverImage && (
                    <div className="w-full aspect-[16/9] bg-gray-50 rounded-3xl mb-12 overflow-hidden relative shadow-2xl shadow-black/5 ring-1 ring-gray-100">
-                      <img src={getImageUrl(post.cover_image)} alt={post.title} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={finalCoverImage} alt={post.title} loading="lazy" className="w-full h-full object-cover" />
                    </div>
                )}
 
@@ -181,19 +208,35 @@ export default function BeritaDetail() {
                     ))}
                     </div>
                     
-                    <Link to="/berita" className="mt-12 w-full flex items-center justify-center py-4 bg-gray-50 hover:bg-primary hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all text-gray-400">
-                        Lihat Semua Berita &rarr;
+                    <Link to="/publikasi" className="mt-12 w-full flex items-center justify-center py-4 bg-gray-50 hover:bg-primary hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all text-gray-400">
+                        LIHAT SEMUA BERITA &rarr;
                     </Link>
                 </div>
 
-                {/* Newsletter / CTA */}
+                {/* Sinema Pesantren Section */}
                 <div className="bg-primary-dark rounded-3xl p-10 text-white relative overflow-hidden shadow-2xl shadow-primary/40 group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 -translate-y-1/2 translate-x-1/2 rounded-full blur-2xl"></div>
-                    <h4 className="text-lg font-black tracking-tighter mb-4 leading-tight relative z-10">Dapatkan Update Mingguan</h4>
-                    <p className="text-xs text-gray-400 font-medium mb-8 leading-relaxed relative z-10">Mendaftarlah dengan email Anda untuk mendapatkan kabar terbaru langsung di kotak masuk.</p>
-                    <div className="relative z-10 flex flex-col gap-3">
-                        <input type="email" placeholder="Alamat email Anda..." className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-xs font-bold focus:outline-none focus:ring-1 focus:ring-secondary" />
-                        <button className="w-full bg-secondary text-black font-black py-4 rounded-xl text-[10px] uppercase tracking-widest hover:bg-yellow-400 transition-colors">Berlangganan</button>
+                    <h4 className="text-lg font-black tracking-tighter mb-6 leading-tight relative z-10 uppercase italic">Sinema <span className="text-secondary">Pesantren</span></h4>
+                    
+                    <div className="relative z-10">
+                        <div className="aspect-video bg-gray-900 rounded-2xl mb-6 relative flex items-center justify-center overflow-hidden border border-white/10 shadow-inner group/vid">
+                            {homeData?.featured_video ? (
+                                <>
+                                    <img 
+                                        src={`https://img.youtube.com/vi/${(homeData.featured_video.youtube_url || homeData.featured_video.video_url || '').split('v=')[1]?.split('&')[0] || ''}/maxresdefault.jpg`} 
+                                        alt="Video cover" 
+                                        className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover/vid:opacity-70 group-hover/vid:scale-110 transition-all duration-700" 
+                                    />
+                                    <a href={homeData.featured_video.youtube_url || homeData.featured_video.video_url} target="_blank" rel="noreferrer" className="w-14 h-14 bg-secondary rounded-full flex items-center justify-center z-10 text-primary shadow-2xl hover:scale-110 active:scale-95 transition-all outline outline-8 outline-secondary/10">
+                                        <Play className="w-6 h-6 ml-1 fill-primary" />
+                                    </a>
+                                </>
+                            ) : (
+                                <div className="text-white/20"><Play className="w-10 h-10" /></div>
+                            )}
+                        </div>
+                        <h5 className="font-bold text-sm mb-2 leading-tight uppercase italic line-clamp-1">{homeData?.featured_video?.title || 'Dokumentasi Video'}</h5>
+                        <p className="text-[10px] text-gray-400 font-medium leading-relaxed italic line-clamp-2">{homeData?.featured_video?.description || 'Tonton cuplikan kegiatan eksklusif kami.'}</p>
                     </div>
                 </div>
              </div>

@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, FileText, Settings, User, Menu, Image, Edit3, Bell, ExternalLink, X, 
   CalendarDays, Megaphone, PlaySquare, Users as UsersIcon, ShieldCheck,
-  LogOut, Tag, Mail, LayoutPanelTop, History
+  LogOut, Tag, Mail, LayoutPanelTop, History, Quote
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
@@ -157,6 +157,11 @@ export default function AdminLayout() {
             <Link to="/admin/leaders" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/leaders')}`}>
               <History className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/leaders') ? 'text-secondary' : ''}`} />
               Silsilah Pengasuh
+            </Link>
+
+            <Link to="/admin/testimonials" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/testimonials')}`}>
+              <Quote className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/testimonials') ? 'text-secondary' : ''}`} />
+              Testimoni Alumni
             </Link>
 
             {/* GRUP 3: MEDIA & VISUAL */}

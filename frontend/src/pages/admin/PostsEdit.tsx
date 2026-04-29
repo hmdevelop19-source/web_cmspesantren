@@ -247,7 +247,7 @@ export default function PostsEdit() {
                         >
                            <option value="">Pilih Kategori...</option>
                            {categories.map((cat) => (
-                             <option key={cat.id} value={cat.id}>{cat.name}</option>
+                             <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
                            ))}
                         </select>
                         <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-primary transition-colors" />

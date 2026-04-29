@@ -7,6 +7,7 @@ import api from '../../lib/api';
 import { useSeoMeta } from '../../hooks/useSeoMeta';
 import { useSettingsStore } from '../../store/settingsStore';
 import Skeleton from '../../components/ui/Skeleton';
+import OptimizedImage from '../../components/ui/OptimizedImage';
 import type { Post, PaginatedResponse } from '../../types';
 import { getImageUrl } from '../../lib/utils';
 
@@ -151,19 +152,24 @@ export default function Berita() {
           </div>
         ) : posts.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 text-left">
+            <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-6 pb-8 px-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:mx-0 md:px-0 md:gap-10">
               {posts.map((post) => (
-                <div key={post.id} className="bg-white rounded-[32px] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all group flex flex-col">
-                  <div className="h-56 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                    {post.cover_image ? (
-                      <img
-                        src={getImageUrl(post.cover_image)}
-                        alt={post.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                <div key={post.id} className="flex-none w-[85vw] md:w-auto snap-center bg-white rounded-[32px] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all group flex flex-col">
+                  <div className="h-56 relative group">
+                    {post.cover_image_obj ? (
+                      <OptimizedImage 
+                        src={getImageUrl(post.cover_image_obj.file_path)} 
+                        alt={post.title} 
+                        aspectRatio="h-full w-full"
+                      />
+                    ) : post.cover_image ? (
+                      <OptimizedImage 
+                        src={getImageUrl(post.cover_image)} 
+                        alt={post.title} 
+                        aspectRatio="h-full w-full"
                       />
                     ) : (
-                      <div className="text-primary/10 opacity-30"><BookOpen className="w-20 h-20" /></div>
+                      <div className="h-full w-full bg-gray-50 flex items-center justify-center text-primary/10 opacity-30"><BookOpen className="w-20 h-20" /></div>
                     )}
                     <span className="bg-secondary text-primary text-[9px] font-black px-4 py-2 absolute top-4 left-4 rounded-lg uppercase z-10 shadow-lg tracking-widest">
                       {post.category?.name || 'UMUM'}

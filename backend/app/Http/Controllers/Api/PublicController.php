@@ -13,6 +13,7 @@ use App\Models\Setting;
 use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Menu;
+use App\Models\Testimonial;
 use App\Http\Resources\PostResource;
 use App\Http\Resources\PageResource;
 use App\Http\Resources\AgendaResource;
@@ -71,26 +72,32 @@ class PublicController extends Controller
 
     public function getPosts(Request $request)
     {
-        $query = Post::with(['user', 'category'])
-            ->where('status', 'published');
+        $page = $request->page ?? 1;
+        $search = $request->search ?? '';
+        $category = $request->category ?? '';
+        
+        return Cache::remember("v2_posts_page_{$page}_{$search}_{$category}", 60, function () use ($request) {
+            $query = Post::with(['user', 'category', 'coverImage'])
+                ->where('status', 'published');
 
-        if ($request->search) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
+            if ($request->search) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+            }
 
-        if ($request->category) {
-            $query->whereHas('category', function($q) use ($request) {
-                $q->where('slug', $request->category)
-                  ->orWhere('name', $request->category);
-            });
-        }
+            if ($request->category) {
+                $query->whereHas('category', function($q) use ($request) {
+                    $q->where('slug', $request->category)
+                      ->orWhere('name', $request->category);
+                });
+            }
 
-        return PostResource::collection($query->latest()->paginate(9));
+            return PostResource::collection($query->latest()->paginate(9));
+        });
     }
 
     public function getPostBySlug($slug)
     {
-        $post = Post::with(['user', 'category'])
+        $post = Post::with(['user', 'category', 'coverImage'])
             ->where('slug', $slug)
             ->where('status', 'published')
             ->firstOrFail();
@@ -219,5 +226,10 @@ class PublicController extends Controller
                 ->orderBy('order')
                 ->get()
         );
+    }
+
+    public function getTestimonials()
+    {
+        return response()->json(Testimonial::where('status', 'published')->latest()->get());
     }
 }

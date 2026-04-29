@@ -119,7 +119,7 @@ export default function Posts() {
                                 <div className="min-w-0">
                                    <p className="text-sm font-bold text-slate-800 truncate group-hover:text-primary transition-colors">{post.title}</p>
                                    <p className="text-[11px] text-slate-400 mt-0.5 truncate font-medium flex items-center gap-1.5">
-                                      <div className="w-1 h-1 rounded-full bg-slate-300"></div> {post.user?.name || 'Admin'}
+                                      <span className="w-1 h-1 rounded-full bg-slate-300"></span> {post.user?.name || 'Admin'}
                                    </p>
                                 </div>
                              </div>

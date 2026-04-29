@@ -1,6 +1,6 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
+import TiptapLink from '@tiptap/extension-link';
 import ResizableImage from './extensions/ResizableImage';
 import { useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { 
@@ -30,12 +30,14 @@ const RichTextEditor = forwardRef((props: RichTextEditorProps, ref) => {
         keepAttributes: false,
       },
     }),
-    Link.configure({
+    /* 
+    TiptapLink.configure({
       openOnClick: false,
       HTMLAttributes: {
         class: 'text-primary underline decoration-secondary cursor-pointer',
       },
     }),
+    */
     ResizableImage.configure({
       allowBase64: true,
     }),
@@ -81,7 +83,10 @@ const RichTextEditor = forwardRef((props: RichTextEditorProps, ref) => {
   // Hanya jalankan jika editor kosong agar tidak menimpa ketikan pengguna.
   useEffect(() => {
     if (editor && content && editor.isEmpty) {
-      editor.commands.setContent(content);
+      const timer = setTimeout(() => {
+        editor.commands.setContent(content);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [editor, content]);
 

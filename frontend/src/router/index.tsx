@@ -31,6 +31,7 @@ import Profile from '../pages/admin/Profile';
 
 import ContactMessages from '../pages/admin/ContactMessages';
 import LeadersManager from '../pages/admin/LeadersManager';
+import Testimonials from '../pages/admin/Testimonials';
 
 import Home from '../pages/public/Home';
 import Profil from '../pages/public/Profil';
@@ -45,6 +46,7 @@ import AnnouncementDetailPublic from '../pages/public/PengumumanDetail';
 import Kontak from '../pages/public/Kontak';
 import PublicGaleri from '../pages/public/PublicGaleri';
 import PageDetail from '../pages/public/PageDetail';
+import Publications from '../pages/public/Publications';
 import ErrorPage from '../components/ErrorPage';
 
 import Login from '../pages/auth/Login';
@@ -77,6 +79,10 @@ export const router = createBrowserRouter([
         element: <Berita />,
       },
       {
+        path: 'berita', // Alias untuk link lama
+        element: <Berita />,
+      },
+      {
         path: 'artikel',
         element: <Berita />,
       },
@@ -86,6 +92,10 @@ export const router = createBrowserRouter([
       },
       {
         path: 'news-pesantren/:slug',
+        element: <BeritaDetail />,
+      },
+      {
+        path: 'berita/:slug', // Alias untuk link lama
         element: <BeritaDetail />,
       },
       {
@@ -115,6 +125,10 @@ export const router = createBrowserRouter([
       {
         path: 'galeri',
         element: <PublicGaleri />,
+      },
+      {
+        path: 'publikasi',
+        element: <Publications />,
       },
     ],
   },
@@ -243,6 +257,10 @@ export const router = createBrowserRouter([
           {
             path: 'leaders',
             element: <LeadersManager />,
+          },
+          {
+            path: 'testimonials',
+            element: <Testimonials />,
           },
         ],
       },

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon, Quote, User, MapPin, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
+import { useSettingsStore } from '../../store/settingsStore';
 import { getImageUrl } from '../../lib/utils';
 import SEO from '../../components/SEO';
 import Skeleton from '../../components/ui/Skeleton';
@@ -32,7 +33,19 @@ const RevealOnScroll = ({ children, delay = 0, className = "" }: { children: Rea
 };
 
 export default function Home() {
+  const { settings } = useSettingsStore();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const testimonialScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollTestimonials = (direction: 'left' | 'right') => {
+    if (testimonialScrollRef.current) {
+      const scrollAmount = 400;
+      testimonialScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const { data: leadersData = [] } = useQuery<any[]>({
     queryKey: ['public-leaders'],
@@ -46,6 +59,14 @@ export default function Home() {
     queryKey: ['home-data'],
     queryFn: async () => {
       const response = await api.get('/public/home');
+      return response.data;
+    },
+  });
+
+  const { data: testimonials = [] } = useQuery<any[]>({
+    queryKey: ['public-testimonials'],
+    queryFn: async () => {
+      const response = await api.get('/public/testimonials');
       return response.data;
     },
   });
@@ -113,11 +134,27 @@ export default function Home() {
   const announcements = data?.announcements || [];
   const video = data?.featured_video;
 
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": settings?.site_name || "Portal Pesantren",
+    "description": settings?.site_description || "Portal Resmi Pesantren - Cerdas Berakal, Mulia Beradab, Teguh Beriman.",
+    "url": window.location.origin,
+    "logo": settings?.site_logo ? getImageUrl(settings.site_logo) : undefined,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Pamekasan", // Bisa disesuaikan nantinya
+      "addressRegion": "Jawa Timur",
+      "addressCountry": "ID"
+    }
+  };
+
   return (
     <div className="bg-white w-full">
       <SEO 
         title="Beranda" 
-        description="Portal Resmi Pesantren - Cerdas Berakal, Mulia Beradab, Teguh Beriman."
+        description={settings?.site_description || "Portal Resmi Pesantren - Cerdas Berakal, Mulia Beradab, Teguh Beriman."}
+        structuredData={organizationSchema}
       />
       {/* Hero Section (Slider) */}
       <section className="bg-primary text-white px-4 relative overflow-hidden h-[500px] sm:h-[600px] flex items-center justify-center">
@@ -287,7 +324,7 @@ export default function Home() {
           <div className="lg:w-2/3 text-left">
             <RevealOnScroll delay={100} className="flex items-center mb-10 border-l-8 border-secondary pl-6">
               <div>
-                <h2 className="font-black text-gray-900 text-2xl uppercase tracking-tighter">Pengumuman & Layanan</h2>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Pengumuman & Layanan</h2>
                 <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Updates & Quick Links</p>
               </div>
             </RevealOnScroll>
@@ -355,11 +392,11 @@ export default function Home() {
             <div className="lg:w-2/3">
                 <RevealOnScroll className="flex justify-between items-end mb-12 border-l-8 border-primary pl-6">
                     <div>
-                        <h2 className="font-black text-gray-900 text-3xl uppercase tracking-tighter">Warta Pesantren</h2>
+                        <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Warta Pesantren</h2>
                         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Insight & Achievement</p>
                     </div>
-                    <Link to="/berita" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-widest bg-white px-5 py-2 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-all mb-1 hidden sm:block">
-                        Eksplorasi Semua Berita →
+                    <Link to="/publikasi" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-widest bg-white px-5 py-2 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-all mb-1 hidden sm:block">
+                        LIHAT SEMUA BERITA →
                     </Link>
                 </RevealOnScroll>
                 
@@ -368,7 +405,14 @@ export default function Home() {
                     <RevealOnScroll key={b.id} delay={i * 150} className="min-w-[280px] sm:min-w-0 snap-center">
                         <div className="bg-white rounded-3xl shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group flex flex-col h-full">
                             <div className="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                                {b.cover_image ? (
+                                {b.cover_image_obj ? (
+                                    <img 
+                                      src={getImageUrl(b.cover_image_obj.file_path)} 
+                                      alt={b.title} 
+                                      loading="lazy"
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                                    />
+                                ) : b.cover_image ? (
                                     <img 
                                       src={getImageUrl(b.cover_image)} 
                                       alt={b.title} 
@@ -404,7 +448,7 @@ export default function Home() {
             {/* Video Section */}
             <div className="lg:w-1/3">
                 <RevealOnScroll delay={300}>
-                    <h2 className="font-black text-gray-900 text-xl uppercase mb-10 border-l-8 border-primary-dark pl-6 tracking-tighter">Sinema Pesantren</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase mb-10 border-l-8 border-primary-dark pl-6 tracking-tighter">Sinema Pesantren</h2>
                     <div className="bg-white rounded-3xl shadow-2xl shadow-black/5 p-8 border border-gray-100 sticky top-32 group">
                     <div className="aspect-video bg-gray-900 rounded-2xl mb-8 relative flex items-center justify-center cursor-pointer overflow-hidden border-2 border-primary/5 shadow-inner">
                         {video ? (
@@ -440,12 +484,85 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Alumni Testimonials Section */}
+      {testimonials.length > 0 && (
+        <section className="bg-primary-dark py-20 relative overflow-hidden">
+          {/* Background Decor */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
+          
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 mb-10">
+              <RevealOnScroll className="text-center md:text-left">
+                <div className="inline-block bg-secondary text-primary font-black text-[9px] uppercase px-5 py-1.5 rounded-full mb-4 shadow-xl shadow-secondary/20 tracking-[0.2em]">
+                  Suara Alumni
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black text-white uppercase italic tracking-tighter mb-4">
+                  Kisah Sukses <span className="text-secondary">Santri</span>
+                </h2>
+                <div className="w-16 h-1 bg-white/10 rounded-full mx-auto md:mx-0"></div>
+              </RevealOnScroll>
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => scrollTestimonials('left')}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-secondary hover:text-primary transition-all active:scale-90"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+                <button 
+                  onClick={() => scrollTestimonials('right')}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-secondary hover:text-primary transition-all active:scale-90"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div 
+              ref={testimonialScrollRef}
+              className="flex overflow-x-auto pb-4 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
+              {testimonials.map((item, i) => (
+                <RevealOnScroll key={item.id} delay={i * 100} className="min-w-[85%] md:min-w-[340px] snap-center">
+                  <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[32px] h-full flex flex-col group hover:bg-white/10 transition-all duration-500 hover:-translate-y-1">
+                    <div className="mb-6 relative">
+                       <Quote className="w-8 h-8 text-secondary opacity-20 absolute -top-3 -left-3" />
+                       <p className="text-white/80 font-medium leading-relaxed italic text-sm relative z-10">
+                         "{item.content}"
+                       </p>
+                    </div>
+                    <div className="mt-auto pt-6 border-t border-white/10 flex items-center gap-4">
+                       <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/10 overflow-hidden shrink-0 shadow-inner">
+                          {item.avatar ? (
+                            <img src={getImageUrl(item.avatar)} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/20">
+                               <User className="w-5 h-5" />
+                            </div>
+                          )}
+                       </div>
+                       <div>
+                          <h4 className="text-white font-black text-xs uppercase tracking-tight leading-tight">{item.name}</h4>
+                          <span className="text-secondary font-bold text-[9px] uppercase tracking-widest mt-1 block">Mondok: {item.tahun_mondok}</span>
+                       </div>
+                    </div>
+                  </div>
+                </RevealOnScroll>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Galeri Section (Bottom Polish) */}
       <section className="bg-white py-32 overflow-hidden relative text-center">
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-gray-50 to-transparent"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <RevealOnScroll className="inline-block mb-16 relative">
-            <h2 className="font-black text-gray-900 text-5xl uppercase tracking-tighter mb-4 italic">Lensa Pesantren</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter mb-4 italic">Lensa Pesantren</h2>
             <div className="w-32 h-2.5 bg-secondary mx-auto rounded-full shadow-lg shadow-secondary/20"></div>
             <p className="text-gray-400 text-xs font-black uppercase tracking-[0.4em] mt-8">Capture the Essence & Vision</p>
           </RevealOnScroll>
@@ -484,6 +601,98 @@ export default function Home() {
                 Galeri Lengkap &rarr;
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Map & Contact Section */}
+      <section className="bg-gray-50 py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <RevealOnScroll className="flex flex-col lg:flex-row gap-16 items-stretch">
+            
+            {/* Maps Column */}
+            <div className="lg:w-3/5">
+              <div className="mb-10 border-l-8 border-primary pl-6">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Lokasi Kami</h2>
+                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Kunjungi & Silaturahmi</p>
+              </div>
+              <div className="aspect-video lg:aspect-square lg:h-[500px] w-full bg-white rounded-[2rem] overflow-hidden shadow-2xl shadow-black/5 border-8 border-white relative group">
+                {settings?.site_google_maps ? (
+                  <div 
+                    className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                    dangerouslySetInnerHTML={{ __html: settings.site_google_maps }} 
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-300">
+                    <MapPin className="w-16 h-16 mb-4 opacity-20" />
+                    <p className="text-sm font-bold uppercase tracking-widest opacity-40">Peta belum dikonfigurasi</p>
+                  </div>
+                )}
+                <div className="absolute inset-0 pointer-events-none border-[1px] border-black/5 rounded-[1.5rem]"></div>
+              </div>
+            </div>
+
+            {/* Contact Info Column */}
+            <div className="lg:w-2/5 flex flex-col justify-center">
+              <div className="mb-10 border-l-8 border-secondary pl-6">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Hubungi Kami</h2>
+                <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Layanan & Informasi</p>
+              </div>
+
+              <div className="space-y-8">
+                {/* Address Card */}
+                <div className="bg-white p-8 rounded-3xl shadow-xl shadow-black/5 border border-gray-100 group hover:border-primary/20 transition-all">
+                  <div className="flex gap-6">
+                    <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
+                      <MapPin className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Alamat Pusat</h4>
+                      <p className="text-sm font-bold text-gray-700 leading-relaxed uppercase italic">
+                        {settings?.site_address || 'Jl. Raya Panyepen, Pamekasan, Jawa Timur'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Phone Card */}
+                <div className="bg-white p-8 rounded-3xl shadow-xl shadow-black/5 border border-gray-100 group hover:border-primary/20 transition-all">
+                  <div className="flex gap-6">
+                    <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center text-primary-dark shrink-0 group-hover:bg-secondary group-hover:text-primary transition-all">
+                      <Phone className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Telepon / WhatsApp</h4>
+                      <p className="text-lg font-black text-gray-800 tracking-tighter">
+                        {settings?.contact_phone || '+62 812-3456-7890'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Email Card */}
+                <div className="bg-white p-8 rounded-3xl shadow-xl shadow-black/5 border border-gray-100 group hover:border-primary/20 transition-all">
+                  <div className="flex gap-6">
+                    <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
+                      <Mail className="w-6 h-6" />
+                    </div>
+                    <div className="text-left">
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Email Resmi</h4>
+                      <p className="text-sm font-bold text-gray-700 tracking-tight">
+                        {settings?.contact_email || 'info@pesantren.ac.id'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-12 pt-12 border-t border-gray-200">
+                <Link to="/kontak" className="inline-flex items-center gap-3 bg-primary text-white font-black px-10 py-4 rounded-2xl hover:bg-secondary hover:text-primary transition-all text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 active:scale-95">
+                  Kirim Pesan Sekarang →
+                </Link>
+              </div>
+            </div>
+
+          </RevealOnScroll>
         </div>
       </section>
     </div>

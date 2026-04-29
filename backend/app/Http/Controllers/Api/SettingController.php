@@ -39,6 +39,11 @@ class SettingController extends Controller
             'header_right_text' => 'nullable|string|max:255',
             'hide_top_bar' => 'nullable|string|max:10',
             'site_description' => 'nullable|string',
+            'site_google_maps' => 'nullable|string',
+            'sidebar_banner_label' => 'nullable|string|max:255',
+            'sidebar_banner_title' => 'nullable|string',
+            'sidebar_banner_image' => 'nullable|string',
+            'site_favicon' => 'nullable|string',
         ]);
 
         foreach ($validated as $key => $value) {

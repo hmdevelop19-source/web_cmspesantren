@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
 import { useSettingsStore } from '../store/settingsStore';
+import { getImageUrl } from '../lib/utils';
 
 interface SEOProps {
   title?: string;
@@ -7,6 +8,7 @@ interface SEOProps {
   image?: string;
   url?: string;
   type?: string;
+  structuredData?: object;
 }
 
 const SEO = ({ 
@@ -14,7 +16,8 @@ const SEO = ({
   description, 
   image, 
   url, 
-  type = 'website' 
+  type = 'website',
+  structuredData
 }: SEOProps) => {
   const { settings } = useSettingsStore();
   
@@ -29,6 +32,11 @@ const SEO = ({
       <title>{fullTitle}</title>
       <meta name="description" content={metaDescription} />
       
+      {/* Favicon */}
+      {settings?.site_favicon && (
+        <link rel="icon" type="image/png" href={getImageUrl(settings.site_favicon)} />
+      )}
+      
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:title" content={fullTitle} />
@@ -41,6 +49,13 @@ const SEO = ({
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={metaDescription} />
       {image && <meta name="twitter:image" content={image} />}
+
+      {/* JSON-LD Structured Data */}
+      {structuredData && (
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      )}
     </Helmet>
   );
 };

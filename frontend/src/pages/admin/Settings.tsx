@@ -32,6 +32,7 @@ interface SettingsData {
   sidebar_banner_label: string;
   sidebar_banner_title: string;
   sidebar_banner_image: string;
+  site_google_maps?: string;
 }
 
 export default function Settings() {
@@ -62,6 +63,7 @@ export default function Settings() {
     sidebar_banner_label: 'Heritage V3',
     sidebar_banner_title: 'Membangun Masa Depan Berbasis Tradisi',
     sidebar_banner_image: '',
+    site_google_maps: '',
   });
   
   const [showSuccess, setShowSuccess] = useState(false);
@@ -291,6 +293,17 @@ export default function Settings() {
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Twitter / X</label>
                                 <input type="text" name="twitter_url" value={settings.twitter_url || ''} onChange={handleChange} className="w-full border border-slate-200 bg-slate-50/50 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/10 transition-all" placeholder="https://twitter.com/..." />
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100">
+                        <div className="md:col-span-1">
+                            <label className="text-sm font-bold text-slate-700">Google Maps Embed</label>
+                            <p className="text-xs text-slate-400 mt-1">Sematkan peta lokasi pesantren.</p>
+                        </div>
+                        <div className="md:col-span-2">
+                            <textarea rows={3} name="site_google_maps" value={settings.site_google_maps || ''} onChange={handleChange} className="w-full border border-slate-200 bg-slate-50/50 rounded-lg px-4 py-3 text-[10px] font-mono focus:ring-2 focus:ring-primary/10 transition-all resize-none" placeholder='Contoh: <iframe src="https://www.google.com/maps/embed?..." ...></iframe>'></textarea>
+                            <p className="text-[10px] text-slate-400 mt-2 italic text-right">Tips: Cari lokasi di Google Maps &rarr; Bagikan &rarr; Sematkan Peta &rarr; Salin HTML</p>
                         </div>
                     </div>
                 </div>

@@ -28,6 +28,7 @@ class PostResource extends JsonResource
             'cover_image_id' => $this->cover_image_id,
             'cover_image_obj' => $this->whenLoaded('coverImage'),
             'status' => $this->status,
+            'category_id' => $this->category_id,
             'excerpt' => $this->excerpt,
             'category' => $this->whenLoaded('category'),
             'user' => $this->whenLoaded('user'),

@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\LeaderController;
+use App\Http\Controllers\Api\TestimonialController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,7 @@ Route::get('/public/videos', [PublicController::class, 'getVideos']);
 Route::get('/public/search', [PublicController::class, 'globalSearch']);
 Route::get('/public/menus', [PublicController::class, 'getMenus']);
 Route::get('/public/leaders', [LeaderController::class, 'publicIndex']);
+Route::get('/public/testimonials', [PublicController::class, 'getTestimonials']);
 
 // Public Contact Form (no auth needed, with rate limiting)
 Route::middleware('throttle:5,1')->post('/public/contact', [ContactMessageController::class, 'store']);
@@ -75,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/menus/reorder', [MenuController::class, 'reorder']);
     Route::apiResource('menus', MenuController::class);
     Route::apiResource('leaders', LeaderController::class);
+    Route::apiResource('testimonials', TestimonialController::class);
 
     // Contact Messages (Admin)
     Route::get('/contact-messages', [ContactMessageController::class, 'index']);

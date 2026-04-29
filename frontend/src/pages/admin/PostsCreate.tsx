@@ -22,6 +22,7 @@ export default function PostsCreate() {
   const [categoryId, setCategoryId] = useState('');
   const [coverImage, setCoverImage] = useState('');
   const [coverImageId, setCoverImageId] = useState<number | null>(null);
+  const [excerpt, setExcerpt] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -107,6 +108,16 @@ export default function PostsCreate() {
                       className="w-full text-3xl font-bold text-slate-900 border-none focus:outline-none focus:ring-0 placeholder-slate-300 bg-transparent"
                    />
                 </div>
+                <div className="px-8 pb-4 text-left">
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Ringkasan Berita (Excerpt)</label>
+                   <textarea 
+                      rows={2}
+                      placeholder="Tulis ringkasan singkat berita di sini..." 
+                      value={excerpt}
+                      onChange={(e) => setExcerpt(e.target.value)}
+                      className="w-full text-sm font-medium text-slate-600 border border-slate-100 bg-slate-50/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 placeholder-slate-300 transition-all resize-none italic"
+                   />
+                </div>
                 <div className="p-2">
                    <RichTextEditor 
                      ref={editorRef}
@@ -149,7 +160,7 @@ export default function PostsCreate() {
                         >
                            <option value="">Pilih Kategori...</option>
                            {categories.map((cat) => (
-                             <option key={cat.id} value={cat.id}>{cat.name}</option>
+                             <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
                            ))}
                         </select>
                         <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-primary transition-colors" />

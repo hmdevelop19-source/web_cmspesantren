@@ -6,8 +6,7 @@ import { useSeoMeta } from '../../hooks/useSeoMeta';
 import { useSettingsStore } from '../../store/settingsStore';
 
 export default function Kontak() {
-  const { settings } = useSettingsStore();
-  const [isLoading, setIsLoading] = useState(true);
+  const { settings, fetchSettings, isLoading: settingsLoading } = useSettingsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -23,9 +22,11 @@ export default function Kontak() {
   });
 
   useEffect(() => {
-    setIsLoading(false);
+    if (!settings) {
+      fetchSettings();
+    }
     window.scrollTo(0, 0);
-  }, []);
+  }, [settings, fetchSettings]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -52,7 +53,7 @@ export default function Kontak() {
     }
   };
 
-  if (isLoading) {
+  if (settingsLoading || !settings) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[600px] gap-6 bg-white">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
@@ -259,14 +260,22 @@ export default function Kontak() {
         </div>
       </div>
       
-      {/* Map Placeholder (Visual Polish) */}
-      <section className="bg-gray-50 py-1 pt-0">
-          <div className="max-w-7xl mx-auto px-4 h-96 bg-gray-200 rounded-[50px] shadow-inner mb-20 flex items-center justify-center group overflow-hidden relative">
-             <div className="absolute inset-0 bg-[#000052]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-             <div className="flex flex-col items-center gap-4 group-hover:scale-110 transition-transform duration-700">
-                <MapPin className="w-16 h-16 text-primary opacity-20" />
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Peta Interaktif Segera Hadir</span>
-             </div>
+      {/* Interactive Map Section */}
+      <section className="bg-white py-1 pt-0">
+          <div className="max-w-7xl mx-auto px-4 mb-24">
+            <div className="h-[450px] bg-gray-50 rounded-[50px] shadow-2xl shadow-black/5 border border-gray-100 overflow-hidden relative group">
+                {settings?.site_google_maps ? (
+                    <div 
+                        className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                        dangerouslySetInnerHTML={{ __html: settings.site_google_maps }} 
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <MapPin className="w-16 h-16 text-primary opacity-20" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Peta belum dikonfigurasi di Admin</span>
+                    </div>
+                )}
+            </div>
           </div>
       </section>
     </div>

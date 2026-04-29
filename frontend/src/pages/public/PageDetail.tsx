@@ -4,20 +4,12 @@ import { Loader2, ArrowLeft, Calendar, BookOpen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
 import Breadcrumbs from '../../components/Breadcrumbs';
-import { useSettingsStore } from '../../store/settingsStore';
-import { getImageUrl } from '../../lib/utils';
 import SEO from '../../components/SEO';
 import type { Page } from '../../types';
 
 export default function PageDetail() {
   const { slug } = useParams<{ slug: string }>();
   
-  const { settings, fetchSettings } = useSettingsStore();
-
-  useEffect(() => {
-    if (!settings) fetchSettings();
-  }, []);
-
   const { data: page, isLoading, error } = useQuery<Page>({
     queryKey: ['public-page', slug],
     queryFn: async () => {
@@ -87,10 +79,10 @@ export default function PageDetail() {
 
       {/* Content Area */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
-        <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-16 border border-gray-100 flex flex-col md:flex-row gap-16">
+        <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-16 border border-gray-100">
           
-          {/* Main Column */}
-          <div className="flex-1">
+          {/* Main Content */}
+          <div className="max-w-4xl mx-auto">
             <div className="mb-12">
                <Breadcrumbs items={[
                   { label: 'Profil Lembaga', path: '/profil' },
@@ -118,39 +110,6 @@ export default function PageDetail() {
                </div>
             </div>
           </div>
-
-          {/* Sidebar Area (Secondary Info) */}
-          <div className="md:w-80 shrink-0">
-             <div className="sticky top-24 space-y-8">
-                <div className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100">
-                   <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-6 flex items-center gap-2">
-                      <div className="w-2 h-6 bg-secondary rounded-full"></div>
-                      Tentang Kami
-                   </h3>
-                   <p className="text-xs text-gray-500 leading-relaxed font-medium">
-                      Lembaga ini didedikasikan untuk keunggulan akademik dan spiritual, membekali generasi masa depan dengan karakter yang kuat dan pengetahuan yang luas.
-                   </p>
-                </div>
-
-                <div className="relative rounded-[2rem] overflow-hidden group">
-                   <img 
-                     src={settings?.sidebar_banner_image?.startsWith('http') ? settings.sidebar_banner_image : (settings?.sidebar_banner_image ? getImageUrl(settings.sidebar_banner_image) : "https://images.unsplash.com/photo-1541339907198-e08759dfc3f0?auto=format&fit=crop&q=80&w=800")} 
-                     alt="Promo" 
-                     className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
-                   />
-                   <div className="absolute inset-0 bg-gradient-to-t from-primary to-transparent opacity-80"></div>
-                   <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                      <span className="text-secondary font-black text-[10px] tracking-widest uppercase mb-2">
-                         {settings?.sidebar_banner_label || "Heritage V3"}
-                      </span>
-                      <h4 className="text-white font-black text-xl leading-tight uppercase">
-                         {settings?.sidebar_banner_title || "Membangun Masa Depan Berbasis Tradisi"}
-                      </h4>
-                   </div>
-                </div>
-             </div>
-          </div>
-
         </div>
       </section>
     </div>
