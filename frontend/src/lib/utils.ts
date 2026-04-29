@@ -8,8 +8,13 @@ export const getImageUrl = (path: string | null | undefined): string => {
   
   const baseUrl = 'http://localhost:8000';
   
-  // Clean the path to ensure it starts with / but not //
+  // In Laravel, public disk files are served via the /storage/ symlink
+  // We ensure we don't double the /storage prefix if it's already there
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
   
-  return `${baseUrl}${cleanPath}`;
+  if (cleanPath.startsWith('/storage/')) {
+    return `${baseUrl}${cleanPath}`;
+  }
+  
+  return `${baseUrl}/storage${cleanPath}`;
 };

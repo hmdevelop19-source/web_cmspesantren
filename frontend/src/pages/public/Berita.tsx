@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Search, Calendar, User, ArrowRight, BookOpen } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
@@ -18,22 +18,35 @@ export default function Berita() {
   const { settings } = useSettingsStore();
   const siteName = settings?.site_name || 'Portal Pesantren';
 
+  const location = useLocation();
+  const isArtikel = location.pathname.startsWith('/artikel');
+  const isKajian = location.pathname.startsWith('/kajian');
+  const pageTitle = isArtikel ? 'Kumpulan Artikel' : isKajian ? 'Kajian Keislaman' : 'Warta & Berita Terkini';
+  const pageSubtitle = isArtikel 
+    ? 'Temukan berbagai tulisan inspiratif dan wawasan bermanfaat dari para pengajar dan santri.' 
+    : isKajian 
+      ? 'Materi kajian keagamaan, tafsir, dan fiqh untuk memperdalam pemahaman keislaman.' 
+      : `Ikuti kabar terbaru, prestasi santri, dan aktivitas kegiatan di lingkungan ${siteName}.`;
+
   useSeoMeta({
-    title: `Warta & Berita Terkini — ${siteName}`,
-    description: `Ikuti kabar terbaru, prestasi santri, dan aktivitas kegiatan di lingkungan ${siteName}.`,
+    title: `${pageTitle} — ${siteName}`,
+    description: pageSubtitle,
     type: 'website',
     siteName,
-    keywords: `berita pesantren, warta, kabar, ${siteName}`,
+    keywords: `berita pesantren, artikel, kajian, ${siteName}`,
   });
 
   const { data, isLoading, isError, refetch } = useQuery<PaginatedResponse<Post>>({
     queryKey: ['public-posts', page, searchParams.get('search'), searchParams.get('category')],
     queryFn: async () => {
+      const categoryFromUrl = searchParams.get('category');
+      const categoryToFilter = categoryFromUrl || (isArtikel ? 'Artikel' : isKajian ? 'Kajian' : 'Berita');
+      
       const response = await api.get('/public/posts', {
         params: {
           search: searchParams.get('search'),
           page: page,
-          category: searchParams.get('category')
+          category: categoryToFilter
         }
       });
       return response.data;
@@ -64,10 +77,10 @@ export default function Berita() {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 shadow-xl shadow-secondary/5">
-                Kabar Pesantren
+                {isArtikel ? 'Literasi Pesantren' : isKajian ? 'Khazanah Keilmuan' : 'Kabar Pesantren'}
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter uppercase italic">Warta & Kabar Terkini</h1>
-          <p className="text-gray-200 text-sm md:text-base font-medium max-w-2xl mx-auto opacity-80 italic leading-relaxed">Ikuti perkembangan terbaru, prestasi santri, dan aktivitas edukasi di lingkungan Pesantren Kami.</p>
+          <h1 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tighter uppercase italic">{pageTitle}</h1>
+          <p className="text-gray-200 text-sm md:text-base font-medium max-w-2xl mx-auto opacity-80 italic leading-relaxed">{pageSubtitle}</p>
         </div>
       </div>
 

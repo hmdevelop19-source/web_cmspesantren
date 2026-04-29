@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\PublicController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\LeaderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,7 @@ Route::get('/public/gallery', [PublicController::class, 'getGallery']);
 Route::get('/public/videos', [PublicController::class, 'getVideos']);
 Route::get('/public/search', [PublicController::class, 'globalSearch']);
 Route::get('/public/menus', [PublicController::class, 'getMenus']);
+Route::get('/public/leaders', [LeaderController::class, 'publicIndex']);
 
 // Public Contact Form (no auth needed, with rate limiting)
 Route::middleware('throttle:5,1')->post('/public/contact', [ContactMessageController::class, 'store']);
@@ -45,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'me']);
 
     // Dashboard
+    Route::get('/admin/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
     // Resource CRUDs
@@ -71,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Menus
     Route::post('/menus/reorder', [MenuController::class, 'reorder']);
     Route::apiResource('menus', MenuController::class);
+    Route::apiResource('leaders', LeaderController::class);
 
     // Contact Messages (Admin)
     Route::get('/contact-messages', [ContactMessageController::class, 'index']);

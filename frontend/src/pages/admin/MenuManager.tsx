@@ -153,8 +153,8 @@ export default function MenuManager() {
               <button onClick={resetForm} className="text-slate-400 hover:text-red-500 transition-colors p-2 hover:bg-slate-50 rounded-lg"><X className="w-5 h-5" /></button>
            </div>
            
-           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-1 space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Label Menu</label>
                   <input 
@@ -172,7 +172,7 @@ export default function MenuManager() {
                   <div className="relative group">
                     <input 
                       type="text" 
-                      placeholder="Contoh: /profil atau https://google.com" 
+                      placeholder="Contoh: /profil" 
                       required
                       value={url}
                       onChange={(e) => setUrl(e.target.value)}
@@ -183,7 +183,7 @@ export default function MenuManager() {
                 </div>
               </div>
 
-              <div className="space-y-6">
+              <div className="md:col-span-1 space-y-6">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Menu Induk</label>
                   <select 
@@ -212,7 +212,33 @@ export default function MenuManager() {
                 </div>
               </div>
 
-              <div className="md:col-span-2 pt-6 flex justify-end gap-3 border-t border-slate-100">
+              {/* Quick Links Shortcut */}
+              <div className="md:col-span-1 bg-slate-50 rounded-xl p-5 border border-slate-100">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                  <Plus className="w-3 h-3" /> Pintasan Cepat
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Berita', url: '/berita' },
+                    { label: 'Artikel', url: '/artikel' },
+                    { label: 'Kajian', url: '/kajian' },
+                    { label: 'Galeri', url: '/galeri' },
+                    { label: 'Kontak', url: '/kontak' },
+                  ].map(link => (
+                    <button
+                      key={link.url}
+                      type="button"
+                      onClick={() => { setLabel(link.label); setUrl(link.url); }}
+                      className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:border-primary hover:text-primary transition-all shadow-sm"
+                    >
+                      + {link.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[9px] text-slate-400 mt-4 leading-relaxed font-medium italic">Klik tombol di atas untuk mengisi form secara otomatis dengan rute halaman yang baru saja kita buat.</p>
+              </div>
+
+              <div className="md:col-span-3 pt-6 flex justify-end gap-3 border-t border-slate-100">
                 <button 
                   type="button"
                   onClick={resetForm}

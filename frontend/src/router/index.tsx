@@ -30,6 +30,7 @@ import PostsEdit from '../pages/admin/PostsEdit';
 import Profile from '../pages/admin/Profile';
 
 import ContactMessages from '../pages/admin/ContactMessages';
+import LeadersManager from '../pages/admin/LeadersManager';
 
 import Home from '../pages/public/Home';
 import Profil from '../pages/public/Profil';
@@ -68,6 +69,14 @@ export const router = createBrowserRouter([
       },
       {
         path: 'berita',
+        element: <Berita />,
+      },
+      {
+        path: 'artikel',
+        element: <Berita />,
+      },
+      {
+        path: 'kajian',
         element: <Berita />,
       },
       {
@@ -225,6 +234,10 @@ export const router = createBrowserRouter([
           {
             path: 'contact-messages',
             element: <ContactMessages />,
+          },
+          {
+            path: 'leaders',
+            element: <LeadersManager />,
           },
         ],
       },

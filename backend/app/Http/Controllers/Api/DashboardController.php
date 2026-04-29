@@ -40,6 +40,21 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function stats()
+    {
+        return response()->json([
+            'posts' => Post::count(),
+            'pages' => Page::count(),
+            'categories' => Category::count(),
+            'users' => User::count(),
+            'agendas' => Agenda::count(),
+            'announcements' => Announcement::count(),
+            'contact_messages' => ContactMessage::count(),
+            'unread_messages' => ContactMessage::where('status', 'unread')->count(),
+            'trends' => $this->getTrends()
+        ]);
+    }
+
     private function getTrends()
     {
         $trends = [];

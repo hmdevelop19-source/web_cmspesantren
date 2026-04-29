@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, FileText, Settings, User, Menu, Image, Edit3, Bell, ExternalLink, X, 
   CalendarDays, Megaphone, PlaySquare, Users as UsersIcon, ShieldCheck,
-  LogOut, Tag, Mail, LayoutPanelTop
+  LogOut, Tag, Mail, LayoutPanelTop, History
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
@@ -153,6 +153,11 @@ export default function AdminLayout() {
                 Laman Statis
               </Link>
             )}
+
+            <Link to="/admin/leaders" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/leaders')}`}>
+              <History className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/leaders') ? 'text-secondary' : ''}`} />
+              Silsilah Pengasuh
+            </Link>
 
             {/* GRUP 3: MEDIA & VISUAL */}
             <div className="pt-6 pb-2">
