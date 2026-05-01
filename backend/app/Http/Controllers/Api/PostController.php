@@ -8,7 +8,6 @@ use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
 use App\Http\Resources\PostResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class PostController extends Controller
@@ -39,7 +38,6 @@ class PostController extends Controller
 
         $post = Post::create($validated);
 
-        Cache::forget('home_data');
 
         return (new PostResource($post->load(['category', 'user', 'coverImage'])))
             ->additional(['message' => 'Berita berhasil diterbitkan.']);
@@ -60,7 +58,6 @@ class PostController extends Controller
 
         $post->update($validated);
 
-        Cache::forget('home_data');
 
         return (new PostResource($post->load(['category', 'user', 'coverImage'])))
             ->additional(['message' => 'Berita berhasil diperbarui.']);
@@ -70,7 +67,6 @@ class PostController extends Controller
     {
         $post->delete();
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Berita berhasil dihapus.'

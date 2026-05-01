@@ -20,5 +20,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Http\Resources\Json\JsonResource::withoutWrapping();
+
+        // Register Cache Observers
+        \App\Models\Post::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Agenda::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Announcement::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Video::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Banner::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Setting::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Category::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Leader::observe(\App\Observers\CacheObserver::class);
+        \App\Models\Testimonial::observe(\App\Observers\CacheObserver::class);
     }
 }

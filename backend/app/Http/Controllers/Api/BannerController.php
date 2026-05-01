@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class BannerController extends Controller
 {
@@ -28,7 +27,6 @@ class BannerController extends Controller
 
         $banner = Banner::create($validated);
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Banner hero berhasil ditambahkan.',
@@ -54,7 +52,6 @@ class BannerController extends Controller
 
         $banner->update($validated);
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Banner hero berhasil diperbarui.',
@@ -66,7 +63,6 @@ class BannerController extends Controller
     {
         $banner->delete();
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Banner hero berhasil dihapus.'

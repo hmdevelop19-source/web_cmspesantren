@@ -8,7 +8,6 @@ use App\Http\Requests\StoreAgendaRequest;
 use App\Http\Requests\UpdateAgendaRequest;
 use App\Http\Resources\AgendaResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class AgendaController extends Controller
@@ -29,7 +28,6 @@ class AgendaController extends Controller
         $validated = $request->validated();
         $agenda = Agenda::create($validated);
 
-        Cache::forget('home_data');
 
         return (new AgendaResource($agenda))
             ->additional(['message' => 'Agenda berhasil ditambahkan.']);
@@ -46,7 +44,6 @@ class AgendaController extends Controller
 
         $agenda->update($validated);
 
-        Cache::forget('home_data');
 
         return (new AgendaResource($agenda))
             ->additional(['message' => 'Agenda berhasil diperbarui.']);
@@ -56,7 +53,6 @@ class AgendaController extends Controller
     {
         $agenda->delete();
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Agenda berhasil dihapus.'

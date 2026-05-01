@@ -8,7 +8,6 @@ use App\Http\Requests\StoreVideoRequest;
 use App\Http\Requests\UpdateVideoRequest;
 use App\Http\Resources\VideoResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class VideoController extends Controller
 {
@@ -33,7 +32,6 @@ class VideoController extends Controller
 
         $video = Video::create($validated);
 
-        Cache::forget('home_data');
 
         return (new VideoResource($video))
             ->additional(['message' => 'Video berhasil ditambahkan.']);
@@ -59,7 +57,6 @@ class VideoController extends Controller
 
         $video->update($validated);
 
-        Cache::forget('home_data');
 
         return (new VideoResource($video))
             ->additional(['message' => 'Video berhasil diperbarui.']);
@@ -69,7 +66,6 @@ class VideoController extends Controller
     {
         $video->delete();
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Video berhasil dihapus.'

@@ -8,7 +8,6 @@ use App\Http\Requests\StoreAnnouncementRequest;
 use App\Http\Requests\UpdateAnnouncementRequest;
 use App\Http\Resources\AnnouncementResource;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 class AnnouncementController extends Controller
@@ -29,7 +28,6 @@ class AnnouncementController extends Controller
         $validated = $request->validated();
         $announcement = Announcement::create($validated);
 
-        Cache::forget('home_data');
 
         return (new AnnouncementResource($announcement))
             ->additional(['message' => 'Pengumuman berhasil diterbitkan.']);
@@ -46,7 +44,6 @@ class AnnouncementController extends Controller
 
         $announcement->update($validated);
 
-        Cache::forget('home_data');
 
         return (new AnnouncementResource($announcement))
             ->additional(['message' => 'Pengumuman berhasil diperbarui.']);
@@ -56,7 +53,6 @@ class AnnouncementController extends Controller
     {
         $announcement->delete();
 
-        Cache::forget('home_data');
 
         return response()->json([
             'message' => 'Pengumuman berhasil dihapus.'

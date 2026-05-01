@@ -75,8 +75,9 @@ class PublicController extends Controller
         $page = $request->page ?? 1;
         $search = $request->search ?? '';
         $category = $request->category ?? '';
+        $v = Cache::get('cache_v_posts', 1);
         
-        return Cache::remember("v2_posts_page_{$page}_{$search}_{$category}", 60, function () use ($request) {
+        return Cache::remember("v2_posts_v{$v}_page_{$page}_{$search}_{$category}", 86400, function () use ($request) {
             $query = Post::with(['user', 'category', 'coverImage'])
                 ->where('status', 'published');
 
@@ -120,13 +121,19 @@ class PublicController extends Controller
 
     public function getAgendas(Request $request)
     {
-        $query = Agenda::where('status', 'published');
+        $search = $request->search ?? '';
+        $page = $request->page ?? 1;
+        $v = Cache::get('cache_v_agendas', 1);
 
-        if ($request->search) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
+        return Cache::remember("v2_agendas_v{$v}_page_{$page}_{$search}", 86400, function () use ($request) {
+            $query = Agenda::where('status', 'published');
 
-        return AgendaResource::collection($query->orderBy('event_date', 'desc')->paginate(12));
+            if ($request->search) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+            }
+
+            return AgendaResource::collection($query->orderBy('event_date', 'desc')->paginate(12));
+        });
     }
 
     public function getAgendaBySlug($slug)
@@ -140,13 +147,19 @@ class PublicController extends Controller
 
     public function getAnnouncements(Request $request)
     {
-        $query = Announcement::where('status', 'published');
+        $search = $request->search ?? '';
+        $page = $request->page ?? 1;
+        $v = Cache::get('cache_v_announcements', 1);
 
-        if ($request->search) {
-            $query->where('title', 'like', '%' . $request->search . '%');
-        }
+        return Cache::remember("v2_announcements_v{$v}_page_{$page}_{$search}", 86400, function () use ($request) {
+            $query = Announcement::where('status', 'published');
 
-        return AnnouncementResource::collection($query->latest()->paginate(10));
+            if ($request->search) {
+                $query->where('title', 'like', '%' . $request->search . '%');
+            }
+
+            return AnnouncementResource::collection($query->latest()->paginate(10));
+        });
     }
 
     public function getAnnouncementBySlug($slug)
