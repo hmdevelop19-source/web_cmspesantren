@@ -28,13 +28,58 @@ export default function Pengumumans() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/announcements/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-announcements'] });
+      const previousData = queryClient.getQueryData(['admin-announcements', triggerSearch]);
+      queryClient.setQueryData(['admin-announcements', triggerSearch], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.filter((row: Announcement) => row.id !== id),
+          total: (old.total || 0) - 1
+        };
+      });
+      return { previousData };
     },
-    onError: (error: any) => {
-      alert('Gagal menghapus pengumuman. ' + (error.response?.data?.message || ''));
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['admin-announcements', triggerSearch], context?.previousData);
+      alert('Gagal menghapus pengumuman.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
     }
   });
+
+  const statusToggleMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number, status: string }) => 
+      api.put(`/announcements/${id}`, { status }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-announcements'] });
+      const previousData = queryClient.getQueryData(['admin-announcements', triggerSearch]);
+      queryClient.setQueryData(['admin-announcements', triggerSearch], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((row: Announcement) => 
+            row.id === id ? { ...row, status } : row
+          )
+        };
+      });
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      queryClient.setQueryData(['admin-announcements', triggerSearch], context?.previousData);
+      alert('Gagal memperbarui status pengumuman.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-announcements'] });
+    }
+  });
+
+  const handleStatusToggle = (row: Announcement) => {
+    const newStatus = row.status === 'published' ? 'draft' : 'published';
+    statusToggleMutation.mutate({ id: row.id, status: newStatus });
+  };
 
   const handleDelete = (id: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
@@ -136,15 +181,21 @@ export default function Pengumumans() {
                              )}
                           </td>
                           <td className="px-8 py-5">
-                             {row.status === 'published' ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
-                                </span>
-                             ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
-                                   Draf
-                                </span>
-                             )}
+                             <button 
+                                onClick={() => handleStatusToggle(row)}
+                                disabled={statusToggleMutation.isPending}
+                                className="group/status"
+                             >
+                                {row.status === 'published' ? (
+                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100 group-hover/status:bg-green-100 transition-all cursor-pointer">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
+                                   </span>
+                                ) : (
+                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200 group-hover/status:bg-slate-200 transition-all cursor-pointer">
+                                      Draf
+                                   </span>
+                                )}
+                             </button>
                           </td>
                           <td className="px-8 py-5 text-right">
                              <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">

@@ -18,6 +18,10 @@ const PostsEdit = lazy(() => import('../pages/admin/PostsEdit'));
 const Pages = lazy(() => import('../pages/admin/Pages'));
 const PagesCreate = lazy(() => import('../pages/admin/PagesCreate'));
 const PagesEdit = lazy(() => import('../pages/admin/PagesEdit'));
+const UsersEdit = lazy(() => import('../pages/admin/UsersEdit'));
+const Facilities = lazy(() => import('../pages/admin/Facilities'));
+const FacilitiesCreate = lazy(() => import('../pages/admin/FacilitiesCreate'));
+const FacilitiesEdit = lazy(() => import('../pages/admin/FacilitiesEdit'));
 const Media = lazy(() => import('../pages/admin/Media'));
 const Settings = lazy(() => import('../pages/admin/Settings'));
 const HeroSettings = lazy(() => import('../pages/admin/HeroSettings'));
@@ -53,6 +57,7 @@ const AnnouncementsPublic = lazy(() => import('../pages/public/Pengumuman'));
 const AnnouncementDetailPublic = lazy(() => import('../pages/public/PengumumanDetail'));
 const Kontak = lazy(() => import('../pages/public/Kontak'));
 const PublicGaleri = lazy(() => import('../pages/public/PublicGaleri'));
+const FasilitasPublic = lazy(() => import('../pages/public/Fasilitas'));
 const PageDetail = lazy(() => import('../pages/public/PageDetail'));
 const Publications = lazy(() => import('../pages/public/Publications'));
 
@@ -74,6 +79,10 @@ const PostsEditPage = Loadable(PostsEdit);
 const PagesPage = Loadable(Pages);
 const PagesCreatePage = Loadable(PagesCreate);
 const PagesEditPage = Loadable(PagesEdit);
+const UsersEditPage = Loadable(UsersEdit);
+const FacilitiesPage = Loadable(Facilities);
+const FacilitiesCreatePage = Loadable(FacilitiesCreate);
+const FacilitiesEditPage = Loadable(FacilitiesEdit);
 const MediaPage = Loadable(Media);
 const SettingsPage = Loadable(Settings);
 const HeroSettingsPage = Loadable(HeroSettings);
@@ -108,6 +117,7 @@ const AnnouncementsPublicPage = Loadable(AnnouncementsPublic);
 const AnnouncementDetailPublicPage = Loadable(AnnouncementDetailPublic);
 const KontakPage = Loadable(Kontak);
 const PublicGaleriPage = Loadable(PublicGaleri);
+const FasilitasPublicPage = Loadable(FasilitasPublic);
 const PageDetailPage = Loadable(PageDetail);
 const PublicationsPage = Loadable(Publications);
 const LoginPage = Loadable(Login);
@@ -135,6 +145,7 @@ export const router = createBrowserRouter([
       { path: 'pengumuman/:slug', element: <AnnouncementDetailPublicPage /> },
       { path: 'kontak', element: <KontakPage /> },
       { path: 'galeri', element: <PublicGaleriPage /> },
+      { path: 'fasilitas', element: <FasilitasPublicPage /> },
       { path: 'publikasi', element: <PublicationsPage /> },
     ],
   },
@@ -159,6 +170,9 @@ export const router = createBrowserRouter([
           { path: 'pages/create', element: <PagesCreatePage /> },
           { path: 'pages/edit/:id', element: <PagesEditPage /> },
           { path: 'media', element: <MediaPage /> },
+          { path: 'facilities', element: <FacilitiesPage /> },
+          { path: 'facilities/create', element: <FacilitiesCreatePage /> },
+          { path: 'facilities/edit/:id', element: <FacilitiesEditPage /> },
           { path: 'settings', element: <SettingsPage /> },
           { path: 'hero', element: <HeroSettingsPage /> },
           { path: 'agendas', element: <AgendasPage /> },
@@ -172,7 +186,7 @@ export const router = createBrowserRouter([
           { path: 'videos/edit/:id', element: <VideosEditPage /> },
           { path: 'users', element: <UsersPage /> },
           { path: 'users/create', element: <UsersCreatePage /> },
-          { path: 'users/edit/:id', element: <UsersCreatePage /> },
+          { path: 'users/edit/:id', element: <UsersEditPage /> },
           { path: 'permissions', element: <PermissionsPage /> },
           { path: 'categories', element: <CategoriesPage /> },
           { path: 'menus', element: <MenuManagerPage /> },

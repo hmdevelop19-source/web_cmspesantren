@@ -4,7 +4,7 @@ import { Megaphone, Calendar, Clock, ChevronLeft, Share2, Printer, Loader2, Bell
 import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
-import { useSeoMeta } from '../../hooks/useSeoMeta';
+import SEO from '../../components/SEO';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { Announcement } from '../../types';
 
@@ -19,17 +19,6 @@ export default function AnnouncementDetail() {
       const response = await api.get(`/public/announcements/${slug}`);
       return response.data;
     },
-  });
-
-  // ── Inject SEO + OpenGraph meta for this announcement ────────
-  useSeoMeta({
-    title: announcement ? `${announcement.title} — ${siteName}` : siteName,
-    description: announcement?.content
-      ? announcement.content.replace(/<[^>]+>/g, '').slice(0, 160)
-      : 'Pengumuman resmi dari pesantren kami.',
-    type: 'article',
-    siteName,
-    keywords: `pengumuman pesantren, ${siteName}`,
   });
 
   useEffect(() => {
@@ -60,8 +49,28 @@ export default function AnnouncementDetail() {
     );
   }
 
+  const announcementSchema = announcement ? {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    "headline": announcement.title,
+    "description": announcement.meta_description || announcement.content?.replace(/<[^>]+>/g, '').slice(0, 160),
+    "datePublished": announcement.created_at,
+    "author": {
+      "@type": "Organization",
+      "name": siteName,
+      "url": window.location.origin
+    }
+  } : undefined;
+
   return (
     <div className="bg-white min-h-screen">
+      <SEO 
+        title={announcement.meta_title || announcement.title}
+        description={announcement.meta_description || announcement.content?.replace(/<[^>]+>/g, '').slice(0, 160) || 'Pengumuman resmi dari pesantren kami.'}
+        type="article"
+        structuredData={announcementSchema}
+      />
+
       {/* Hero Header Section */}
       <section className={`pt-28 pb-32 px-4 relative overflow-hidden transition-colors duration-500 text-left ${announcement.priority === 'high' ? 'bg-primary-dark' : 'bg-primary'}`}>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>

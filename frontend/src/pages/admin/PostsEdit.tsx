@@ -1,6 +1,6 @@
 import { 
   ArrowLeft, ChevronDown, FileText, Loader2, Save, Image as ImageIcon,
-  Cloud, Trash2
+  Cloud, Trash2, Search, Globe
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
@@ -19,10 +19,13 @@ export default function PostsEdit() {
   // Form State
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [excerpt, setExcerpt] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState<'published' | 'draft'>('draft');
   const [coverImage, setCoverImage] = useState('');
   const [coverImageId, setCoverImageId] = useState<number | null>(null);
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -48,11 +51,14 @@ export default function PostsEdit() {
 
   useEffect(() => {
     if (post) {
-      setTitle(post.title);
-      setContent(post.content);
+      setTitle(post.title || '');
+      setExcerpt(post.excerpt || '');
+      setContent(post.content || '');
       setCategoryId(post.category_id?.toString() || '');
       setStatus(post.status);
       setCoverImageId(post.cover_image_id || null);
+      setMetaTitle(post.meta_title || '');
+      setMetaDescription(post.meta_description || '');
       if (post.cover_image_obj) {
         setCoverImage(`${import.meta.env.VITE_STORAGE_URL}${post.cover_image_obj.file_path}`);
       } else {
@@ -92,7 +98,10 @@ export default function PostsEdit() {
       try {
         await api.put(`/posts/${id}`, {
           title,
+          excerpt,
           content,
+          meta_title: metaTitle,
+          meta_description: metaDescription,
           category_id: categoryId || null,
           status: 'draft',
           cover_image_id: coverImageId
@@ -106,7 +115,7 @@ export default function PostsEdit() {
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [title, content, categoryId, coverImageId, id, isFetching, status]);
+  }, [title, content, categoryId, coverImageId, id, isFetching, status, excerpt, metaTitle, metaDescription]);
 
   const handleDelete = () => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pos ini?')) {
@@ -120,7 +129,10 @@ export default function PostsEdit() {
 
     updateMutation.mutate({
       title,
+      excerpt,
       content,
+      meta_title: metaTitle,
+      meta_description: metaDescription,
       category_id: categoryId || null,
       status: targetStatus,
       cover_image_id: coverImageId
@@ -205,6 +217,16 @@ export default function PostsEdit() {
                       className="w-full text-3xl font-bold text-slate-900 border-none focus:outline-none focus:ring-0 placeholder-slate-300 bg-transparent"
                    />
                 </div>
+                <div className="px-8 pb-4 text-left">
+                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Ringkasan Berita (Excerpt)</label>
+                   <textarea 
+                      rows={2}
+                      placeholder="Tulis ringkasan singkat berita di sini..." 
+                      value={excerpt}
+                      onChange={(e) => setExcerpt(e.target.value)}
+                      className="w-full text-sm font-medium text-slate-600 border border-slate-100 bg-slate-50/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/10 placeholder-slate-300 transition-all resize-none italic"
+                   />
+                </div>
                 <div className="p-2">
                    <RichTextEditor 
                      ref={editorRef}
@@ -216,6 +238,63 @@ export default function PostsEdit() {
                      }}
                   />
                 </div>
+            </div>
+
+            {/* SEO Optimization Widget */}
+            <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-700">
+               <div className="border-b border-slate-100 px-8 py-5 bg-slate-50/50 flex items-center justify-between">
+                  <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                     <Search className="w-4 h-4 text-primary" /> Optimasi SEO (Mesin Pencari)
+                  </h2>
+                  <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-2 py-1 rounded">Opsional</span>
+               </div>
+               <div className="p-8 space-y-8 text-left">
+                  <div className="space-y-3">
+                     <div className="flex justify-between items-end">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Judul Meta (SEO Title)</label>
+                        <span className={`text-[10px] font-bold ${metaTitle.length > 60 ? 'text-red-400' : 'text-slate-300'}`}>{metaTitle.length} / 60</span>
+                     </div>
+                     <input 
+                        type="text" 
+                        placeholder={title || "Judul yang muncul di Google..."}
+                        value={metaTitle}
+                        onChange={(e) => setMetaTitle(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                     />
+                     <p className="text-[10px] text-slate-400 italic">Disarankan maksimal 60 karakter agar tidak terpotong di hasil pencarian.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                     <div className="flex justify-between items-end">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Deskripsi Meta (SEO Description)</label>
+                        <span className={`text-[10px] font-bold ${metaDescription.length > 160 ? 'text-red-400' : 'text-slate-300'}`}>{metaDescription.length} / 160</span>
+                     </div>
+                     <textarea 
+                        rows={3}
+                        placeholder={excerpt || "Ringkasan yang muncul di bawah judul Google..."}
+                        value={metaDescription}
+                        onChange={(e) => setMetaDescription(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none"
+                     />
+                     <p className="text-[10px] text-slate-400 italic">Berikan ringkasan yang menarik pengunjung untuk mengklik berita Anda.</p>
+                  </div>
+
+                  {/* Google Preview Simulation */}
+                  <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                     <div className="flex items-center gap-2 mb-1">
+                        <div className="w-4 h-4 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                           <Globe className="w-2.5 h-2.5 text-slate-400" />
+                        </div>
+                        <span className="text-xs text-slate-400 truncate">https://portalpesantren.ac.id › {Str.slug(title) || 'judul-berita'}</span>
+                     </div>
+                     <h3 className="text-lg font-medium text-blue-600 hover:underline cursor-pointer truncate">
+                        {metaTitle || title || 'Judul Berita Muncul Di Sini'}
+                     </h3>
+                     <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                        {metaDescription || excerpt || 'Deskripsi berita Anda akan muncul di sini sebagai pratinjau hasil pencarian di mesin pencari seperti Google...'}
+                     </p>
+                  </div>
+               </div>
             </div>
          </div>
 
@@ -339,3 +418,13 @@ export default function PostsEdit() {
     </div>
   );
 }
+
+// Simple slug helper for preview
+const Str = {
+  slug: (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w ]+/g, '')
+      .replace(/ +/g, '-');
+  }
+};

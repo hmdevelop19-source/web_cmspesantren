@@ -28,13 +28,58 @@ export default function Agendas() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/agendas/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-agendas'] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-agendas'] });
+      const previousData = queryClient.getQueryData(['admin-agendas', triggerSearch]);
+      queryClient.setQueryData(['admin-agendas', triggerSearch], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.filter((row: Agenda) => row.id !== id),
+          total: (old.total || 0) - 1
+        };
+      });
+      return { previousData };
     },
-    onError: (error: any) => {
-      alert('Gagal menghapus agenda. ' + (error.response?.data?.message || ''));
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['admin-agendas', triggerSearch], context?.previousData);
+      alert('Gagal menghapus agenda.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agendas'] });
     }
   });
+
+  const statusToggleMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number, status: string }) => 
+      api.put(`/agendas/${id}`, { status }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-agendas'] });
+      const previousData = queryClient.getQueryData(['admin-agendas', triggerSearch]);
+      queryClient.setQueryData(['admin-agendas', triggerSearch], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((row: Agenda) => 
+            row.id === id ? { ...row, status } : row
+          )
+        };
+      });
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      queryClient.setQueryData(['admin-agendas', triggerSearch], context?.previousData);
+      alert('Gagal memperbarui status agenda.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-agendas'] });
+    }
+  });
+
+  const handleStatusToggle = (row: Agenda) => {
+    const newStatus = row.status === 'published' ? 'draft' : 'published';
+    statusToggleMutation.mutate({ id: row.id, status: newStatus });
+  };
 
   const handleDelete = (id: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus agenda ini?')) {
@@ -132,15 +177,21 @@ export default function Agendas() {
                              </div>
                           </td>
                           <td className="px-8 py-5">
-                             {row.status === 'published' ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
-                                </span>
-                             ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div> Draf
-                                </span>
-                             )}
+                             <button 
+                                onClick={() => handleStatusToggle(row)}
+                                disabled={statusToggleMutation.isPending}
+                                className="group/status"
+                             >
+                                {row.status === 'published' ? (
+                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100 group-hover/status:bg-green-100 transition-all cursor-pointer">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Aktif
+                                   </span>
+                                ) : (
+                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200 group-hover/status:bg-slate-200 transition-all cursor-pointer">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div> Draf
+                                   </span>
+                                )}
+                             </button>
                           </td>
                           <td className="px-8 py-5 text-right">
                              <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">

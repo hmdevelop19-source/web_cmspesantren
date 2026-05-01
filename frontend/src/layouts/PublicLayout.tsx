@@ -10,6 +10,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { Menu } from '../types';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 export default function PublicLayout() {
   const location = useLocation();
@@ -284,7 +285,9 @@ export default function PublicLayout() {
       </div>
 
       <main className={`flex-grow bg-white ${isHomepage ? '' : 'pt-0'}`}>
-        <Outlet />
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       <footer className="bg-primary-dark pt-24 pb-12 text-white relative overflow-hidden">

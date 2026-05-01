@@ -37,6 +37,8 @@ export interface Post {
   id: number;
   title: string;
   slug: string;
+  meta_title?: string;
+  meta_description?: string;
   content: string;
   cover_image?: string;
   cover_image_id?: number;
@@ -56,6 +58,8 @@ export interface Page {
   id: number;
   title: string;
   slug: string;
+  meta_title?: string;
+  meta_description?: string;
   content: string;
   image_id?: number;
   image_obj?: Media;
@@ -70,6 +74,8 @@ export interface Agenda {
   id: number;
   title: string;
   slug: string;
+  meta_title?: string;
+  meta_description?: string;
   content: string;
   location?: string;
   event_date: string;
@@ -82,6 +88,8 @@ export interface Announcement {
   id: number;
   title: string;
   slug: string;
+  meta_title?: string;
+  meta_description?: string;
   content: string;
   status: 'published' | 'draft';
   priority?: 'normal' | 'high';
@@ -97,6 +105,20 @@ export interface Video {
   description?: string;
   is_active: boolean;
   is_featured?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Facility {
+  id: number;
+  title: string;
+  slug: string;
+  description?: string;
+  image_id?: number;
+  image_url?: string;
+  icon?: string;
+  order: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -153,6 +175,7 @@ export interface HomeData {
     institusi: string;
   };
   gallery: Media[];
+  facilities: Facility[];
 }
 
 export interface ContactMessage {

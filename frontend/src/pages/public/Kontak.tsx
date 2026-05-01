@@ -86,7 +86,7 @@ export default function Kontak() {
           <div className="lg:w-1/3">
              <div className="sticky top-32 space-y-12">
                 <div className="border-l-8 border-secondary pl-6">
-                    <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Informasi Institusi</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter italic">Informasi Institusi</h2>
                     <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-2 px-1 bg-gray-50 inline-block">Official Connect</p>
                 </div>
 
@@ -166,7 +166,7 @@ export default function Kontak() {
                     <div className="inline-flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest mb-3">
                         <MessageSquare className="w-4 h-4 text-secondary" /> Direct Message
                     </div>
-                    <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase italic">Kirim Pesan Cepat</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tighter uppercase italic">Kirim Pesan Cepat</h2>
                     <p className="text-gray-400 text-sm font-medium mt-2 max-w-sm lg:max-w-none italic">Pertanyaan Anda akan kami jawab maksimal dalam 24 jam kerja.</p>
                 </div>
                 

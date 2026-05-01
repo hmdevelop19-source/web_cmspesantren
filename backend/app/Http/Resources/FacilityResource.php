@@ -5,13 +5,8 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PageResource extends JsonResource
+class FacilityResource extends JsonResource
 {
-    public function __construct($resource)
-    {
-        parent::__construct($resource);
-    }
-
     /**
      * Transform the resource into an array.
      *
@@ -23,14 +18,12 @@ class PageResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'content' => $this->content,
-            'image' => $this->image,
-            'image_url' => $this->image_url,
+            'description' => $this->description,
             'image_id' => $this->image_id,
-            'image_obj' => $this->whenLoaded('imageRelation'),
-            'meta_title' => $this->meta_title,
-            'meta_description' => $this->meta_description,
-            'status' => $this->status,
+            'image_url' => $this->image ? url(implode('/', array_map('rawurlencode', explode('/', $this->image->file_path)))) : null,
+            'icon' => $this->icon,
+            'order' => $this->order,
+            'is_active' => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

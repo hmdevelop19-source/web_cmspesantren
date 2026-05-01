@@ -18,11 +18,14 @@ use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\LeaderController;
 use App\Http\Controllers\Api\TestimonialController;
+use App\Http\Controllers\Api\SitemapController;
+use App\Http\Controllers\Api\FacilityController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login');
 Route::get('/public/settings', [PublicController::class, 'getSettings']);
 Route::get('/public/home', [PublicController::class, 'getHomeData']);
 Route::get('/public/posts', [PublicController::class, 'getPosts']);
@@ -35,10 +38,11 @@ Route::get('/public/announcements/{slug}', [PublicController::class, 'getAnnounc
 Route::get('/public/categories', [PublicController::class, 'getCategories']);
 Route::get('/public/gallery', [PublicController::class, 'getGallery']);
 Route::get('/public/videos', [PublicController::class, 'getVideos']);
-Route::get('/public/search', [PublicController::class, 'globalSearch']);
+Route::get('/public/search', [PublicController::class, 'globalSearch'])->middleware('throttle:30,1');
 Route::get('/public/menus', [PublicController::class, 'getMenus']);
 Route::get('/public/leaders', [LeaderController::class, 'publicIndex']);
 Route::get('/public/testimonials', [PublicController::class, 'getTestimonials']);
+Route::get('/public/facilities', [PublicController::class, 'getFacilities']);
 
 // Public Contact Form (no auth needed, with rate limiting)
 Route::middleware('throttle:5,1')->post('/public/contact', [ContactMessageController::class, 'store']);
@@ -78,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('menus', MenuController::class);
     Route::apiResource('leaders', LeaderController::class);
     Route::apiResource('testimonials', TestimonialController::class);
+    Route::apiResource('facilities', FacilityController::class);
 
     // Contact Messages (Admin)
     Route::get('/contact-messages', [ContactMessageController::class, 'index']);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon, Quote, User, MapPin, Phone, Mail } from 'lucide-react';
+import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon, Quote, User, MapPin, Phone, Mail, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
@@ -41,6 +41,18 @@ export default function Home() {
     if (testimonialScrollRef.current) {
       const scrollAmount = 400;
       testimonialScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const facilityScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollFacilities = (direction: 'left' | 'right') => {
+    if (facilityScrollRef.current) {
+      const scrollAmount = 400;
+      facilityScrollRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
       });
@@ -316,6 +328,95 @@ export default function Home() {
         );
       })()}
 
+      {/* Facilities Section */}
+      {data?.facilities && data.facilities.length > 0 && (
+        <section className="bg-gray-50/50 py-24 relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 mb-16">
+              <RevealOnScroll className="text-center md:text-left">
+                <div className="inline-block bg-secondary/10 text-primary font-black text-[9px] uppercase px-5 py-1.5 rounded-full mb-4 shadow-sm border border-secondary/20 tracking-[0.2em]">
+                  Sarana & Prasarana
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase italic tracking-tighter mb-4">
+                  Fasilitas <span className="text-primary">Pesantren</span>
+                </h2>
+                <div className="w-16 h-1.5 bg-secondary rounded-full mx-auto md:mx-0"></div>
+              </RevealOnScroll>
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => scrollFacilities('left')}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-primary hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-black/5 active:scale-90"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+                <button 
+                  onClick={() => scrollFacilities('right')}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-primary hover:bg-secondary hover:text-primary transition-all shadow-xl shadow-black/5 active:scale-90"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div 
+              ref={facilityScrollRef}
+              className="flex overflow-x-auto pb-10 gap-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {data.facilities.map((facility: any, i: number) => (
+                <div key={facility.id} className="min-w-[85%] sm:min-w-[320px] md:min-w-[380px] snap-center">
+                  <RevealOnScroll delay={i * 100} className="h-full">
+                    <div className="bg-white rounded-[2.5rem] overflow-hidden shadow-xl shadow-black/5 border border-gray-100 group hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
+                      <div className="h-56 relative overflow-hidden">
+                        {facility.image_url ? (
+                          <img 
+                            src={facility.image_url} 
+                            alt={facility.title} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-primary/5 flex items-center justify-center text-primary/20">
+                            <Building2 className="w-20 h-20" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+                        
+                        {/* Icon Overlay */}
+                        <div className="absolute top-6 right-6 w-12 h-12 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center text-primary shadow-lg border border-white/20 transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
+                           <Building2 className="w-6 h-6" />
+                        </div>
+                      </div>
+                      
+                      <div className="p-8 flex-1 flex flex-col text-left">
+                        <h3 className="text-xl font-black text-gray-900 mb-3 uppercase italic tracking-tight group-hover:text-primary transition-colors leading-tight">
+                          {facility.title}
+                        </h3>
+                        <p className="text-sm text-gray-500 font-medium leading-relaxed line-clamp-3 mb-6 flex-1 italic">
+                          {facility.description || 'Fasilitas unggulan untuk mendukung proses belajar mengajar dan kenyamanan santri selama di pondok.'}
+                        </p>
+                        <div className="pt-6 border-t border-gray-50">
+                          <Link to="/fasilitas" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-[0.2em] flex items-center gap-2 group/link w-fit">
+                            LIHAT DETAIL <span className="group-hover/link:translate-x-2 transition-transform">→</span>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </RevealOnScroll>
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-10 text-center">
+              <Link to="/fasilitas" className="inline-flex items-center gap-2 px-8 py-4 bg-white border border-gray-100 rounded-2xl text-xs font-black text-primary uppercase tracking-[0.2em] hover:bg-primary hover:text-white transition-all shadow-xl shadow-black/5 active:scale-95">
+                Semua Fasilitas Pesantren &rarr;
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Main Content: Announcements & Agendas */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="flex flex-col lg:flex-row gap-16">
@@ -448,7 +549,7 @@ export default function Home() {
             {/* Video Section */}
             <div className="lg:w-1/3">
                 <RevealOnScroll delay={300}>
-                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase mb-10 border-l-8 border-primary-dark pl-6 tracking-tighter">Sinema Pesantren</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase mb-10 border-l-8 border-primary-dark pl-6 tracking-tighter italic">Sinema Pesantren</h2>
                     <div className="bg-white rounded-3xl shadow-2xl shadow-black/5 p-8 border border-gray-100 sticky top-32 group">
                     <div className="aspect-video bg-gray-900 rounded-2xl mb-8 relative flex items-center justify-center cursor-pointer overflow-hidden border-2 border-primary/5 shadow-inner">
                         {video ? (

@@ -4,7 +4,7 @@ import { Calendar, MapPin, Clock, Share2, Printer, Loader2, ArrowRight, Home } f
 import { useQuery } from '@tanstack/react-query';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import api from '../../lib/api';
-import { useSeoMeta } from '../../hooks/useSeoMeta';
+import SEO from '../../components/SEO';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { Agenda } from '../../types';
 
@@ -19,19 +19,6 @@ export default function AgendasDetail() {
       const response = await api.get(`/public/agendas/${slug}`);
       return response.data;
     },
-  });
-
-  // ── Inject SEO + OpenGraph meta for this agenda ────────
-  useSeoMeta({
-    title: agenda ? `${agenda.title} — ${siteName}` : siteName,
-    description: agenda?.content
-      ? agenda.content.replace(/<[^>]+>/g, '').slice(0, 160)
-      : agenda?.location
-      ? `Kegiatan pesantren di ${agenda.location}.`
-      : 'Agenda kegiatan resmi pesantren.',
-    type: 'article',
-    siteName,
-    keywords: `agenda pesantren, kegiatan, ${siteName}`,
   });
 
   useEffect(() => {
@@ -62,8 +49,37 @@ export default function AgendasDetail() {
     );
   }
 
+  const eventSchema = agenda ? {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": agenda.title,
+    "description": agenda.meta_description || agenda.content?.replace(/<[^>]+>/g, '').slice(0, 160),
+    "startDate": agenda.event_date,
+    "location": {
+      "@type": "Place",
+      "name": agenda.location || "Pesantren",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": settings?.site_address || "",
+        "addressLocality": "Indonesia"
+      }
+    },
+    "organizer": {
+      "@type": "Organization",
+      "name": siteName,
+      "url": window.location.origin
+    }
+  } : undefined;
+
   return (
     <div className="bg-white min-h-screen">
+      <SEO 
+        title={agenda.meta_title || agenda.title}
+        description={agenda.meta_description || agenda.content?.replace(/<[^>]+>/g, '').slice(0, 160) || `Kegiatan pesantren di ${agenda.location}.`}
+        type="article"
+        structuredData={eventSchema}
+      />
+
       {/* Hero Header Section */}
       <section className="bg-primary pt-28 pb-32 px-4 relative overflow-hidden text-left">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
@@ -104,12 +120,12 @@ export default function AgendasDetail() {
         <div className="flex flex-col lg:flex-row gap-12">
             {/* Left Column: Meta & Sidebar */}
             <div className="lg:w-1/3 order-2 lg:order-1">
-                <div className="bg-white rounded-[40px] shadow-2xl p-10 border border-gray-100 flex flex-col gap-10 sticky top-32 group">
+                <div className="bg-white rounded-[40px] shadow-2xl p-10 border border-gray-100 flex flex-col gap-10 sticky top-32 group text-left">
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform">
                         <Home className="w-40 h-40" />
                     </div>
                     
-                    <div className="space-y-8 relative z-10 text-left">
+                    <div className="space-y-8 relative z-10">
                         {/* Event Date Block */}
                         <div className="flex items-start gap-5">
                             <div className="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-xl shadow-primary/20 shrink-0">
@@ -147,7 +163,7 @@ export default function AgendasDetail() {
                         </div>
                     </div>
 
-                    <div className="pt-10 border-t border-gray-50 text-left">
+                    <div className="pt-10 border-t border-gray-50">
                         <button className="w-full bg-primary hover:bg-primary-dark text-white p-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3">
                             Ingatkan Saya <ArrowRight className="w-4 h-4" />
                         </button>

@@ -71,7 +71,7 @@ export default function Agendas() {
                     <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                    <h2 className="text-lg font-black text-gray-900 leading-none">Daftar Agenda</h2>
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-none uppercase italic tracking-tighter">Daftar Agenda</h2>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">{pagination.total} Kegiatan Ditemukan</p>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
-  ArrowLeft, Save, MapPin, Loader2, Calendar, FileText
+  ArrowLeft, Save, MapPin, Loader2, Calendar, FileText, Search, Globe
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
@@ -16,6 +16,8 @@ export default function AgendasCreate() {
     content: '',
     location: '',
     event_date: '',
+    meta_title: '',
+    meta_description: '',
     status: 'published' as 'published' | 'draft'
   });
 
@@ -49,7 +51,7 @@ export default function AgendasCreate() {
   const isLoading = createMutation.isPending;
 
   return (
-    <div className="max-w-5xl space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-7xl space-y-8 animate-in fade-in duration-500">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
         <div className="flex items-center gap-4">
@@ -77,9 +79,9 @@ export default function AgendasCreate() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-8 text-left">
         {/* Main Form Area */}
-        <div className="lg:flex-1 flex flex-col gap-6">
+        <div className="lg:flex-1 flex flex-col gap-8">
           <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
             <div className="p-8 border-b border-slate-100 bg-slate-50/30">
               <input
@@ -100,6 +102,61 @@ export default function AgendasCreate() {
                 className="w-full border border-slate-200 bg-slate-50/50 rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none leading-relaxed"
               />
             </div>
+          </div>
+
+          {/* SEO Optimization Widget */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-700">
+             <div className="border-b border-slate-100 px-8 py-5 bg-slate-50/50 flex items-center justify-between">
+                <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                   <Search className="w-4 h-4 text-primary" /> Optimasi SEO (Mesin Pencari)
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-2 py-1 rounded">Opsional</span>
+             </div>
+             <div className="p-8 space-y-8">
+                <div className="space-y-3">
+                   <div className="flex justify-between items-end">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Judul Meta (SEO Title)</label>
+                      <span className={`text-[10px] font-bold ${formData.meta_title.length > 60 ? 'text-red-400' : 'text-slate-300'}`}>{formData.meta_title.length} / 60</span>
+                   </div>
+                   <input 
+                      type="text" 
+                      placeholder={formData.title || "Judul yang muncul di Google..."}
+                      value={formData.meta_title}
+                      onChange={(e) => setFormData({...formData, meta_title: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                   />
+                </div>
+
+                <div className="space-y-3">
+                   <div className="flex justify-between items-end">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Deskripsi Meta (SEO Description)</label>
+                      <span className={`text-[10px] font-bold ${formData.meta_description.length > 160 ? 'text-red-400' : 'text-slate-300'}`}>{formData.meta_description.length} / 160</span>
+                   </div>
+                   <textarea 
+                      rows={3}
+                      placeholder={formData.content.substring(0, 150) || "Ringkasan yang muncul di bawah judul Google..."}
+                      value={formData.meta_description}
+                      onChange={(e) => setFormData({...formData, meta_description: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none"
+                   />
+                </div>
+
+                {/* Google Preview Simulation */}
+                <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                   <div className="flex items-center gap-2 mb-1">
+                      <div className="w-4 h-4 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                         <Globe className="w-2.5 h-2.5 text-slate-400" />
+                      </div>
+                      <span className="text-xs text-slate-400 truncate">https://portalpesantren.ac.id › agenda › {Str.slug(formData.title) || 'judul-agenda'}</span>
+                   </div>
+                   <h3 className="text-lg font-medium text-blue-600 hover:underline cursor-pointer truncate">
+                      {formData.meta_title || formData.title || 'Judul Agenda Muncul Di Sini'}
+                   </h3>
+                   <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {formData.meta_description || formData.content.substring(0, 160) || 'Deskripsi agenda Anda akan muncul di sini sebagai pratinjau hasil pencarian...'}
+                   </p>
+                </div>
+             </div>
           </div>
         </div>
 
@@ -169,3 +226,12 @@ export default function AgendasCreate() {
     </div>
   );
 }
+
+const Str = {
+  slug: (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w ]+/g, '')
+      .replace(/ +/g, '-');
+  }
+};

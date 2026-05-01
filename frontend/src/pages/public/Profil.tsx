@@ -85,7 +85,7 @@ export default function Profil() {
                      <div className="inline-flex items-center gap-3 text-secondary font-black text-[10px] tracking-[0.3em] uppercase mb-8">
                         <BookOpen className="w-5 h-5" /> Sejarah Institusi
                      </div>
-                     <h2 className="text-4xl font-black text-gray-900 mb-8 tracking-tighter leading-tight">
+                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-8 tracking-tighter leading-tight uppercase italic">
                         {sejarah?.title || 'Pusat Pendidikan & Penelitian Peradaban Umat'}
                      </h2>
                      <div className="prose prose-sm max-w-none text-gray-500 leading-relaxed mb-10 font-medium line-clamp-4">
@@ -140,7 +140,7 @@ export default function Profil() {
                      <div className="w-16 h-16 bg-secondary rounded-2xl mb-10 flex items-center justify-center shadow-xl shadow-secondary/20">
                         <Target className="w-9 h-9 text-primary-dark" />
                      </div>
-                     <h2 className="text-2xl font-black mb-8 uppercase tracking-[0.2em] border-l-8 border-secondary pl-6">Visi Utama</h2>
+                     <h2 className="text-xl md:text-2xl font-black mb-8 uppercase tracking-[0.2em] border-l-8 border-secondary pl-6 italic">Visi Utama</h2>
                      <div className="text-xl md:text-2xl text-gray-200 leading-relaxed font-bold tracking-tight italic opacity-90">
                         {visiMisi?.content ? (
                            <div dangerouslySetInnerHTML={{ __html: visiMisi.content }} className="prose-invert" />
@@ -156,7 +156,7 @@ export default function Profil() {
                   <div className="w-16 h-16 bg-primary/5 rounded-2xl mb-10 flex items-center justify-center border border-gray-100 shadow-inner">
                      <Compass className="w-9 h-9 text-primary" />
                   </div>
-                  <h2 className="text-2xl font-black mb-10 text-gray-900 border-l-8 border-primary pl-6 uppercase tracking-[0.2em]">Misi Strategis</h2>
+                  <h2 className="text-xl md:text-2xl font-black mb-10 text-gray-900 border-l-8 border-primary pl-6 uppercase tracking-[0.2em] italic">Misi Strategis</h2>
                   {misiStrategis?.content ? (
                      <div dangerouslySetInnerHTML={{ __html: misiStrategis.content }} className="prose prose-sm text-gray-500 max-w-none" />
                   ) : (
@@ -188,7 +188,7 @@ export default function Profil() {
                      <div className="inline-block bg-secondary/10 border border-secondary/20 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.4em] mb-6 shadow-xl shadow-secondary/5">
                         Masa ke Masa
                      </div>
-                     <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic leading-none">Silsilah Pengasuh</h2>
+                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic leading-none">Silsilah Pengasuh</h2>
                      <p className="text-gray-400 text-sm font-medium italic max-w-xl mx-auto mb-10">Mengenang jasa dan perjuangan para Masyayikh yang telah mendedikasikan hidupnya demi perkembangan Pesantren.</p>
                      <Link 
                         to="/silsilah-pengasuh"

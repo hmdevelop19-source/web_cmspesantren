@@ -32,9 +32,39 @@ export default function Posts() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/posts/${id}`),
-    onSuccess: () => {
+    // Optimistic Update
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['admin-posts'] });
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(['admin-posts', page, triggerSearch]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(['admin-posts', page, triggerSearch], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.filter((post: Post) => post.id !== id),
+          meta: {
+            ...old.meta,
+            total: (old.meta?.total || 0) - 1
+          }
+        };
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousData };
+    },
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (_err, _id, context) => {
+      queryClient.setQueryData(['admin-posts', page, triggerSearch], context?.previousData);
+      alert('Gagal menghapus berita. Silakan coba lagi.');
+    },
+    // Always refetch after error or success:
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
-    }
+    },
   });
 
   const handleDelete = (id: number) => {
@@ -43,13 +73,45 @@ export default function Posts() {
     }
   };
 
+  const statusToggleMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number, status: string }) => 
+      api.put(`/posts/${id}`, { status }),
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-posts'] });
+      const previousData = queryClient.getQueryData(['admin-posts', page, triggerSearch]);
+      
+      queryClient.setQueryData(['admin-posts', page, triggerSearch], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          data: old.data.map((post: Post) => 
+            post.id === id ? { ...post, status } : post
+          )
+        };
+      });
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      queryClient.setQueryData(['admin-posts', page, triggerSearch], context?.previousData);
+      alert('Gagal memperbarui status berita.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-posts'] });
+    }
+  });
+
+  const handleStatusToggle = (post: Post) => {
+    const newStatus = post.status === 'published' ? 'draft' : 'published';
+    statusToggleMutation.mutate({ id: post.id, status: newStatus });
+  };
+
   const posts = data?.data || [];
   const meta = data?.meta;
 
   return (
     <div className="max-w-7xl space-y-8 animate-in fade-in duration-1000">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200 pb-8 text-left">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Manajemen Warta</h1>
           <p className="text-sm text-slate-500 mt-1">Publikasikan berita, artikel, dan informasi terkini pesantren</p>
@@ -87,7 +149,7 @@ export default function Posts() {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden relative">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden relative text-left">
          <div className="overflow-x-auto">
             <table className="w-full text-left">
                <thead className="bg-slate-50/50 border-b border-slate-100">
@@ -130,15 +192,21 @@ export default function Posts() {
                              </span>
                           </td>
                           <td className="px-8 py-5">
-                             {post.status === 'published' ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Terbit
-                                </span>
-                             ) : (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200">
-                                   Draf
-                                </span>
-                             )}
+                             <button 
+                                onClick={() => handleStatusToggle(post)}
+                                disabled={statusToggleMutation.isPending}
+                                className="group/status"
+                             >
+                                {post.status === 'published' ? (
+                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100 group-hover/status:bg-green-100 transition-all cursor-pointer">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Terbit
+                                   </span>
+                                ) : (
+                                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200 group-hover/status:bg-slate-200 transition-all cursor-pointer">
+                                      Draf
+                                   </span>
+                                )}
+                             </button>
                           </td>
                           <td className="px-8 py-5 text-right">
                              <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">

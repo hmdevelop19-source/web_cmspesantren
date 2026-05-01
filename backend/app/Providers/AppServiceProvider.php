@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Http\Resources\Json\JsonResource::withoutWrapping();
 
         // Register Cache Observers
+        \App\Models\Page::observe(\App\Observers\CacheObserver::class);
         \App\Models\Post::observe(\App\Observers\CacheObserver::class);
         \App\Models\Agenda::observe(\App\Observers\CacheObserver::class);
         \App\Models\Announcement::observe(\App\Observers\CacheObserver::class);

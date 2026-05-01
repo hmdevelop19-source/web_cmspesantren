@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Cache;
 
 class Post extends Model
 {
@@ -22,28 +21,23 @@ class Post extends Model
         });
 
         static::updating(function ($post) {
-            // Jangan ubah slug jika sudah ada (mencegah link rusak)
+            // Jangan ubah slug jika sudah ada (mencegah link rusak/404)
             if (!$post->slug) {
                 $post->slug = Str::slug($post->title) . '-' . Str::random(5);
             }
         });
 
-        static::saved(function () {
-            Cache::forget('home_data');
-            // Catatan: Untuk posts_page_* bisa dibersihkan secara massal jika menggunakan Redis tags, 
-            // namun untuk file cache kita biarkan expired sendiri atau gunakan cache flushing jika diperlukan.
-        });
-
-        static::deleted(function () {
-            Cache::forget('home_data');
-        });
+        // Catatan: Pembersihan cache sekarang ditangani secara otomatis oleh CacheObserver
     }
 
     protected $fillable = [
         'user_id',
         'category_id',
         'title',
+        'excerpt',
         'slug',
+        'meta_title',
+        'meta_description',
         'content',
         'cover_image',
         'cover_image_id',

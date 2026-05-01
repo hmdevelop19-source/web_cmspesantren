@@ -115,8 +115,8 @@ export default function BeritaDetail() {
   return (
     <div className="bg-white min-h-screen">
       <SEO 
-        title={post.title}
-        description={post.excerpt || post.content?.replace(/<[^>]+>/g, '').slice(0, 160)}
+        title={post.meta_title || post.title}
+        description={post.meta_description || post.excerpt || post.content?.replace(/<[^>]+>/g, '').slice(0, 160)}
         image={finalCoverImage || undefined}
         type="article"
         structuredData={articleSchema}

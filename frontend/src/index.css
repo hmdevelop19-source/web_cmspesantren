@@ -124,4 +124,11 @@
   .clip-path-slant-down {
     clip-path: polygon(0 0, 100% 100%, 0 100%);
   }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

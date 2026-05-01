@@ -3,10 +3,11 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, FileText, Settings, User, Menu, Image, Edit3, Bell, ExternalLink, X, 
   CalendarDays, Megaphone, PlaySquare, Users as UsersIcon, ShieldCheck,
-  LogOut, Tag, Mail, LayoutPanelTop, History, Quote
+  LogOut, Tag, Mail, LayoutPanelTop, History, Quote, Building2
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -164,6 +165,11 @@ export default function AdminLayout() {
               Testimoni Alumni
             </Link>
 
+            <Link to="/admin/facilities" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/facilities')}`}>
+              <Building2 className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/facilities') ? 'text-secondary' : ''}`} />
+              Fasilitas Pesantren
+            </Link>
+
             {/* GRUP 3: MEDIA & VISUAL */}
             <div className="pt-6 pb-2">
                <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Media & Visual</p>
@@ -302,7 +308,9 @@ export default function AdminLayout() {
            {/* Subtle background glow */}
            <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none -mt-48 -mr-48"></div>
            <div className="relative z-10">
-              <Outlet />
+              <ErrorBoundary>
+                <Outlet />
+              </ErrorBoundary>
            </div>
         </main>
       </div>

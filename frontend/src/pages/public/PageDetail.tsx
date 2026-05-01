@@ -42,13 +42,25 @@ export default function PageDetail() {
     );
   }
 
+  const pageSchema = page ? {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": page.title,
+    "description": page.meta_description || page.content?.replace(/<[^>]+>/g, '').slice(0, 160),
+    "publisher": {
+      "@type": "Organization",
+      "name": "Pesantren"
+    }
+  } : undefined;
+
   return (
     <div className="bg-white min-h-screen pb-32">
       <SEO 
-        title={page.title}
-        description={page.content?.replace(/<[^>]+>/g, '').slice(0, 160)}
+        title={page.meta_title || page.title}
+        description={page.meta_description || page.content?.replace(/<[^>]+>/g, '').slice(0, 160)}
         image={page.image_url}
         type="article"
+        structuredData={pageSchema}
       />
       {/* Hero Section */}
       <section className="relative h-[45vh] min-h-[350px] flex items-end pb-24 overflow-hidden bg-primary">

@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Agenda extends Model
 {
+    use SoftDeletes;
+
     protected static function booted()
     {
         static::creating(function ($agenda) {
@@ -17,7 +19,8 @@ class Agenda extends Model
         });
 
         static::updating(function ($agenda) {
-            if ($agenda->isDirty('title') && !$agenda->isDirty('slug')) {
+            // Gunakan slug permanen untuk stabilitas SEO
+            if (!$agenda->slug) {
                 $agenda->slug = Str::slug($agenda->title) . '-' . Str::random(5);
             }
         });
@@ -26,6 +29,8 @@ class Agenda extends Model
     protected $fillable = [
         'title',
         'slug',
+        'meta_title',
+        'meta_description',
         'content',
         'location',
         'event_date',

@@ -19,6 +19,8 @@ use App\Http\Resources\PageResource;
 use App\Http\Resources\AgendaResource;
 use App\Http\Resources\AnnouncementResource;
 use App\Http\Resources\VideoResource;
+use App\Http\Resources\FacilityResource;
+use App\Models\Facility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -41,6 +43,7 @@ class PublicController extends Controller
                 'latest_posts' => PostResource::collection(
                     Post::with(['user', 'category', 'coverImage'])
                         ->where('status', 'published')
+                        ->where('published_at', '<=', now())
                         ->latest()
                         ->take(4)
                         ->get()
@@ -54,6 +57,7 @@ class PublicController extends Controller
                 ),
                 'announcements' => AnnouncementResource::collection(
                     Announcement::where('status', 'published')
+                        ->where('created_at', '<=', now())
                         ->latest()
                         ->take(8)
                         ->get()
@@ -66,6 +70,13 @@ class PublicController extends Controller
                     'alumni' => $statsSettings['stats_alumni'] ?? '12.4k',
                     'institusi' => $statsSettings['stats_institusi'] ?? '6',
                 ],
+                'facilities' => FacilityResource::collection(
+                    Facility::with('image')
+                        ->where('is_active', true)
+                        ->orderBy('order')
+                        ->take(6)
+                        ->get()
+                ),
             ];
         });
     }
@@ -79,7 +90,8 @@ class PublicController extends Controller
         
         return Cache::remember("v2_posts_v{$v}_page_{$page}_{$search}_{$category}", 86400, function () use ($request) {
             $query = Post::with(['user', 'category', 'coverImage'])
-                ->where('status', 'published');
+                ->where('status', 'published')
+                ->where('published_at', '<=', now());
 
             if ($request->search) {
                 $query->where('title', 'like', '%' . $request->search . '%');
@@ -108,11 +120,13 @@ class PublicController extends Controller
 
     public function getPageBySlug($slug)
     {
-        $page = Page::where('slug', $slug)
+        $page = Page::with('imageRelation')->where('slug', $slug)
             ->where('status', 'published')
             ->firstOrFail();
 
-        if ($page->image) {
+        if ($page->image_id && $page->imageRelation) {
+            $page->image_url = url('storage/' . $page->imageRelation->file_path);
+        } elseif ($page->image) {
             $page->image_url = url('storage/' . $page->image);
         }
 
@@ -152,7 +166,8 @@ class PublicController extends Controller
         $v = Cache::get('cache_v_announcements', 1);
 
         return Cache::remember("v2_announcements_v{$v}_page_{$page}_{$search}", 86400, function () use ($request) {
-            $query = Announcement::where('status', 'published');
+            $query = Announcement::where('status', 'published')
+                ->where('created_at', '<=', now());
 
             if ($request->search) {
                 $query->where('title', 'like', '%' . $request->search . '%');
@@ -194,6 +209,7 @@ class PublicController extends Controller
         if (!$q) return response()->json(['posts' => [], 'agendas' => [], 'announcements' => []]);
 
         $posts = Post::where('status', 'published')
+            ->where('published_at', '<=', now())
             ->where(function($query) use ($q) {
                 $query->where('title', 'like', "%$q%")
                       ->orWhere('content', 'like', "%$q%");
@@ -244,5 +260,16 @@ class PublicController extends Controller
     public function getTestimonials()
     {
         return response()->json(Testimonial::where('status', 'published')->latest()->get());
+    }
+
+    public function getFacilities()
+    {
+        return Cache::remember('site_facilities', 3600, function () {
+            $facilities = Facility::with('image')
+                ->where('is_active', true)
+                ->orderBy('order')
+                ->get();
+            return FacilityResource::collection($facilities);
+        });
     }
 }

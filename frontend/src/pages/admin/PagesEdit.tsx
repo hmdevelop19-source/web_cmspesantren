@@ -1,6 +1,6 @@
 import { 
   ArrowLeft, FileText, Loader2, Save, Trash2, Cloud,
-  ChevronDown, Image as ImageIcon
+  ChevronDown, Image as ImageIcon, Search, Globe
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
@@ -23,6 +23,8 @@ export default function PagesEdit() {
   const [status, setStatus] = useState<'published' | 'draft'>('draft');
   const [image, setImage] = useState('');
   const [imageId, setImageId] = useState<number | null>(null);
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDescription, setMetaDescription] = useState('');
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,8 @@ export default function PagesEdit() {
       setContent(page.content || '');
       setStatus(page.status || 'draft');
       setImageId(page.image_id || null);
+      setMetaTitle(page.meta_title || '');
+      setMetaDescription(page.meta_description || '');
       if (page.image_obj) {
         setImage(`${import.meta.env.VITE_STORAGE_URL}${page.image_obj.file_path}`);
       } else {
@@ -77,7 +81,14 @@ export default function PagesEdit() {
     const timer = setTimeout(async () => {
       setIsAutoSaving(true);
       try {
-        await api.put(`/pages/${id}`, { title, content, status: 'draft', image_id: imageId });
+        await api.put(`/pages/${id}`, { 
+          title, 
+          content, 
+          status: 'draft', 
+          image_id: imageId,
+          meta_title: metaTitle,
+          meta_description: metaDescription
+        });
         setLastSaved(new Date());
       } catch (err) {
         console.error('Auto-save failed:', err);
@@ -86,7 +97,7 @@ export default function PagesEdit() {
       }
     }, 5000);
     return () => clearTimeout(timer);
-  }, [title, content, imageId, id, isFetching, status]);
+  }, [title, content, imageId, id, isFetching, status, metaTitle, metaDescription]);
 
   const handleSubmit = (e: React.FormEvent, targetStatus?: 'published' | 'draft') => {
     e.preventDefault();
@@ -94,7 +105,14 @@ export default function PagesEdit() {
     if (!content.trim()) { setError('Konten laman tidak boleh kosong.'); return; }
     setError(null);
     updateMutation.mutate(
-      { title, content, status: targetStatus || status, image_id: imageId },
+      { 
+        title, 
+        content, 
+        status: targetStatus || status, 
+        image_id: imageId,
+        meta_title: metaTitle,
+        meta_description: metaDescription
+      },
       { onSuccess: () => navigate('/admin/pages') }
     );
   };
@@ -156,7 +174,7 @@ export default function PagesEdit() {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-8 text-left">
         {/* Main Editor */}
         <div className="lg:flex-1 flex flex-col gap-8">
           <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
@@ -170,6 +188,61 @@ export default function PagesEdit() {
                 onChange={(newContent) => setContent(newContent)}
                 onOpenMediaLibrary={() => { setMediaMode('editor'); setIsMediaSelectorOpen(true); }} />
             </div>
+          </div>
+
+          {/* SEO Optimization Widget */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-700">
+             <div className="border-b border-slate-100 px-8 py-5 bg-slate-50/50 flex items-center justify-between">
+                <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                   <Search className="w-4 h-4 text-primary" /> Optimasi SEO (Mesin Pencari)
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400 bg-white border border-slate-100 px-2 py-1 rounded">Opsional</span>
+             </div>
+             <div className="p-8 space-y-8">
+                <div className="space-y-3">
+                   <div className="flex justify-between items-end">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Judul Meta (SEO Title)</label>
+                      <span className={`text-[10px] font-bold ${metaTitle.length > 60 ? 'text-red-400' : 'text-slate-300'}`}>{metaTitle.length} / 60</span>
+                   </div>
+                   <input 
+                      type="text" 
+                      placeholder={title || "Judul yang muncul di Google..."}
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+                   />
+                </div>
+
+                <div className="space-y-3">
+                   <div className="flex justify-between items-end">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Deskripsi Meta (SEO Description)</label>
+                      <span className={`text-[10px] font-bold ${metaDescription.length > 160 ? 'text-red-400' : 'text-slate-300'}`}>{metaDescription.length} / 160</span>
+                   </div>
+                   <textarea 
+                      rows={3}
+                      placeholder={content.substring(0, 150).replace(/<[^>]+>/g, '') || "Ringkasan yang muncul di bawah judul Google..."}
+                      value={metaDescription}
+                      onChange={(e) => setMetaDescription(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/10 transition-all outline-none resize-none"
+                   />
+                </div>
+
+                {/* Google Preview Simulation */}
+                <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                   <div className="flex items-center gap-2 mb-1">
+                      <div className="w-4 h-4 rounded-full bg-white border border-slate-200 flex items-center justify-center">
+                         <Globe className="w-2.5 h-2.5 text-slate-400" />
+                      </div>
+                      <span className="text-xs text-slate-400 truncate">https://portalpesantren.ac.id › {Str.slug(title) || 'judul-laman'}</span>
+                   </div>
+                   <h3 className="text-lg font-medium text-blue-600 hover:underline cursor-pointer truncate">
+                      {metaTitle || title || 'Judul Laman Muncul Di Sini'}
+                   </h3>
+                   <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {metaDescription || content.substring(0, 160).replace(/<[^>]+>/g, '') || 'Deskripsi laman Anda akan muncul di sini sebagai pratinjau hasil pencarian...'}
+                   </p>
+                </div>
+             </div>
           </div>
         </div>
 
@@ -210,7 +283,7 @@ export default function PagesEdit() {
           </div>
 
           {/* Image Widget */}
-          <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden text-left">
             <div className="border-b border-slate-100 px-6 py-4 bg-slate-50/50">
               <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
                 <ImageIcon className="w-3.5 h-3.5 text-primary" /> Gambar Header
@@ -258,3 +331,12 @@ export default function PagesEdit() {
     </div>
   );
 }
+
+const Str = {
+  slug: (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w ]+/g, '')
+      .replace(/ +/g, '-');
+  }
+};

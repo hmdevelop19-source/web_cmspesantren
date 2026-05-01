@@ -22,7 +22,8 @@ class Page extends Model
         });
 
         static::updating(function ($page) {
-            if ($page->isDirty('title') && !$page->isDirty('slug')) {
+            // Gunakan slug permanen untuk stabilitas SEO
+            if (!$page->slug) {
                 $page->slug = Str::slug($page->title);
             }
         });
@@ -31,6 +32,8 @@ class Page extends Model
     protected $fillable = [
         'title',
         'slug',
+        'meta_title',
+        'meta_description',
         'content',
         'image',
         'image_id',
