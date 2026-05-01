@@ -38,7 +38,7 @@ export default function Fasilitas() {
       />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden bg-primary-dark">
+      <section className="relative pt-28 pb-16 md:pt-32 md:pb-20 overflow-hidden bg-primary-dark">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -mr-80 -mt-80"></div>
         
@@ -56,7 +56,7 @@ export default function Fasilitas() {
       </section>
 
       {/* Facilities Grid */}
-      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -97,7 +97,7 @@ export default function Fasilitas() {
                 </div>
 
                 {/* Content Area */}
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                   <h3 className="text-xl md:text-2xl font-black text-slate-800 mb-3 uppercase italic tracking-tight group-hover:text-primary transition-colors">
                     {facility.title}
                   </h3>

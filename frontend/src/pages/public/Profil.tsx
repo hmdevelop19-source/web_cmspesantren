@@ -59,16 +59,16 @@ export default function Profil() {
    return (
       <div className="bg-white w-full pb-32">
          {/* Page Header (Hero Profil) */}
-         <section className="bg-primary pt-28 pb-32 relative overflow-hidden">
+         <section className="bg-primary pt-24 md:pt-28 pb-24 md:pb-32 relative overflow-hidden text-center">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center text-white">
-               <h1 className="text-3xl md:text-5xl font-black mb-6 tracking-tighter uppercase drop-shadow-2xl">Jejak & Visi</h1>
-               <p className="text-gray-200 max-w-2xl mx-auto text-sm md:text-lg font-medium opacity-80 italic italic">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-white">
+               <h1 className="text-3xl md:text-5xl font-black mb-6 tracking-tighter uppercase drop-shadow-2xl italic">Jejak & Visi</h1>
+               <p className="text-gray-200 max-w-2xl mx-auto text-sm md:text-lg font-medium opacity-80 italic leading-relaxed">
                   Mengenal lebih dekat seputar sejarah, visi yang kami kejar, serta misi teguh kami dalam menciptakan ekosistem pendidikan yang unggul.
                </p>
             </div>
             {/* Decorative Bottom Wave/Slant */}
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-white" style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 100%)' }}></div>
+            <div className="absolute bottom-0 left-0 right-0 h-16 md:h-24 bg-white" style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 100%)' }}></div>
          </section>
 
          {/* Main Content Area */}
@@ -79,9 +79,9 @@ export default function Profil() {
             </div>
 
             {/* Sejarah Singkat */}
-            <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-black/5 border border-gray-100 overflow-hidden mb-24">
+            <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-black/5 border border-gray-100 overflow-hidden mb-16 md:mb-24">
                <div className="flex flex-col md:flex-row">
-                  <div className="md:w-1/2 p-12 md:p-20 flex flex-col justify-center">
+                  <div className="md:w-1/2 p-8 md:p-12 lg:p-20 flex flex-col justify-center text-left">
                      <div className="inline-flex items-center gap-3 text-secondary font-black text-[10px] tracking-[0.3em] uppercase mb-8">
                         <BookOpen className="w-5 h-5" /> Sejarah Institusi
                      </div>
@@ -199,7 +199,7 @@ export default function Profil() {
                   </div>
 
                   {/* Carousel Container: Scroll on Mobile, Grid on Desktop */}
-                  <div className="flex overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 snap-x snap-mandatory scrollbar-hide">
+                  <div className="flex overflow-x-auto overflow-y-hidden pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12 snap-x snap-mandatory scrollbar-hide">
                      {leaders.map((leader, idx) => (
                         <div key={leader.id} className="group relative min-w-[280px] sm:min-w-0 snap-center">
                            <div className="relative aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-black/10 border-4 border-white group-hover:shadow-primary/20 transition-all duration-700 bg-slate-50">
@@ -216,7 +216,7 @@ export default function Profil() {
                                  </div>
                               )}
 
-                              <div className="absolute bottom-0 left-0 right-0 p-8 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 z-20 transform translate-y-2 group-hover:translate-y-0 transition-transform text-left">
                                  <h3 className="text-white font-black text-lg leading-tight uppercase tracking-tight mb-3">{leader.name}</h3>
                                  <div className="space-y-1.5">
                                     <div className="flex items-center gap-2">

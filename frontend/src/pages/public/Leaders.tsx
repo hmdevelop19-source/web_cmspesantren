@@ -54,19 +54,19 @@ export default function Leaders() {
   return (
     <div className="bg-[#fcfcfc] w-full pb-32">
       {/* Page Header */}
-      <section className="bg-primary pt-28 pb-40 relative overflow-hidden">
+      <section className="bg-primary pt-24 md:pt-28 pb-32 md:pb-40 relative overflow-hidden text-center">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-white py-4 md:py-0">
             <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-8 border border-white/10">
                <History className="w-4 h-4 text-secondary" /> Jejak Kepemimpinan
             </div>
-            <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter uppercase drop-shadow-2xl italic leading-none">Silsilah Pengasuh</h1>
-            <p className="text-gray-200 max-w-2xl mx-auto text-sm md:text-lg font-medium opacity-80 italic italic">
+            <h1 className="text-3xl md:text-6xl font-black mb-6 tracking-tighter uppercase drop-shadow-2xl italic leading-none">Silsilah Pengasuh</h1>
+            <p className="text-gray-200 max-w-2xl mx-auto text-sm md:text-lg font-medium opacity-80 italic">
                Untaian sanad perjuangan dan kepemimpinan para Masyayikh yang telah mendedikasikan hidupnya demi tegaknya panji Islam di bumi nusantara.
             </p>
         </div>
         {/* Decorative Bottom Wave */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-[#fcfcfc]" style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 100%)' }}></div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 md:h-24 bg-[#fcfcfc]" style={{ clipPath: 'polygon(0 100%, 100% 100%, 100% 0, 0 100%)' }}></div>
       </section>
 
       {/* Content Area */}
@@ -76,12 +76,12 @@ export default function Leaders() {
          </div>
 
          {leaders.length === 0 ? (
-            <div className="bg-white rounded-[3rem] p-20 text-center shadow-2xl shadow-black/5 border border-gray-100">
-               <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-200"><Users className="w-10 h-10" /></div>
-               <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Data pengasuh belum tersedia.</p>
+            <div className="bg-white rounded-[2rem] md:rounded-[3rem] p-12 md:p-20 text-center shadow-2xl shadow-black/5 border border-gray-100">
+               <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-50 rounded-2xl md:rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-200"><Users className="w-8 h-8 md:w-10 md:h-10" /></div>
+               <p className="text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-widest">Data pengasuh belum tersedia.</p>
             </div>
          ) : (
-            <div className="flex overflow-x-auto pb-16 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16 snap-x snap-mandatory scrollbar-hide">
+            <div className="flex overflow-x-auto overflow-y-hidden pb-16 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16 snap-x snap-mandatory scrollbar-hide">
                {leaders.map((leader, idx) => (
                   <div key={leader.id} className="group flex flex-col items-center text-center min-w-[300px] md:min-w-0 snap-center">
                      {/* Photo Frame */}
@@ -129,9 +129,9 @@ export default function Leaders() {
          )}
 
          {/* Footer Quote Section */}
-         <div className="mt-40 text-center max-w-3xl mx-auto px-4">
-            <div className="w-20 h-1 bg-secondary mx-auto mb-10 rounded-full opacity-30"></div>
-            <p className="text-xl md:text-2xl font-bold text-gray-500 italic leading-relaxed font-serif">
+         <div className="mt-24 md:mt-40 text-center max-w-3xl mx-auto px-4">
+            <div className="w-16 md:w-20 h-1 bg-secondary mx-auto mb-8 md:mb-10 rounded-full opacity-30"></div>
+            <p className="text-lg md:text-2xl font-bold text-gray-500 italic leading-relaxed font-serif">
                "Masyayikh adalah lentera yang takkan pernah padam cahayanya, meski raganya tak lagi di depan kita, sanad ilmunya terus mengalir menjaga kita."
             </p>
          </div>

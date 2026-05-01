@@ -50,9 +50,9 @@ export default function Agendas() {
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Header Section */}
-      <section className="bg-primary pt-28 pb-16 px-4 relative overflow-hidden">
+      <section className="bg-primary pt-24 md:pt-28 pb-12 md:pb-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
+        <div className="max-w-7xl mx-auto relative z-10 text-center py-4 md:py-0">
             <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 animate-fade-in">
                 Kalender Kegiatan
             </div>
@@ -66,12 +66,12 @@ export default function Agendas() {
       {/* Filter & Search Section */}
       <section className="py-12 border-b border-gray-100 bg-gray-50/50 sticky top-16 z-30 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
                     <Calendar className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-none uppercase italic tracking-tighter">Daftar Agenda</h2>
+                    <h2 className="text-2xl md:text-4xl font-black text-gray-900 leading-none uppercase italic tracking-tighter">Daftar Agenda</h2>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">{pagination.total} Kegiatan Ditemukan</p>
                 </div>
             </div>
@@ -95,7 +95,7 @@ export default function Agendas() {
       </section>
 
       {/* Content Section */}
-      <section className="py-20 px-4">
+      <section className="py-16 md:py-20 px-4 text-left">
         <div className="max-w-7xl mx-auto">
             
             <Breadcrumbs items={[{ label: 'Agenda & Kegiatan' }]} />
@@ -107,11 +107,10 @@ export default function Agendas() {
                 </div>
             ) : agendas.length > 0 ? (
                 <div className="space-y-8">
-                    {agendas.map((item) => (
                         <Link 
                             key={item.id}
                             to={`/agenda/${item.slug}`}
-                            className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-8 group hover:shadow-2xl hover:shadow-black/5 transition-all hover:-translate-y-1 relative overflow-hidden"
+                            className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 group hover:shadow-2xl hover:shadow-black/5 transition-all hover:-translate-y-1 relative overflow-hidden text-left"
                         >
                             {/* Date Block */}
                             <div className="w-full md:w-32 flex flex-col items-center justify-center shrink-0 border-r-0 md:border-r border-gray-100 pr-0 md:pr-8 py-2">

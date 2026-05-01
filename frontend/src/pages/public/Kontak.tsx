@@ -65,9 +65,9 @@ export default function Kontak() {
   return (
     <div className="bg-white min-h-screen">
       {/* Header Banner */}
-      <section className="bg-primary pt-28 pb-16 px-4 relative overflow-hidden">
+      <section className="bg-primary pt-24 md:pt-28 pb-12 md:pb-16 px-4 relative overflow-hidden text-center">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
+        <div className="max-w-7xl mx-auto relative z-10 py-4 md:py-0">
             <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6">
                 Hubungi Kami
             </div>
@@ -78,7 +78,7 @@ export default function Kontak() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-16 md:py-24 px-4 sm:px-6 lg:px-8">
         <Breadcrumbs items={[{ label: 'Kontak Kami' }]} />
         <div className="flex flex-col lg:flex-row gap-20 mt-10">
           

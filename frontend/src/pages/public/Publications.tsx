@@ -101,7 +101,7 @@ export default function Publications() {
             </form>
 
             <div className="pt-4">
-               <div className="flex overflow-x-auto scrollbar-hide gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:flex-wrap md:justify-center snap-x snap-mandatory">
+               <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-4 pb-6 px-4 -mx-4 md:mx-0 md:px-0 md:flex-wrap md:justify-center snap-x snap-mandatory">
                   <div className="flex-none snap-center">
                     <button
                       onClick={() => setCategory('')}
@@ -144,7 +144,7 @@ export default function Publications() {
            </div>
         ) : posts.length > 0 ? (
           <>
-            <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-6 pb-8 px-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:mx-0 md:px-0 md:gap-10 py-10">
+            <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory gap-6 pb-8 px-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:mx-0 md:px-0 md:gap-10 py-10">
               {posts.map((post) => (
                 <div key={post.id} className="flex-none w-[85vw] md:w-auto snap-center bg-white rounded-[2.5rem] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group flex flex-col h-full">
                   <div className="h-56 relative group overflow-hidden">

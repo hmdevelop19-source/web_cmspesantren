@@ -50,9 +50,9 @@ export default function Announcements() {
   return (
     <div className="bg-white min-h-screen pb-20">
       {/* Header Section */}
-      <section className="bg-primary pt-28 pb-16 px-4 relative overflow-hidden text-center">
+      <section className="bg-primary pt-24 md:pt-28 pb-12 md:pb-16 px-4 relative overflow-hidden text-center">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10 py-4 md:py-0">
             <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 shadow-xl shadow-secondary/5">
                 Informasi & Pengumuman
             </div>
@@ -66,12 +66,12 @@ export default function Announcements() {
       {/* Filter & Search Section */}
       <section className="py-12 border-b border-gray-100 bg-gray-50/50 sticky top-16 z-30 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="flex items-center gap-4 text-left">
+                <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
                     <Megaphone className="w-6 h-6 text-white" />
                 </div>
                 <div className="text-left">
-                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-none uppercase italic tracking-tighter">Daftar Pengumuman</h2>
+                    <h2 className="text-2xl md:text-4xl font-black text-gray-900 leading-none uppercase italic tracking-tighter">Daftar Pengumuman</h2>
                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1.5">{pagination.total} Informasi Ditemukan</p>
                 </div>
             </div>
@@ -95,7 +95,7 @@ export default function Announcements() {
       </section>
 
       {/* Content Section */}
-      <section className="py-20 px-4">
+      <section className="py-16 md:py-20 px-4 text-left">
         <div className="max-w-6xl mx-auto text-left">
             
             <Breadcrumbs items={[{ label: 'Beranda', path: '/' }, { label: 'Pengumuman' }]} />
@@ -111,7 +111,7 @@ export default function Announcements() {
                         <Link 
                             key={item.id}
                             to={`/pengumuman/${item.slug}`}
-                            className="group bg-white border border-gray-100 rounded-[32px] p-8 flex flex-col md:flex-row gap-8 hover:shadow-2xl hover:shadow-black/5 transition-all hover:-translate-y-2 relative overflow-hidden"
+                            className="group bg-white border border-gray-100 rounded-[32px] p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 hover:shadow-2xl hover:shadow-black/5 transition-all hover:-translate-y-2 relative overflow-hidden text-left"
                         >
                             {/* Icon & Decor */}
                             <div className="shrink-0 flex items-start justify-center">

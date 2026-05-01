@@ -87,7 +87,7 @@ export default function Berita() {
       {/* Header Section */}
       <div className="bg-primary pt-28 pb-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        <div className="max-w-7xl mx-auto text-center relative z-10">
+        <div className="max-w-7xl mx-auto text-center relative z-10 py-4 md:py-0">
           <div className="inline-block bg-secondary/20 border border-secondary/30 text-secondary px-6 py-2 rounded-full text-[10px] uppercase font-black tracking-[0.3em] mb-6 shadow-xl shadow-secondary/5">
             {isArtikel ? 'Literasi Pesantren' : isKajian ? 'Khazanah Keilmuan' : 'Kabar Pesantren'}
           </div>
@@ -115,7 +115,7 @@ export default function Berita() {
         </form>
       </div>
 
-      <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-16 md:py-24 px-4 sm:px-6 lg:px-8">
 
         <Breadcrumbs items={[{ label: pageTitle }]} />
 
@@ -133,11 +133,11 @@ export default function Berita() {
             </div>
           </div>
         ) : isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="bg-white rounded-[32px] border border-gray-100 overflow-hidden p-0">
                 <Skeleton height="14rem" className="w-full" />
-                <div className="p-8 space-y-4">
+                <div className="p-6 md:p-8 space-y-4">
                   <div className="flex gap-4">
                     <Skeleton width="40%" height="1rem" />
                     <Skeleton width="30%" height="1rem" />
@@ -152,7 +152,7 @@ export default function Berita() {
           </div>
         ) : posts.length > 0 ? (
           <>
-            <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-6 pb-8 px-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:mx-0 md:px-0 md:gap-10">
+            <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory gap-6 pb-8 px-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:mx-0 md:px-0 md:gap-10">
               {posts.map((post) => (
                 <div key={post.id} className="flex-none w-[85vw] md:w-auto snap-center bg-white rounded-[32px] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all group flex flex-col">
                   <div className="h-56 relative group">
@@ -175,7 +175,7 @@ export default function Berita() {
                       {post.category?.name || 'UMUM'}
                     </span>
                   </div>
-                  <div className="p-8 flex-1 flex flex-col">
+                  <div className="p-6 md:p-8 flex-1 flex flex-col">
                     <div className="flex items-center gap-4 text-[11px] font-black text-gray-400 mb-5 uppercase tracking-widest">
                       <div className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-secondary" /> {new Date(post.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                       <div className="flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-secondary" /> {post.user?.name || 'Admin'}</div>

@@ -115,11 +115,11 @@ export default function AnnouncementDetail() {
       </section>
 
       {/* Main Content Section */}
-      <section className="max-w-7xl mx-auto px-4 -mt-20 relative z-20 pb-40">
-        <div className="flex flex-col lg:flex-row gap-12">
+      <section className="max-w-7xl mx-auto px-4 -mt-20 relative z-20 pb-20 md:pb-40 text-left">
+        <div className="flex flex-col lg:flex-row gap-8 md:gap-12">
             {/* Left Column: Sidebar Info */}
             <div className="lg:w-1/3 order-2 lg:order-1">
-                <div className="bg-white rounded-[40px] shadow-2xl p-10 border border-gray-100 flex flex-col gap-10 sticky top-32 group text-left">
+                <div className="bg-white rounded-[2.5rem] md:rounded-[40px] shadow-2xl p-6 md:p-10 border border-gray-100 flex flex-col gap-8 md:gap-10 sticky top-32 group text-left">
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform">
                         <Bell className="w-40 h-40" />
                     </div>
@@ -156,9 +156,8 @@ export default function AnnouncementDetail() {
                 </div>
             </div>
 
-            {/* Right Column: Main Content */}
             <div className="lg:w-2/3 order-1 lg:order-2 text-left">
-                <div className="bg-white rounded-[40px] p-8 md:p-16 border border-gray-100 shadow-sm min-h-[600px] relative overflow-hidden group">
+                <div className="bg-white rounded-[2.5rem] md:rounded-[40px] p-6 md:p-16 border border-gray-100 shadow-sm min-h-[400px] md:min-h-[600px] relative overflow-hidden group">
                     <div className="prose prose-lg prose-primary max-w-none">
                         <h2 className="text-3xl font-black text-gray-900 mb-10 border-b-8 border-secondary pb-4 inline-block italic uppercase tracking-tighter">
                             Rincian Pengumuman

@@ -288,11 +288,11 @@ export default function Home() {
         if (!activeLeader) return null;
 
         return (
-          <section className="bg-white py-24 relative overflow-hidden">
+          <section className="bg-white py-16 md:py-24 relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <RevealOnScroll className="bg-gray-50 rounded-[3.5rem] overflow-hidden shadow-2xl shadow-black/5 border border-gray-100 relative group">
+              <RevealOnScroll className="bg-gray-50 rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl shadow-black/5 border border-gray-100 relative group">
                 <div className="flex flex-col lg:flex-row items-stretch">
-                  <div className="lg:w-1/3 min-h-[400px] relative overflow-hidden">
+                  <div className="lg:w-1/3 min-h-[300px] md:min-h-[400px] relative overflow-hidden">
                     <img 
                       src={getImageUrl(activeLeader.photo)} 
                       alt={activeLeader.name} 
@@ -304,7 +304,7 @@ export default function Home() {
                       <span className="text-secondary font-black text-[9px] uppercase tracking-[0.3em]">Pengasuh Saat Ini</span>
                     </div>
                   </div>
-                  <div className="lg:w-2/3 p-12 lg:p-16 flex flex-col justify-center">
+                  <div className="lg:w-2/3 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
                     <div className="w-12 h-1 bg-secondary mb-8 rounded-full"></div>
                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 tracking-tighter uppercase italic leading-none">
                       Sambutan <span className="text-primary">Pengasuh</span>
@@ -330,7 +330,7 @@ export default function Home() {
 
       {/* Facilities Section */}
       {data?.facilities && data.facilities.length > 0 && (
-        <section className="bg-gray-50/50 py-24 relative overflow-hidden">
+        <section className="bg-gray-50/50 py-16 md:py-24 relative overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-6 mb-16">
               <RevealOnScroll className="text-center md:text-left">
@@ -362,7 +362,7 @@ export default function Home() {
 
             <div 
               ref={facilityScrollRef}
-              className="flex overflow-x-auto pb-10 gap-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
+              className="flex overflow-x-auto overflow-y-hidden pb-10 gap-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {data.facilities.map((facility: any, i: number) => (
@@ -418,12 +418,12 @@ export default function Home() {
       )}
 
       {/* Main Content: Announcements & Agendas */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="flex flex-col lg:flex-row gap-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="flex flex-col lg:flex-row gap-12 md:gap-16">
           
           {/* Announcements Grid */}
           <div className="lg:w-2/3 text-left">
-            <RevealOnScroll delay={100} className="flex items-center mb-10 border-l-8 border-secondary pl-6">
+            <RevealOnScroll delay={100} className="flex items-center mb-8 md:mb-10 border-l-8 border-secondary pl-6">
               <div>
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Pengumuman & Layanan</h2>
                 <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Updates & Quick Links</p>
@@ -485,23 +485,23 @@ export default function Home() {
       </section>
 
       {/* Featured Berita & Video Section */}
-      <section className="bg-gray-50/50 py-24 border-y border-gray-100 text-left">
+      <section className="bg-gray-50/50 py-16 md:py-24 border-y border-gray-100 text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-20">
             
             {/* Berita List */}
             <div className="lg:w-2/3">
-                <RevealOnScroll className="flex justify-between items-end mb-12 border-l-8 border-primary pl-6">
+                <RevealOnScroll className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 md:mb-12 border-l-8 border-primary pl-6 gap-4">
                     <div>
-                        <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Warta Pesantren</h2>
+                        <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter italic">Warta Pesantren</h2>
                         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Insight & Achievement</p>
                     </div>
-                    <Link to="/publikasi" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-widest bg-white px-5 py-2 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-all mb-1 hidden sm:block">
+                    <Link to="/publikasi" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-widest bg-white px-5 py-2 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-all sm:mb-1">
                         LIHAT SEMUA BERITA →
                     </Link>
                 </RevealOnScroll>
                 
-                <div className="flex overflow-x-auto pb-10 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 gap-10 snap-x snap-mandatory scrollbar-hide">
+                <div className="flex overflow-x-auto overflow-y-hidden pb-10 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 gap-10 snap-x snap-mandatory scrollbar-hide">
                 {posts.map((b, i) => (
                     <RevealOnScroll key={b.id} delay={i * 150} className="min-w-[280px] sm:min-w-0 snap-center">
                         <div className="bg-white rounded-3xl shadow-xl shadow-black/5 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all group flex flex-col h-full">
@@ -547,10 +547,10 @@ export default function Home() {
             </div>
 
             {/* Video Section */}
-            <div className="lg:w-1/3">
+            <div className="lg:w-1/3 mt-12 lg:mt-0">
                 <RevealOnScroll delay={300}>
-                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase mb-10 border-l-8 border-primary-dark pl-6 tracking-tighter italic">Sinema Pesantren</h2>
-                    <div className="bg-white rounded-3xl shadow-2xl shadow-black/5 p-8 border border-gray-100 sticky top-32 group">
+                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase mb-8 md:mb-10 border-l-8 border-primary-dark pl-6 tracking-tighter italic">Sinema Pesantren</h2>
+                    <div className="bg-white rounded-[2rem] md:rounded-3xl shadow-2xl shadow-black/5 p-6 md:p-8 border border-gray-100 sticky top-32 group">
                     <div className="aspect-video bg-gray-900 rounded-2xl mb-8 relative flex items-center justify-center cursor-pointer overflow-hidden border-2 border-primary/5 shadow-inner">
                         {video ? (
                             <>
@@ -622,7 +622,7 @@ export default function Home() {
 
             <div 
               ref={testimonialScrollRef}
-              className="flex overflow-x-auto pb-4 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 scroll-smooth"
+              className="flex overflow-x-auto overflow-y-hidden pb-4 gap-4 md:gap-6 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 scroll-smooth"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
@@ -668,7 +668,7 @@ export default function Home() {
             <p className="text-gray-400 text-xs font-black uppercase tracking-[0.4em] mt-8">Capture the Essence & Vision</p>
           </RevealOnScroll>
           
-          <div className="flex overflow-x-auto pb-10 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 gap-6 snap-x snap-mandatory scrollbar-hide">
+          <div className="flex overflow-x-auto overflow-y-hidden pb-10 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 gap-6 snap-x snap-mandatory scrollbar-hide">
             {(data?.gallery && data.gallery.length > 0) ? data.gallery.map((item: any, i: number) => (
               <RevealOnScroll key={item.id} delay={i * 100} className="min-w-[240px] md:min-w-0 snap-center">
                   <div className="aspect-square bg-gray-50 rounded-3xl relative overflow-hidden group cursor-pointer border border-gray-100 shadow-sm hover:shadow-2xl transition-all duration-500">

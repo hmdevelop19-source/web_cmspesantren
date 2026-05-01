@@ -132,14 +132,13 @@ export default function PublicLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
 
-            {/* Logo Section */}
-            <Link to="/" className="flex items-center gap-4 group">
-              <div className={`transition-all duration-500 flex items-center justify-center rounded-2xl ${isTransparent ? 'w-12 h-12 bg-secondary/10' : 'w-10 h-10 bg-primary/5'} p-1.5 group-hover:scale-110 group-hover:rotate-3 shadow-2xl shadow-black/5 ring-1 ring-white/20 whitespace-nowrap`}>
+            <Link to="/" className="flex items-center gap-3 sm:gap-4 group">
+              <div className={`transition-all duration-500 flex items-center justify-center rounded-2xl ${isTransparent ? 'w-10 h-10 sm:w-12 sm:h-12 bg-secondary/10' : 'w-9 h-9 sm:w-10 sm:h-10 bg-primary/5'} p-1.5 group-hover:scale-110 group-hover:rotate-3 shadow-2xl shadow-black/5 ring-1 ring-white/20 whitespace-nowrap`}>
                 <img src={settings?.site_logo ? getImageUrl(settings.site_logo) : "/logo-kemenag.png"} alt="Logo" className="w-full h-full object-contain filter drop-shadow-md" />
               </div>
               <div className="flex flex-col">
-                <span className={`font-black text-xl leading-none tracking-tighter uppercase italic transition-colors duration-300 ${isTransparent ? 'text-white' : 'text-primary'}`}>{settings?.site_name || 'Al-Hikmah Portal'}</span>
-                {!isScrolled && <span className={`text-[9px] mt-1 font-black uppercase tracking-[0.3em] transition-all duration-300 ${isTransparent ? 'text-secondary/80' : 'text-secondary'}`}>{settings?.site_tagline || 'Pusat Pendidikan Generasi Rabbani'}</span>}
+                <span className={`font-black text-lg sm:text-xl leading-none tracking-tighter uppercase italic transition-colors duration-300 ${isTransparent ? 'text-white' : 'text-primary'}`}>{settings?.site_name || 'Al-Hikmah Portal'}</span>
+                {!isScrolled && <span className={`text-[8px] sm:text-[9px] mt-1 font-black uppercase tracking-[0.2em] transition-all duration-300 ${isTransparent ? 'text-secondary/80' : 'text-secondary'}`}>{settings?.site_tagline || 'Pusat Pendidikan Generasi Rabbani'}</span>}
               </div>
             </Link>
 
@@ -246,28 +245,39 @@ export default function PublicLayout() {
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
-          <div className="p-6 flex flex-col gap-2 flex-grow overflow-y-auto">
-            <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest ${location.pathname === '/' ? 'bg-primary text-white' : 'bg-gray-50 text-gray-600'}`}>Beranda</Link>
+          <div className="p-6 flex flex-col gap-3 flex-grow overflow-y-auto">
+            <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${location.pathname === '/' ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}>Beranda</Link>
             
             {menus.map((item) => (
-              <div key={item.id} className="space-y-2">
-                <Link 
-                  to={item.url} 
-                  onClick={() => !item.children?.length && setIsMobileMenuOpen(false)} 
-                  className={`px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center justify-between ${location.pathname === item.url ? 'bg-primary text-white' : 'bg-gray-50 text-gray-600'}`}
-                >
-                  {item.label}
-                  {item.children && item.children.length > 0 && <ChevronDown className="w-4 h-4" />}
-                </Link>
-                {item.children && item.children.length > 0 && (
-                  <div className="pl-6 space-y-2">
+              <div key={item.id} className="space-y-3">
+                <div className="flex items-center gap-2">
+                   <Link 
+                     to={item.url} 
+                     onClick={() => !item.children?.length && setIsMobileMenuOpen(false)} 
+                     className={`flex-1 px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${location.pathname === item.url ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                   >
+                     {item.label}
+                   </Link>
+                   {item.children && item.children.length > 0 && (
+                      <button 
+                        onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${activeDropdown === item.id ? 'bg-secondary text-primary' : 'bg-gray-100 text-gray-400'}`}
+                      >
+                         <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeDropdown === item.id ? 'rotate-180' : ''}`} />
+                      </button>
+                   )}
+                </div>
+                
+                {item.children && item.children.length > 0 && activeDropdown === item.id && (
+                  <div className="grid grid-cols-1 gap-2 pl-4 animate-in slide-in-from-top-2 duration-300">
                     {item.children.map(child => (
                       <Link 
                         key={child.id} 
                         to={child.url} 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`block px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest ${location.pathname === child.url ? 'text-primary' : 'text-gray-400 bg-gray-50/50'}`}
+                        className={`flex items-center gap-3 px-5 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${location.pathname === child.url ? 'bg-primary/5 text-primary' : 'text-gray-500 bg-gray-50/50 hover:bg-gray-100'}`}
                       >
+                        <div className="w-1.5 h-1.5 rounded-full bg-secondary"></div>
                         {child.label}
                       </Link>
                     ))}
@@ -276,9 +286,9 @@ export default function PublicLayout() {
               </div>
             ))}
           </div>
-          <div className="p-6 border-t border-gray-100">
-            <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center block text-xs font-black text-primary-dark bg-secondary px-6 py-4 rounded-2xl uppercase tracking-widest shadow-xl shadow-secondary/20">
-              Akses Admin
+          <div className="p-6 border-t border-gray-100 bg-gray-50/30">
+            <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center block text-[11px] font-black text-primary-dark bg-secondary px-6 py-5 rounded-2xl uppercase tracking-[0.2em] shadow-xl shadow-secondary/20 active:scale-95 transition-all">
+              Akses Portal Admin &rarr;
             </Link>
           </div>
         </div>
