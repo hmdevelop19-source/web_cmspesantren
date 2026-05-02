@@ -43,7 +43,7 @@ export interface Post {
   cover_image?: string;
   cover_image_id?: number;
   cover_image_obj?: Media;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'pending';
   category_id?: number;
   category?: Category;
   user_id?: number;
@@ -149,6 +149,8 @@ export interface Settings {
   sidebar_banner_label?: string;
   sidebar_banner_title?: string;
   sidebar_banner_image?: string;
+  header_logo_style?: 'logo_name' | 'landscape';
+  site_logo_landscape?: string;
 }
 
 export interface Banner {

@@ -13,7 +13,7 @@ export default function Posts() {
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
 
-  const { canWrite } = useAuthStore();
+  const { canWrite, isAuthor, isAdmin, user } = useAuthStore();
   const hasWriteAccess = canWrite('posts');
 
   const { data, isLoading } = useQuery<PaginatedResponse<Post>>({
@@ -101,6 +101,7 @@ export default function Posts() {
   });
 
   const handleStatusToggle = (post: Post) => {
+    if (isAuthor()) return;
     const newStatus = post.status === 'published' ? 'draft' : 'published';
     statusToggleMutation.mutate({ id: post.id, status: newStatus });
   };
@@ -201,7 +202,11 @@ export default function Posts() {
                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100 group-hover/status:bg-green-100 transition-all cursor-pointer">
                                       <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div> Terbit
                                    </span>
-                                ) : (
+                                ) : post.status === 'pending' ? (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wider border border-amber-100 group-hover/status:bg-amber-100 transition-all cursor-pointer">
+                                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div> Menunggu Review
+                                    </span>
+                                 ) : (
                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-200 group-hover/status:bg-slate-200 transition-all cursor-pointer">
                                       Draf
                                    </span>
@@ -210,9 +215,11 @@ export default function Posts() {
                           </td>
                           <td className="px-8 py-5 text-right">
                              <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                <Link to={`/admin/posts/edit/${post.id}`} className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Edit Berita">
-                                   <Edit2 className="w-4 h-4" />
-                                </Link>
+                                {(isAdmin() || !isAuthor() || post.user_id === user?.id) && (
+                                    <Link to={`/admin/posts/edit/${post.id}`} className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Edit Berita">
+                                        <Edit2 className="w-4 h-4" />
+                                    </Link>
+                                )}
                                 <a href={`/berita/${post.slug}`} target="_blank" rel="noreferrer" className="p-2 text-slate-300 hover:text-primary hover:bg-primary/5 rounded-lg transition-all" title="Lihat Publik">
                                    <Globe className="w-4 h-4" />
                                 </a>

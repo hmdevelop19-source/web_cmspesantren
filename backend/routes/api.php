@@ -68,14 +68,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('banners', BannerController::class);
     Route::apiResource('categories', CategoryController::class);
     
-    // Settings & System
-    Route::get('/settings', [SettingController::class, 'index']);
-    Route::post('/settings', [SettingController::class, 'update']);
-    Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo']);
+    // Settings & System (Admin only)
+    Route::middleware('admin')->group(function () {
+        Route::get('/settings', [SettingController::class, 'index']);
+        Route::post('/settings', [SettingController::class, 'update']);
+        Route::post('/settings/upload-logo', [SettingController::class, 'uploadLogo']);
+        Route::apiResource('users', UserController::class);
+        Route::get('/permissions', [PermissionController::class, 'index']);
+        Route::post('/permissions', [PermissionController::class, 'update']);
+    });
+    
     Route::put('/profile', [UserController::class, 'updateProfile']);
-    Route::apiResource('users', UserController::class);
-    Route::get('/permissions', [PermissionController::class, 'index']);
-    Route::post('/permissions', [PermissionController::class, 'update']);
     
     // Menus
     Route::post('/menus/reorder', [MenuController::class, 'reorder']);

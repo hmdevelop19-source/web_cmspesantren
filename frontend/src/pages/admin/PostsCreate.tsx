@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef } from 'react';
+import { useAuthStore } from '../../store/authStore';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../../lib/api';
 import MediaSelector from '../../components/admin/MediaSelector';
@@ -12,6 +13,7 @@ import type { Category } from '../../types';
 
 export default function PostsCreate() {
   const navigate = useNavigate();
+  const { isAuthor } = useAuthStore();
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   const [mediaMode, setMediaMode] = useState<'cover' | 'editor'>('cover');
   const editorRef = useRef<any>(null);
@@ -90,11 +92,12 @@ export default function PostsCreate() {
            </button>
            <button 
               type="submit"
-              onClick={(e) => handleSubmit(e, 'published')}
+              onClick={(e) => handleSubmit(e, isAuthor() ? 'pending' : 'published')}
               disabled={isLoading}
               className="bg-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md shadow-primary/10 flex items-center gap-2 disabled:opacity-50"
            >
-              {isLoading && currentStatus === 'published' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Terbitkan Pos
+              {isLoading && (currentStatus === 'published' || currentStatus === 'pending') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+              {isAuthor() ? 'Ajukan Review' : 'Terbitkan Pos'}
            </button>
         </div>
       </div>

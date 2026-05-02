@@ -43,6 +43,8 @@ class SettingController extends Controller
             'sidebar_banner_title' => 'nullable|string',
             'sidebar_banner_image' => 'nullable|string',
             'site_favicon' => 'nullable|string',
+            'header_logo_style' => 'nullable|string|max:50',
+            'site_logo_landscape' => 'nullable|string',
         ]);
 
         foreach ($validated as $key => $value) {

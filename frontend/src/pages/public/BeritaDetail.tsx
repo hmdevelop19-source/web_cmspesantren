@@ -1,4 +1,4 @@
-import { Calendar, User, Share2, BookOpen, Clock, Play } from 'lucide-react';
+import { Calendar, User, Share2, BookOpen, Clock, Play, ArrowRight } from 'lucide-react';
 import Breadcrumbs from '../../components/Breadcrumbs';
 import { Link, useParams } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -8,9 +8,11 @@ import { getImageUrl } from '../../lib/utils';
 import SEO from '../../components/SEO';
 import Skeleton from '../../components/ui/Skeleton';
 import type { Post, PaginatedResponse } from '../../types';
+import { useSettingsStore } from '../../store/settingsStore';
 
 export default function BeritaDetail() {
   const { slug } = useParams();
+  const { settings } = useSettingsStore();
 
   const { data: post, isLoading: isPostLoading, isError, refetch } = useQuery<Post>({
     queryKey: ['public-post', slug],
@@ -151,7 +153,7 @@ export default function BeritaDetail() {
                   <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-secondary/60" /> 5 Menit Baca</div>
                </div>
                
-               <h1 className="text-xl md:text-2xl font-black text-gray-900 leading-[1.3] mb-12 tracking-tighter uppercase italic">
+               <h1 className="text-2xl md:text-4xl font-black text-gray-900 leading-tight mb-12 tracking-tighter uppercase">
                  {post.title}
                </h1>
 
@@ -190,7 +192,9 @@ export default function BeritaDetail() {
                     {relatedPosts.map((item) => (
                         <Link to={`/berita/${item.slug}`} key={item.id} className="flex gap-5 group items-start">
                              <div className="w-20 h-20 shrink-0 bg-gray-50 rounded-2xl overflow-hidden group-hover:shadow-xl transition-all border border-gray-100 relative">
-                                {item.cover_image ? (
+                                {item.cover_image_obj ? (
+                                    <img src={getImageUrl(item.cover_image_obj.file_path)} alt={item.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                ) : item.cover_image ? (
                                     <img src={getImageUrl(item.cover_image)} alt={item.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center text-primary/10"><BookOpen className="w-8 h-8" /></div>
@@ -237,8 +241,30 @@ export default function BeritaDetail() {
                         </div>
                         <h5 className="font-bold text-sm mb-2 leading-tight uppercase italic line-clamp-1">{homeData?.featured_video?.title || 'Dokumentasi Video'}</h5>
                         <p className="text-[10px] text-gray-400 font-medium leading-relaxed italic line-clamp-2">{homeData?.featured_video?.description || 'Tonton cuplikan kegiatan eksklusif kami.'}</p>
-                    </div>
                 </div>
+            </div>
+
+                {/* Dynamic Sidebar Banner */}
+                {settings?.sidebar_banner_image && (
+                    <div className="bg-secondary rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden group shadow-2xl shadow-secondary/20">
+                        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="relative z-10 text-left">
+                            <span className="inline-block bg-primary text-white text-[8px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] mb-6 shadow-lg shadow-primary/10">
+                                {settings.sidebar_banner_label || 'Pendaftaran'}
+                            </span>
+                            <h4 className="text-primary font-black text-xl md:text-2xl mb-8 leading-tight uppercase italic tracking-tighter">
+                                {settings.sidebar_banner_title || 'Mari bergabung bersama kami'}
+                            </h4>
+                            <div className="rounded-3xl overflow-hidden mb-8 shadow-2xl shadow-primary/10 border-4 border-white/50">
+                                <img src={getImageUrl(settings.sidebar_banner_image)} alt="Banner" className="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-700" />
+                            </div>
+                            <Link to="/contact" className="w-full py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 group/btn">
+                                HUBUNGI KAMI 
+                                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-2 transition-transform" />
+                            </Link>
+                        </div>
+                    </div>
+                )}
              </div>
           </aside>
 

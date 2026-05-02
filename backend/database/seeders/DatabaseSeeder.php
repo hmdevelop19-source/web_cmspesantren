@@ -26,6 +26,28 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // 1b. Create Editor
+        User::updateOrCreate(
+            ['email' => 'editor@pesantren.ac.id'],
+            [
+                'name' => 'Redaktur Berita',
+                'password' => Hash::make('password123'),
+                'role' => 'editor',
+                'status' => 'active',
+            ]
+        );
+
+        // 1c. Create Penulis
+        User::updateOrCreate(
+            ['email' => 'penulis@pesantren.ac.id'],
+            [
+                'name' => 'Penulis Konten',
+                'password' => Hash::make('password123'),
+                'role' => 'author',
+                'status' => 'active',
+            ]
+        );
+
         // 2. Create Categories
         $categories = ['Berita', 'Pengumuman', 'Agenda', 'Artikel'];
         foreach ($categories as $cat) {

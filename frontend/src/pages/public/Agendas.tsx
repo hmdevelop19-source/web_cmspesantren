@@ -107,13 +107,14 @@ export default function Agendas() {
                 </div>
             ) : agendas.length > 0 ? (
                 <div className="space-y-8">
+                    {agendas.map((item) => (
                         <Link 
                             key={item.id}
                             to={`/agenda/${item.slug}`}
                             className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 group hover:shadow-2xl hover:shadow-black/5 transition-all hover:-translate-y-1 relative overflow-hidden text-left"
                         >
                             {/* Date Block */}
-                            <div className="w-full md:w-32 flex flex-col items-center justify-center shrink-0 border-r-0 md:border-r border-gray-100 pr-0 md:pr-8 py-2">
+                            <div className="w-full md:w-32 flex flex-col items-center justify-center shrink-0 border-r-0 md:border-r border-gray-100 pr-0 md:pr-8 py-2 text-center">
                                 <span className="text-[10px] font-black text-primary/40 uppercase tracking-[0.2em] mb-1">
                                     {new Date(item.event_date).toLocaleDateString('id-ID', { month: 'short' })}
                                 </span>
@@ -126,8 +127,8 @@ export default function Agendas() {
                             </div>
 
                             {/* Content Block */}
-                            <div className="flex-1 text-center md:text-left space-y-4">
-                                <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                            <div className="flex-1 text-left space-y-4">
+                                <div className="flex flex-wrap justify-start gap-4">
                                     <div className="flex items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
                                         <Clock className="w-3 h-3 text-secondary" /> {new Date(item.event_date).toLocaleDateString('id-ID', { weekday: 'long' })}
                                     </div>
@@ -138,7 +139,7 @@ export default function Agendas() {
                                 <h3 className="text-xl md:text-2xl font-black text-gray-900 leading-tight group-hover:text-primary transition-colors italic uppercase">
                                     {item.title}
                                 </h3>
-                                <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed font-medium">
+                                <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed font-medium italic">
                                     {item.content ? item.content.replace(/<[^>]*>?/gm, '').substring(0, 150) : 'Informasi lebih lanjut silakan klik tombol selengkapnya untuk detail acara.'}...
                                 </p>
                             </div>
@@ -158,8 +159,8 @@ export default function Agendas() {
             ) : (
                 <div className="py-40 text-center space-y-6">
                     <Calendar className="w-20 h-20 text-gray-100 mx-auto" />
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-bold text-gray-400">Belum Ada Agenda</h3>
+                    <div className="space-y-2 text-center">
+                        <h3 className="text-xl font-bold text-gray-400 uppercase italic tracking-tighter">Belum Ada Agenda</h3>
                         <p className="text-sm text-gray-400 font-medium italic">Silakan periksa kembali nanti untuk pembaruan kegiatan pesantren kami.</p>
                     </div>
                 </div>

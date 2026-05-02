@@ -81,38 +81,28 @@ export default function AgendasDetail() {
       />
 
       {/* Hero Header Section */}
-      <section className="bg-primary pt-28 pb-32 px-4 relative overflow-hidden text-left">
+      <section className="bg-primary pt-24 md:pt-32 pb-32 md:pb-48 px-4 relative overflow-hidden text-left">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto relative z-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 animate-fade-in">
-                <div className="text-white/80">
-                    <Breadcrumbs items={[
-                        { label: 'Agenda', path: '/agenda' },
-                        { label: agenda.title }
-                    ]} />
-                </div>
-                <div className="flex gap-4">
-                    <button onClick={() => window.print()} className="p-3 bg-white/10 border border-white/10 rounded-xl text-white hover:bg-white/20 transition-all">
-                        <Printer className="w-5 h-5" />
-                    </button>
-                    <button className="p-3 bg-white/10 border border-white/10 rounded-xl text-white hover:bg-white/20 transition-all">
-                        <Share2 className="w-5 h-5" />
-                    </button>
-                </div>
+            <div className="mb-4 md:mb-6 animate-fade-in">
+                <Breadcrumbs items={[
+                    { label: 'Agenda', path: '/agenda' },
+                    { label: agenda.title }
+                ]} className="text-white/80" />
             </div>
 
-            <div className="max-w-4xl space-y-4">
-                <div className="inline-flex items-center gap-2 bg-secondary text-black font-black text-[10px] uppercase px-5 py-2 rounded-full tracking-[0.2em] shadow-xl shadow-secondary/20">
-                    Kegiatan Terjadwal
-                </div>
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-[1.1] tracking-tighter uppercase italic drop-shadow-2xl">
+            <div className="max-w-4xl">
+                <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em] mb-4">
+                    — Kegiatan Terjadwal
+                </p>
+                <h1 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter uppercase drop-shadow-2xl">
                     {agenda.title}
                 </h1>
             </div>
         </div>
         
         {/* Slant Divider */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-white clip-path-slant-up"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-16 md:h-24 bg-white clip-path-slant-up"></div>
       </section>
 
       {/* Main Detail Section */}

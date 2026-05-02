@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState, useRef } from 'react';
+import { useAuthStore } from '../../store/authStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/api';
 import MediaSelector from '../../components/admin/MediaSelector';
@@ -14,6 +15,7 @@ export default function PostsEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isAuthor } = useAuthStore();
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   
   // Form State
@@ -21,7 +23,7 @@ export default function PostsEdit() {
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState<'published' | 'draft'>('draft');
+  const [status, setStatus] = useState<'published' | 'draft' | 'pending'>('draft');
   const [coverImage, setCoverImage] = useState('');
   const [coverImageId, setCoverImageId] = useState<number | null>(null);
   const [metaTitle, setMetaTitle] = useState('');
@@ -123,7 +125,7 @@ export default function PostsEdit() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent, targetStatus: 'published' | 'draft') => {
+  const handleSubmit = (e: React.FormEvent, targetStatus: 'published' | 'draft' | 'pending') => {
     e.preventDefault();
     setError(null);
 
@@ -194,11 +196,12 @@ export default function PostsEdit() {
            </button>
            <button 
               type="submit"
-              onClick={(e) => handleSubmit(e, 'published')}
+              onClick={(e) => handleSubmit(e, isAuthor() ? 'pending' : 'published')}
               disabled={isLoading}
               className="bg-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-md shadow-primary/10 flex items-center gap-2 disabled:opacity-50"
            >
-              {isLoading && status === 'published' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Perbarui Pos
+              {isLoading && (status === 'published' || status === 'pending') ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} 
+              {isAuthor() ? 'Ajukan Review' : 'Perbarui Pos'}
            </button>
         </div>
       </div>
@@ -311,8 +314,12 @@ export default function PostsEdit() {
                <div className="p-6 space-y-6 text-left">
                   <div className="flex items-center justify-between text-sm">
                      <span className="text-slate-400 font-medium">Status</span>
-                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${status === 'published' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                        {status === 'published' ? 'Terbit' : 'Draf'}
+                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${
+                        status === 'published' ? 'bg-green-50 text-green-600 border-green-100' : 
+                        status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                        'bg-slate-100 text-slate-500 border-slate-200'
+                     }`}>
+                        {status === 'published' ? 'Terbit' : status === 'pending' ? 'Review' : 'Draf'}
                      </span>
                   </div>
 

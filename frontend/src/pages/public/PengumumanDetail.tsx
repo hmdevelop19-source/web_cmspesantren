@@ -72,39 +72,21 @@ export default function AnnouncementDetail() {
       />
 
       {/* Hero Header Section */}
-      <section className={`pt-28 pb-32 px-4 relative overflow-hidden transition-colors duration-500 text-left ${announcement.priority === 'high' ? 'bg-primary-dark' : 'bg-primary'}`}>
+      <section className={`pt-24 md:pt-32 pb-32 md:pb-48 px-4 relative overflow-hidden transition-colors duration-500 text-left ${announcement.priority === 'high' ? 'bg-primary-dark' : 'bg-primary'}`}>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         <div className="max-w-7xl mx-auto relative z-10">
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6 animate-fade-in">
                 <Breadcrumbs items={[
-                    { label: 'Beranda', path: '/' },
                     { label: 'Pengumuman', path: '/pengumuman' },
                     { label: announcement.title }
-                ]} className="text-white/60" />
-            </div>
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10 animate-fade-in">
-                <Link to="/pengumuman" className="inline-flex items-center gap-3 text-white/60 hover:text-white font-bold text-xs uppercase tracking-widest group transition-all">
-                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center group-hover:bg-white/20 border border-white/10 group-hover:translate-x-[-4px] transition-all">
-                      <ChevronLeft className="w-5 h-5" />
-                    </div>
-                    <span>Berita & Pengumuman</span>
-                </Link>
-                <div className="flex gap-4">
-                    <button onClick={() => window.print()} className="p-3 bg-white/10 border border-white/10 rounded-xl text-white hover:bg-white/20 transition-all">
-                        <Printer className="w-5 h-5" />
-                    </button>
-                    <button className="p-3 bg-white/10 border border-white/10 rounded-xl text-white hover:bg-white/20 transition-all">
-                        <Share2 className="w-5 h-5" />
-                    </button>
-                </div>
+                ]} className="text-white/80" />
             </div>
 
-            <div className="max-w-4xl space-y-4">
-                <div className={`inline-flex items-center gap-2 font-black text-[10px] uppercase px-5 py-2 rounded-full tracking-[0.2em] shadow-xl ${announcement.priority === 'high' ? 'bg-secondary text-primary shadow-secondary/10' : 'bg-primary-light text-white shadow-primary-light/20'}`}>
-                    {announcement.priority === 'high' ? <AlertTriangle className="w-3 h-3" /> : <Bell className="w-3 h-3" />}
-                    {announcement.priority === 'high' ? 'Pemberitahuan Penting' : 'Pengumuman Resmi'}
-                </div>
-                <h1 className="text-3xl md:text-5xl font-black text-white leading-[1.1] tracking-tighter uppercase italic drop-shadow-2xl">
+            <div className="max-w-4xl">
+                <p className="text-[10px] font-black text-secondary uppercase tracking-[0.3em] mb-4">
+                    — {announcement.priority === 'high' ? 'Pemberitahuan Penting' : 'Pengumuman Resmi'}
+                </p>
+                <h1 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter uppercase drop-shadow-2xl">
                     {announcement.title}
                 </h1>
             </div>
@@ -115,7 +97,7 @@ export default function AnnouncementDetail() {
       </section>
 
       {/* Main Content Section */}
-      <section className="max-w-7xl mx-auto px-4 -mt-20 relative z-20 pb-20 md:pb-40 text-left">
+      <section className="max-w-7xl mx-auto px-4 -mt-20 md:-mt-32 relative z-20 pb-20 md:pb-40 text-left">
         <div className="flex flex-col lg:flex-row gap-8 md:gap-12">
             {/* Left Column: Sidebar Info */}
             <div className="lg:w-1/3 order-2 lg:order-1">

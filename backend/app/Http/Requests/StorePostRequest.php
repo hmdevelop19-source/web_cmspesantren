@@ -30,7 +30,7 @@ class StorePostRequest extends FormRequest
             'content' => 'required',
             'cover_image' => 'nullable|string',
             'cover_image_id' => 'nullable|exists:media,id',
-            'status' => 'required|in:published,draft',
+            'status' => 'required|in:published,draft,pending',
             'excerpt' => 'nullable|string|max:500',
         ];
     }

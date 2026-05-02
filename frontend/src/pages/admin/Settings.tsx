@@ -33,6 +33,8 @@ interface SettingsData {
   sidebar_banner_title: string;
   sidebar_banner_image: string;
   site_google_maps?: string;
+  header_logo_style: 'logo_name' | 'landscape';
+  site_logo_landscape: string;
 }
 
 export default function Settings() {
@@ -64,11 +66,13 @@ export default function Settings() {
     sidebar_banner_title: 'Membangun Masa Depan Berbasis Tradisi',
     sidebar_banner_image: '',
     site_google_maps: '',
+    header_logo_style: 'logo_name',
+    site_logo_landscape: '',
   });
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
-  const [activeMediaField, setActiveMediaField] = useState<'site_logo' | 'site_favicon' | 'sidebar_banner_image' | null>(null);
+  const [activeMediaField, setActiveMediaField] = useState<'site_logo' | 'site_favicon' | 'sidebar_banner_image' | 'site_logo_landscape' | null>(null);
   
   const navigate = useNavigate();
   const { isAdmin } = useAuthStore();
@@ -122,7 +126,7 @@ export default function Settings() {
     setSettings((prev) => ({ ...prev, [name]: finalValue }));
   };
 
-  const openMediaSelector = (field: 'site_logo' | 'site_favicon' | 'sidebar_banner_image') => {
+  const openMediaSelector = (field: 'site_logo' | 'site_favicon' | 'sidebar_banner_image' | 'site_logo_landscape') => {
     setActiveMediaField(field);
     setIsMediaSelectorOpen(true);
   };
@@ -135,7 +139,7 @@ export default function Settings() {
     setActiveMediaField(null);
   };
 
-  const clearImage = (field: 'site_logo' | 'site_favicon' | 'sidebar_banner_image') => {
+  const clearImage = (field: 'site_logo' | 'site_favicon' | 'sidebar_banner_image' | 'site_logo_landscape') => {
     setSettings((prev) => ({ ...prev, [field]: '' }));
   };
 
@@ -369,6 +373,29 @@ export default function Settings() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-slate-100">
                         <div className="md:col-span-1">
+                            <label className="text-sm font-bold text-slate-700">Logo Landscape (Opsi 2)</label>
+                            <p className="text-xs text-slate-400 mt-1">Digunakan jika memilih gaya logo penuh.</p>
+                        </div>
+                        <div className="md:col-span-2 flex items-center gap-6">
+                            <div className="w-48 h-20 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center p-2 relative group overflow-hidden cursor-pointer" onClick={() => openMediaSelector('site_logo_landscape')}>
+                                {settings.site_logo_landscape ? (
+                                    <img src={getImageUrl(settings.site_logo_landscape)} alt="Logo Landscape" className="w-full h-full object-contain" />
+                                ) : (
+                                    <ImageIcon className="w-8 h-8 text-slate-200" />
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Plus className="w-5 h-5 text-white" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <button type="button" onClick={() => openMediaSelector('site_logo_landscape')} className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors">Pilih Gambar</button>
+                                {settings.site_logo_landscape && <button type="button" onClick={() => clearImage('site_logo_landscape')} className="block text-[10px] font-bold text-red-500 hover:underline">Hapus Gambar</button>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-slate-100">
+                        <div className="md:col-span-1">
                             <label className="text-sm font-bold text-slate-700">Ikon Situs (Favicon)</label>
                             <p className="text-xs text-slate-400 mt-1">Muncul pada tab browser.</p>
                         </div>
@@ -388,9 +415,27 @@ export default function Settings() {
 
             <div className="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
                 <div className="bg-slate-50/50 border-b border-slate-100 px-8 py-5">
-                    <h2 className="text-sm font-bold text-slate-800">Teks & Identitas Header</h2>
+                    <h2 className="text-sm font-bold text-slate-800">Gaya & Tampilan Header</h2>
                 </div>
-                <div className="p-8 space-y-6">
+                <div className="p-8 space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-1">
+                            <label className="text-sm font-bold text-slate-700">Gaya Logo Header</label>
+                            <p className="text-xs text-slate-400 mt-1">Pilih cara identitas ditampilkan.</p>
+                        </div>
+                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${settings.header_logo_style === 'logo_name' ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-200'}`}>
+                                <input type="radio" name="header_logo_style" value="logo_name" checked={settings.header_logo_style === 'logo_name'} onChange={handleChange} className="sr-only" />
+                                <span className="text-sm font-bold text-slate-800 mb-1">Opsi 1: Logo & Nama</span>
+                                <span className="text-[10px] text-slate-500">Logo kecil disandingkan dengan teks nama situs.</span>
+                            </label>
+                            <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${settings.header_logo_style === 'landscape' ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-200'}`}>
+                                <input type="radio" name="header_logo_style" value="landscape" checked={settings.header_logo_style === 'landscape'} onChange={handleChange} className="sr-only" />
+                                <span className="text-sm font-bold text-slate-800 mb-1">Opsi 2: Logo Landscape</span>
+                                <span className="text-[10px] text-slate-500">Hanya menampilkan satu gambar logo memanjang.</span>
+                            </label>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="md:col-span-1">
                             <label className="text-sm font-bold text-slate-700">Nama Situs (Singkatan)</label>

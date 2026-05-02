@@ -132,14 +132,26 @@ export default function PublicLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
 
-            <Link to="/" className="flex items-center gap-3 sm:gap-4 group">
-              <div className={`transition-all duration-500 flex items-center justify-center rounded-2xl ${isTransparent ? 'w-10 h-10 sm:w-12 sm:h-12 bg-secondary/10' : 'w-9 h-9 sm:w-10 sm:h-10 bg-primary/5'} p-1.5 group-hover:scale-110 group-hover:rotate-3 shadow-2xl shadow-black/5 ring-1 ring-white/20 whitespace-nowrap`}>
-                <img src={settings?.site_logo ? getImageUrl(settings.site_logo) : "/logo-kemenag.png"} alt="Logo" className="w-full h-full object-contain filter drop-shadow-md" />
-              </div>
-              <div className="flex flex-col">
-                <span className={`font-black text-lg sm:text-xl leading-none tracking-tighter uppercase italic transition-colors duration-300 ${isTransparent ? 'text-white' : 'text-primary'}`}>{settings?.site_name || 'Al-Hikmah Portal'}</span>
-                {!isScrolled && <span className={`text-[8px] sm:text-[9px] mt-1 font-black uppercase tracking-[0.2em] transition-all duration-300 ${isTransparent ? 'text-secondary/80' : 'text-secondary'}`}>{settings?.site_tagline || 'Pusat Pendidikan Generasi Rabbani'}</span>}
-              </div>
+            <Link to="/" className="flex items-center group">
+              {settings?.header_logo_style === 'landscape' && settings?.site_logo_landscape ? (
+                <div className={`transition-all duration-500 ${isTransparent ? 'h-10 sm:h-14' : 'h-8 sm:h-12'}`}>
+                  <img 
+                    src={getImageUrl(settings.site_logo_landscape)} 
+                    alt={settings?.site_name || "Logo"} 
+                    className="h-full w-auto object-contain transition-transform group-hover:scale-105" 
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className={`transition-all duration-500 flex items-center justify-center rounded-2xl ${isTransparent ? 'w-10 h-10 sm:w-12 sm:h-12 bg-secondary/10' : 'w-9 h-9 sm:w-10 sm:h-10 bg-primary/5'} p-1.5 group-hover:scale-110 group-hover:rotate-3 shadow-2xl shadow-black/5 ring-1 ring-white/20 whitespace-nowrap`}>
+                    <img src={settings?.site_logo ? getImageUrl(settings.site_logo) : "/logo-kemenag.png"} alt="Logo" className="w-full h-full object-contain filter drop-shadow-md" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className={`font-black text-lg sm:text-xl leading-none tracking-tighter uppercase italic transition-colors duration-300 ${isTransparent ? 'text-white' : 'text-primary'}`}>{settings?.site_name || 'Al-Hikmah Portal'}</span>
+                    {!isScrolled && <span className={`text-[8px] sm:text-[9px] mt-1 font-black uppercase tracking-[0.2em] transition-all duration-300 ${isTransparent ? 'text-secondary/80' : 'text-secondary'}`}>{settings?.site_tagline || 'Pusat Pendidikan Generasi Rabbani'}</span>}
+                  </div>
+                </div>
+              )}
             </Link>
 
             {/* Desktop Navigation */}
@@ -313,19 +325,31 @@ export default function PublicLayout() {
           <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-20">
             <div className="md:col-span-5">
               <div className="flex items-center gap-5 mb-10">
-                <div className="w-16 h-16 bg-white rounded-2xl p-2.5 shadow-2xl shadow-black/40 ring-4 ring-white/5 overflow-hidden group">
-                  {settings?.site_logo ? (
-                    <img src={getImageUrl(settings.site_logo)} alt="Logo" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" />
-                  ) : (
-                    <div className="w-full h-full bg-primary/5 flex items-center justify-center rounded-lg">
-                      <span className="text-primary font-black text-[10px] uppercase text-center leading-tight">Miftahul<br />Ulum</span>
+                {settings?.header_logo_style === 'landscape' && settings?.site_logo_landscape ? (
+                  <div className="h-16 sm:h-20 transition-all duration-500 group">
+                    <img 
+                      src={getImageUrl(settings.site_logo_landscape)} 
+                      alt={settings?.site_name || "Logo"} 
+                      className="h-full w-auto object-contain transition-transform group-hover:scale-105" 
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 bg-white rounded-2xl p-2.5 shadow-2xl shadow-black/40 ring-4 ring-white/5 overflow-hidden group">
+                      {settings?.site_logo ? (
+                        <img src={getImageUrl(settings.site_logo)} alt="Logo" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" />
+                      ) : (
+                        <div className="w-full h-full bg-primary/5 flex items-center justify-center rounded-lg">
+                          <span className="text-primary font-black text-[10px] uppercase text-center leading-tight">Miftahul<br />Ulum</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div>
-                  <span className="font-black text-2xl tracking-tighter block leading-tight uppercase italic">{settings?.site_name || 'PORTAL PESANTREN'}</span>
-                  <span className="text-[11px] text-secondary font-black uppercase tracking-[0.3em] mt-1.5 block drop-shadow-sm">{settings?.site_tagline || 'Education Excellence'}</span>
-                </div>
+                    <div>
+                      <span className="font-black text-2xl tracking-tighter block leading-tight uppercase italic">{settings?.site_name || 'PORTAL PESANTREN'}</span>
+                      <span className="text-[11px] text-secondary font-black uppercase tracking-[0.3em] mt-1.5 block drop-shadow-sm">{settings?.site_tagline || 'Education Excellence'}</span>
+                    </div>
+                  </>
+                )}
               </div>
               <p className="text-sm text-white/50 mb-10 leading-relaxed max-w-md font-medium italic">
                 {settings?.site_description || 'Pusat keunggulan pendidikan berbasis nilai-nilai keislaman dan inovasi teknologi untuk melahirkan generasi yang bertakwa dan kompetitif.'}

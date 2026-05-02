@@ -31,7 +31,12 @@ class PostResource extends JsonResource
             'category_id' => $this->category_id,
             'excerpt' => $this->excerpt,
             'category' => $this->whenLoaded('category'),
-            'user' => $this->whenLoaded('user'),
+            'user' => $this->whenLoaded('user', function() {
+                return [
+                    'id' => $this->user->id,
+                    'name' => $this->user->name,
+                ];
+            }),
             'published_at' => $this->published_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
