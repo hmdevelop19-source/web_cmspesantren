@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon, Quote, User, MapPin, Phone, Mail, Building2 } from 'lucide-react';
+import { BookOpen, Calendar, Play, ChevronLeft, ChevronRight, Megaphone, Image as ImageIcon, Quote, User, MapPin, Phone, Mail, Building2, Users, GraduationCap, History } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/api';
@@ -257,22 +257,65 @@ export default function Home() {
       </section>
 
       {/* Stats Section with sleek card overlap */}
-      <section className="bg-white py-12 -mt-16 relative z-40 px-4">
+      <section className="bg-white py-16 -mt-20 relative z-40 px-4 sm:px-6">
         <RevealOnScroll className="max-w-7xl mx-auto">
-          <div className="bg-primary-dark rounded-3xl p-10 shadow-2xl shadow-primary/40 border border-white/5 relative overflow-hidden">
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-secondary/5 rounded-full blur-3xl text-left"></div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center relative z-10">
-              {[
-                { val: data?.stats?.santri || '3.275', label: 'Santri Aktif' },
-                { val: data?.stats?.asatidz || '214', label: 'Asatidz/ah' },
-                { val: data?.stats?.alumni || '12.4k', label: 'Alumni' },
-                { val: data?.stats?.institusi || '6', label: 'Institusi' }
-              ].map((stat, idx) => (
-                <div key={idx} className="group text-center">
-                  <div className="text-4xl lg:text-5xl font-black text-secondary mb-3 group-hover:scale-110 transition-transform tracking-tight">{stat.val}</div>
-                  <div className="text-[10px] font-black tracking-[0.3em] text-gray-400 uppercase">{stat.label}</div>
-                </div>
-              ))}
+          <div className="bg-gradient-to-br from-primary via-primary-dark to-primary-dark rounded-[2.5rem] p-1 shadow-[0_20px_60px_-15px_rgba(11,92,59,0.3)] relative overflow-hidden group">
+            {/* Background Decorative Elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-[100px] -mr-48 -mt-48 group-hover:bg-secondary/20 transition-colors duration-1000"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-[80px] -ml-32 -mb-32"></div>
+            
+            <div className="bg-primary-dark/40 backdrop-blur-sm rounded-[2.3rem] p-8 md:p-12 border border-white/10 relative z-10">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 items-center">
+                {[
+                  { 
+                    val: data?.stats?.santri || '3.275', 
+                    label: 'Santri Aktif', 
+                    icon: <Users className="w-5 h-5" />,
+                    desc: 'Putra & Putri'
+                  },
+                  { 
+                    val: data?.stats?.asatidz || '214', 
+                    label: 'Asatidz/ah', 
+                    icon: <GraduationCap className="w-5 h-5" />,
+                    desc: 'Tenaga Pendidik'
+                  },
+                  { 
+                    val: data?.stats?.alumni || '12.4k', 
+                    label: 'Alumni', 
+                    icon: <History className="w-5 h-5" />,
+                    desc: 'Tersebar Global'
+                  },
+                  { 
+                    val: data?.stats?.institusi || '6', 
+                    label: 'Institusi', 
+                    icon: <Building2 className="w-5 h-5" />,
+                    desc: 'Unit Pendidikan'
+                  }
+                ].map((stat, idx) => (
+                  <div key={idx} className="relative group/item flex flex-col items-center">
+                    {/* Icon Circle */}
+                    <div className="mb-6 w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 text-secondary group-hover/item:bg-secondary group-hover/item:text-primary-dark transition-all duration-500 shadow-xl group-hover/item:-translate-y-2">
+                       {stat.icon}
+                    </div>
+                    
+                    {/* Number */}
+                    <div className="text-4xl lg:text-5xl font-black text-secondary tracking-tight mb-2 flex items-baseline gap-1 group-hover/item:scale-110 transition-transform duration-500">
+                      {stat.val}
+                    </div>
+                    
+                    {/* Labels */}
+                    <div className="space-y-1 text-center">
+                      <div className="text-[11px] font-black tracking-[0.3em] text-white uppercase opacity-90">{stat.label}</div>
+                      <div className="text-[9px] font-medium text-white/30 uppercase tracking-widest">{stat.desc}</div>
+                    </div>
+
+                    {/* Divider for Desktop */}
+                    {idx < 3 && (
+                      <div className="hidden lg:block absolute -right-8 top-1/2 -translate-y-1/2 w-px h-12 bg-white/5"></div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </RevealOnScroll>
@@ -474,9 +517,11 @@ export default function Home() {
                   <p className="text-gray-400 italic text-sm">Tidak ada agenda mendatang.</p>
                 )}
               </div>
-              <div className="inline-flex mt-10 text-[10px] font-black text-secondary uppercase tracking-[0.2em] hover:text-primary-dark items-center gap-2 group/btn cursor-pointer">
-                SEMUA AGENDA 
-                <span className="group-hover/btn:translate-x-2 transition-transform">→</span>
+              <div className="flex justify-center md:justify-start w-full">
+                <div className="inline-flex mt-10 text-[10px] font-black text-secondary uppercase tracking-[0.2em] hover:text-primary-dark items-center gap-2 group/btn cursor-pointer">
+                  SEMUA AGENDA 
+                  <span className="group-hover/btn:translate-x-2 transition-transform">→</span>
+                </div>
               </div>
             </RevealOnScroll>
           </div>
@@ -491,12 +536,12 @@ export default function Home() {
             
             {/* Berita List */}
             <div className="lg:w-2/3">
-                <RevealOnScroll className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 md:mb-12 border-l-8 border-primary pl-6 gap-4">
+                <RevealOnScroll className="flex flex-col sm:flex-row justify-between items-center sm:items-end mb-10 md:mb-12 border-l-0 sm:border-l-8 border-primary sm:pl-6 gap-6 text-center sm:text-left">
                     <div>
                         <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter italic">Warta Pesantren</h2>
                         <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Insight & Achievement</p>
                     </div>
-                    <Link to="/publikasi" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-widest bg-white px-5 py-2 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-all sm:mb-1">
+                    <Link to="/publikasi" className="text-[10px] font-black text-primary hover:text-secondary uppercase tracking-widest bg-white px-8 py-3 rounded-full shadow-sm border border-gray-100 hover:shadow-md transition-all sm:mb-1">
                         LIHAT SEMUA BERITA →
                     </Link>
                 </RevealOnScroll>
@@ -527,13 +572,13 @@ export default function Home() {
                                     {b.category?.name || 'UMUM'}
                                 </span>
                             </div>
-                            <div className="p-8 flex-1 flex flex-col text-left">
-                                <div className="flex items-center gap-3 text-[10px] font-bold text-gray-400 mb-4 uppercase tracking-widest">
+                            <div className="p-8 flex-1 flex flex-col text-center sm:text-left">
+                                <div className="flex items-center justify-center sm:justify-start gap-3 text-[10px] font-bold text-gray-400 mb-4 uppercase tracking-widest">
                                     <Calendar className="w-3.5 h-3.5 text-secondary" />
                                     <span>{new Date(b.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                 </div>
                                 <h3 className="font-bold text-lg text-gray-900 mb-4 line-clamp-2 hover:text-primary cursor-pointer transition-colors leading-snug uppercase italic">{b.title}</h3>
-                                <div className="mt-auto pt-6 border-t border-gray-50">
+                                <div className="mt-auto pt-6 border-t border-gray-50 flex justify-center sm:justify-start">
                                     <Link to={`/berita/${b.slug}`} className="text-[11px] font-black text-primary hover:text-primary-dark uppercase tracking-widest flex items-center gap-2 group/more">
                                         BACA SELENGKAPNYA 
                                         <span className="group-hover/more:translate-x-2 transition-transform">→</span>
@@ -712,7 +757,7 @@ export default function Home() {
             
             {/* Maps Column */}
             <div className="lg:w-3/5">
-              <div className="mb-10 border-l-8 border-primary pl-6">
+              <div className="mb-10 border-l-0 lg:border-l-8 border-primary lg:pl-6 text-center lg:text-left">
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Lokasi Kami</h2>
                 <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Kunjungi & Silaturahmi</p>
               </div>
@@ -733,8 +778,8 @@ export default function Home() {
             </div>
 
             {/* Contact Info Column */}
-            <div className="lg:w-2/5 flex flex-col justify-center">
-              <div className="mb-10 border-l-8 border-secondary pl-6">
+            <div className="lg:w-2/5 flex flex-col justify-center mt-16 lg:mt-0">
+              <div className="mb-10 border-l-0 lg:border-l-8 border-secondary lg:pl-6 text-center lg:text-left">
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter">Hubungi Kami</h2>
                 <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1">Layanan & Informasi</p>
               </div>
@@ -757,11 +802,11 @@ export default function Home() {
 
                 {/* Phone Card */}
                 <div className="bg-white p-8 rounded-3xl shadow-xl shadow-black/5 border border-gray-100 group hover:border-primary/20 transition-all">
-                  <div className="flex gap-6">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
                     <div className="w-14 h-14 bg-secondary/10 rounded-2xl flex items-center justify-center text-primary-dark shrink-0 group-hover:bg-secondary group-hover:text-primary transition-all">
                       <Phone className="w-6 h-6" />
                     </div>
-                    <div className="text-left">
+                    <div className="flex-1">
                       <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Telepon / WhatsApp</h4>
                       <p className="text-lg font-black text-gray-800 tracking-tighter">
                         {settings?.contact_phone || '+62 812-3456-7890'}
@@ -772,11 +817,11 @@ export default function Home() {
 
                 {/* Email Card */}
                 <div className="bg-white p-8 rounded-3xl shadow-xl shadow-black/5 border border-gray-100 group hover:border-primary/20 transition-all">
-                  <div className="flex gap-6">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
                     <div className="w-14 h-14 bg-primary/5 rounded-2xl flex items-center justify-center text-primary shrink-0 group-hover:bg-primary group-hover:text-white transition-all">
                       <Mail className="w-6 h-6" />
                     </div>
-                    <div className="text-left">
+                    <div className="flex-1">
                       <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Email Resmi</h4>
                       <p className="text-sm font-bold text-gray-700 tracking-tight">
                         {settings?.contact_email || 'info@pesantren.ac.id'}
@@ -786,8 +831,8 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="mt-12 pt-12 border-t border-gray-200">
-                <Link to="/kontak" className="inline-flex items-center gap-3 bg-primary text-white font-black px-10 py-4 rounded-2xl hover:bg-secondary hover:text-primary transition-all text-xs uppercase tracking-widest shadow-2xl shadow-primary/20 active:scale-95">
+              <div className="mt-12 pt-12 border-t border-gray-200 flex justify-center lg:justify-start">
+                <Link to="/kontak" className="inline-flex items-center gap-3 bg-primary text-secondary font-black px-10 py-5 rounded-2xl hover:bg-primary-dark transition-all text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 active:scale-95">
                   Kirim Pesan Sekarang →
                 </Link>
               </div>

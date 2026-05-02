@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2, MessageSquare, Camera, Play, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2, MessageSquare, Camera, Play, AlertCircle, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../../lib/api';
 import Breadcrumbs from '../../components/Breadcrumbs';
@@ -84,15 +84,15 @@ export default function Kontak() {
           
           {/* Contact Information */}
           <div className="lg:w-1/3">
-             <div className="sticky top-32 space-y-12">
-                <div className="border-l-8 border-secondary pl-6">
+             <div className="sticky top-32 space-y-12 flex flex-col items-center lg:items-start text-center lg:text-left">
+                <div className="border-l-0 lg:border-l-8 border-secondary lg:pl-6 flex flex-col items-center lg:items-start">
                     <h2 className="text-3xl md:text-4xl font-black text-gray-900 uppercase tracking-tighter italic">Informasi Institusi</h2>
                     <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mt-2 px-1 bg-gray-50 inline-block">Official Connect</p>
                 </div>
 
-                <div className="space-y-8">
-                    <div className="flex gap-6 group">
-                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                <div className="space-y-8 w-full">
+                    <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-6 group">
+                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
                             <MapPin className="w-6 h-6 text-primary group-hover:text-white" />
                         </div>
                         <div className="flex-1">
@@ -103,8 +103,8 @@ export default function Kontak() {
                         </div>
                     </div>
 
-                    <div className="flex gap-6 group">
-                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-6 group">
+                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
                             <Phone className="w-6 h-6 text-primary group-hover:text-white" />
                         </div>
                         <div className="flex-1">
@@ -115,8 +115,8 @@ export default function Kontak() {
                         </div>
                     </div>
 
-                    <div className="flex gap-6 group">
-                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <div className="flex flex-col lg:flex-row items-center lg:items-start gap-4 lg:gap-6 group">
+                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100 group-hover:bg-primary group-hover:text-white transition-all shadow-sm shrink-0">
                             <Mail className="w-6 h-6 text-primary group-hover:text-white" />
                         </div>
                         <div className="flex-1">
@@ -190,7 +190,7 @@ export default function Kontak() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Nama Lengkap</label>
+                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 text-center lg:text-left lg:ml-1">Nama Lengkap</label>
                            <input 
                              required
                              type="text"
@@ -202,7 +202,7 @@ export default function Kontak() {
                            />
                         </div>
                         <div>
-                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Email Aktif</label>
+                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 text-center lg:text-left lg:ml-1">Email Aktif</label>
                            <input 
                              required
                              type="email"
@@ -215,7 +215,7 @@ export default function Kontak() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Perihal Pesan</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 text-center lg:text-left lg:ml-1">Perihal Pesan</label>
                         <select
                           name="subject"
                           value={form.subject}
@@ -229,7 +229,7 @@ export default function Kontak() {
                         </select>
                     </div>
                     <div>
-                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1">Isi Pesan / Pertanyaan</label>
+                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 text-center lg:text-left lg:ml-1">Isi Pesan / Pertanyaan</label>
                        <textarea 
                          required
                          name="message"
@@ -243,14 +243,16 @@ export default function Kontak() {
                     <button 
                       type="submit" 
                       disabled={isSubmitting}
-                      className="w-full bg-primary text-secondary font-black py-5 rounded-2xl text-[11px] uppercase tracking-[0.3em] hover:bg-primary-dark hover:scale-[1.02] shadow-2xl shadow-primary/30 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                      className="w-full bg-primary text-secondary font-black py-5 md:py-6 rounded-2xl text-[12px] md:text-[13px] uppercase tracking-[0.3em] hover:bg-primary-dark active:scale-[0.98] shadow-[0_20px_50px_rgba(11,92,59,0.3)] transition-all flex items-center justify-center gap-4 disabled:opacity-50 group"
                     >
                         {isSubmitting ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
-                          <Send className="w-4 h-4" />
+                          <div className="flex items-center gap-3">
+                            {isSubmitting ? 'MENGIRIM PESAN...' : 'KIRIM PESAN SEKARANG'}
+                            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-2" />
+                          </div>
                         )}
-                        {isSubmitting ? 'Mengirim Data...' : 'Kirim Sekarang'}
                     </button>
                   </form>
                 )}

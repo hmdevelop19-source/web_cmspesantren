@@ -5,7 +5,7 @@ import { getImageUrl } from '../lib/utils';
 import { useSeoMeta } from '../hooks/useSeoMeta';
 import {
   Camera, Globe, Play, Send, Mail, Phone, MapPin,
-  ArrowRight, LayoutDashboard, Heart, Menu as MenuIcon, Search, X as CloseIcon, Calendar, Megaphone, Newspaper, AlertCircle, ChevronDown
+  ArrowRight, Heart, Menu as MenuIcon, Search, X as CloseIcon, Calendar, Megaphone, Newspaper, AlertCircle, ChevronDown
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../lib/api';
@@ -350,10 +350,10 @@ export default function PublicLayout() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-[120px] -mr-64 -mt-64"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-secondary/5 rounded-full blur-[100px] -ml-40 -mb-40"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-16 mb-20">
-            <div className="md:col-span-5">
-              <div className="flex items-center gap-5 mb-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-y-12 md:gap-16 mb-20">
+            <div className="md:col-span-5 flex flex-col items-center md:items-start text-center md:text-left">
+              <div className="flex items-center gap-5 mb-8">
                 {settings?.header_logo_style === 'landscape' && settings?.site_logo_landscape ? (
                   <div className="h-16 sm:h-20 transition-all duration-500 group">
                     <img 
@@ -384,7 +384,7 @@ export default function PublicLayout() {
                 {settings?.site_description || 'Pusat keunggulan pendidikan berbasis nilai-nilai keislaman dan inovasi teknologi untuk melahirkan generasi yang bertakwa dan kompetitif.'}
               </p>
 
-              <div className="flex space-x-4">
+              <div className="flex justify-center md:justify-start space-x-4">
                 {[
                   { name: 'Instagram', url: settings?.instagram_url, icon: <Camera className="w-4 h-4" /> },
                   { name: 'Facebook', url: settings?.facebook_url, icon: <Globe className="w-4 h-4" /> },
@@ -405,22 +405,22 @@ export default function PublicLayout() {
               </div>
             </div>
 
-            <div className="md:col-span-3">
-              <h3 className="text-secondary font-black mb-10 text-[11px] uppercase tracking-[0.4em] flex items-center gap-3">
+            <div className="md:col-span-3 text-center md:text-left">
+              <h3 className="text-secondary font-black mb-8 md:mb-10 text-[11px] uppercase tracking-[0.4em] flex items-center justify-center md:justify-start gap-3">
                 <span className="w-3 h-0.5 bg-secondary rounded-full"></span>
                 Links
               </h3>
-              <ul className="space-y-5 text-[13px] text-white/40 font-black uppercase tracking-widest italic font-mono">
+              <ul className="grid grid-cols-2 md:grid-cols-1 gap-y-4 gap-x-8 md:space-y-5 text-[12px] md:text-[13px] text-white/40 font-black uppercase tracking-widest italic font-mono">
                 <li>
-                  <Link to="/" className="hover:text-secondary transition-all flex items-center gap-3 group">
-                    <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-secondary" />
+                  <Link to="/" className="hover:text-secondary transition-all flex items-center justify-center md:justify-start gap-3 group">
+                    <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-6 md:group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-secondary hidden md:block" />
                     Beranda
                   </Link>
                 </li>
                 {menus.map(item => (
                   <li key={item.id}>
-                    <Link to={item.url} className="hover:text-secondary transition-all flex items-center gap-3 group">
-                      <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-6 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-secondary" />
+                    <Link to={item.url} className="hover:text-secondary transition-all flex items-center justify-center md:justify-start gap-3 group">
+                      <ArrowRight className="w-3.5 h-3.5 opacity-0 -ml-6 md:group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 text-secondary hidden md:block" />
                       {item.label}
                     </Link>
                   </li>
@@ -428,22 +428,22 @@ export default function PublicLayout() {
               </ul>
             </div>
 
-            <div className="md:col-span-4">
-              <h3 className="text-secondary font-black mb-10 text-[11px] uppercase tracking-[0.4em] flex items-center gap-3">
+            <div className="md:col-span-4 text-center md:text-left">
+              <h3 className="text-secondary font-black mb-8 md:mb-10 text-[11px] uppercase tracking-[0.4em] flex items-center justify-center md:justify-start gap-3">
                 <span className="w-3 h-0.5 bg-secondary rounded-full"></span>
                 Official
               </h3>
-              <ul className="space-y-8">
-                <li className="flex gap-6 group">
+              <ul className="space-y-6 md:space-y-8">
+                <li className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 group">
                   <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10 text-secondary group-hover:bg-secondary group-hover:text-primary-dark transition-all duration-500 shadow-inner">
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
                     <span className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em] block mb-1.5 font-mono">LOKASI</span>
-                    <span className="text-[12px] leading-relaxed font-bold text-white/80 block max-w-xs">{settings?.site_address || 'Jl. PP. Miftahul Ulum Bettet Pamekasan, Jawa Timur'}</span>
+                    <span className="text-[12px] leading-relaxed font-bold text-white/80 block max-w-sm">{settings?.site_address || 'Jl. PP. Miftahul Ulum Bettet Pamekasan, Jawa Timur'}</span>
                   </div>
                 </li>
-                <li className="flex gap-6 items-center group">
+                <li className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 group">
                   <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10 text-secondary group-hover:bg-secondary group-hover:text-primary-dark transition-all duration-500 shadow-inner">
                     <Mail className="w-5 h-5" />
                   </div>
@@ -452,7 +452,7 @@ export default function PublicLayout() {
                     <span className="text-[13px] font-black text-white/90">{settings?.contact_email || 'info@lembaga.ac.id'}</span>
                   </div>
                 </li>
-                <li className="flex gap-6 items-center group">
+                <li className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 group">
                   <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0 border border-white/10 text-secondary group-hover:bg-secondary group-hover:text-primary-dark transition-all duration-500 shadow-inner">
                     <Phone className="w-5 h-5" />
                   </div>
@@ -467,23 +467,19 @@ export default function PublicLayout() {
 
           <div className="border-t border-white/5 pt-12 mt-12 flex flex-col lg:flex-row justify-between items-center gap-8">
             <div className="flex flex-col items-center lg:items-start gap-2">
-              <p className="text-[11px] font-black text-white/20 uppercase tracking-[0.5em]">
+              <p className="text-[11px] font-black text-white/60 uppercase tracking-[0.5em]">
                 &copy; {new Date().getFullYear()} {settings?.site_name || 'CMS Pesantren'} . Hak Cipta Dilindungi
               </p>
-              <div className="flex items-center gap-3 text-[9px] font-bold text-white/10 uppercase tracking-widest">
+              <div className="flex items-center gap-3 text-[9px] font-bold text-white/40 uppercase tracking-widest">
                 <span>Heritage Engine v2.0</span>
-                <span className="w-1 h-1 bg-white/10 rounded-full"></span>
+                <span className="w-1 h-1 bg-white/40 rounded-full"></span>
                 <span>Optimized Production Build</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-10">
-              <Link to="/admin" target="_blank" className="flex items-center gap-2.5 text-[10px] font-black text-secondary/40 hover:text-secondary transition-all uppercase tracking-[0.2em] group">
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                Buka Dashboard
-              </Link>
-              <div className="flex items-center gap-2 text-[10px] font-black text-white/10 uppercase tracking-widest group">
-                Made with <Heart className="w-3 h-3 text-red-900/50 fill-red-900/30 group-hover:text-red-600 group-hover:fill-red-500 transition-all duration-700" /> by HmDevelop
+            <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-10">
+              <div className="flex items-center gap-2 text-[10px] font-black text-white/40 uppercase tracking-widest group">
+                Made with <Heart className="w-3 h-3 text-red-600 fill-red-500/30 group-hover:fill-red-500 transition-all duration-700" /> by HmDevelop
               </div>
             </div>
           </div>
