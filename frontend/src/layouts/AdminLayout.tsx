@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, FileText, Settings, User, Menu, Image, Edit3, Bell, ExternalLink, X, 
   CalendarDays, Megaphone, PlaySquare, Users as UsersIcon, ShieldCheck,
-  LogOut, Tag, Mail, LayoutPanelTop, History, Quote, Building2
+  LogOut, Tag, Mail, LayoutPanelTop, History, Quote, Building2, ChevronDown
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
@@ -246,24 +246,10 @@ export default function AdminLayout() {
               </Link>
             )}
 
-            <div className="pt-6 pb-2">
-               <p className="px-7 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Akun Saya</p>
-            </div>
-
             <Link to="/admin/profile" onClick={closeMobileMenu} className={`${navItemClass} ${isActive('/admin/profile')}`}>
               <User className={`w-[18px] h-[18px] ${location.pathname.startsWith('/admin/profile') ? 'text-secondary' : ''}`} />
               Profil Akun
             </Link>
-
-            <div className="mt-8 mb-4 px-3">
-               <button 
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-black text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white rounded-2xl transition-all duration-300 ring-1 ring-red-500/20 shadow-lg shadow-red-500/5 active:scale-95"
-               >
-                 <LogOut className="w-4 h-4" />
-                 Keluar Sesi
-               </button>
-            </div>
           </nav>
         </div>
       </aside>
@@ -290,16 +276,49 @@ export default function AdminLayout() {
              </button>
              
              <div className="w-px h-6 bg-gray-200"></div>
+ 
+             <div className="relative group">
+                <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1.5 pr-4 rounded-full transition-all border border-transparent hover:border-gray-200 shadow-sm hover:shadow-md">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-black shadow-inner">
+                        {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col hidden sm:flex">
+                        <span className="text-[11px] font-black tracking-widest uppercase text-gray-800 leading-tight group-hover:text-primary">{user?.name || 'Admin'}</span>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{user?.role || 'Superuser'}</span>
+                    </div>
+                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 transition-transform group-hover:rotate-180" />
+                </div>
 
-             <Link to="/admin/profile" className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1.5 pr-4 rounded-full group transition-all border border-transparent hover:border-gray-200 shadow-sm hover:shadow-md">
-                 <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-black shadow-inner">
-                    {user?.name?.charAt(0).toUpperCase()}
-                 </div>
-                 <div className="flex flex-col hidden sm:flex">
-                     <span className="text-[11px] font-black tracking-widest uppercase text-gray-800 leading-tight group-hover:text-primary">{user?.name || 'Admin'}</span>
-                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{user?.role || 'Superuser'}</span>
-                 </div>
-             </Link>
+                {/* Profile Dropdown */}
+                <div className="absolute top-full right-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:translate-y-0 translate-y-2 z-[100]">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden p-2">
+                        <div className="px-4 py-3 border-b border-gray-50 mb-1">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Akun Terhubung</p>
+                            <p className="text-xs font-bold text-gray-800 mt-1 truncate">{user?.email}</p>
+                        </div>
+
+                        <Link 
+                            to="/admin/profile" 
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-gray-600 hover:text-primary transition-all group/item"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover/item:bg-primary/10">
+                                <User className="w-4 h-4" />
+                            </div>
+                            <span className="text-[11px] font-black uppercase tracking-widest italic">Profil Akun</span>
+                        </Link>
+
+                        <button 
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-gray-600 hover:text-red-500 transition-all group/item"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover/item:bg-red-100">
+                                <LogOut className="w-4 h-4" />
+                            </div>
+                            <span className="text-[11px] font-black uppercase tracking-widest italic">Keluar Sesi</span>
+                        </button>
+                    </div>
+                </div>
+             </div>
           </div>
         </header>
 

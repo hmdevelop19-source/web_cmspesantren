@@ -35,6 +35,8 @@ interface SettingsData {
   site_google_maps?: string;
   header_logo_style: 'logo_name' | 'landscape';
   site_logo_landscape: string;
+  header_button_label: string;
+  header_button_url: string;
 }
 
 export default function Settings() {
@@ -68,6 +70,8 @@ export default function Settings() {
     site_google_maps: '',
     header_logo_style: 'logo_name',
     site_logo_landscape: '',
+    header_button_label: 'Portal Admin',
+    header_button_url: '/login',
   });
   
   const [showSuccess, setShowSuccess] = useState(false);
@@ -482,6 +486,23 @@ export default function Settings() {
                                 </div>
                                 <span className="text-sm font-semibold text-slate-700">Sembunyikan bilah atas putih (Mode Minimalis)</span>
                             </label>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100">
+                        <div className="md:col-span-1">
+                            <label className="text-sm font-bold text-slate-700">Tombol Aksi Utama</label>
+                            <p className="text-xs text-slate-400 mt-1">Atur teks dan tujuan tombol di header.</p>
+                        </div>
+                        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Label Tombol</label>
+                                <input type="text" name="header_button_label" value={settings.header_button_label || ''} onChange={handleChange} className="w-full border border-slate-200 bg-slate-50/50 rounded-lg px-4 py-2.5 text-sm font-bold" placeholder="Portal Admin" />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Link Tujuan (URL)</label>
+                                <input type="text" name="header_button_url" value={settings.header_button_url || ''} onChange={handleChange} className="w-full border border-slate-200 bg-slate-50/50 rounded-lg px-4 py-2.5 text-sm" placeholder="/login atau https://..." />
+                            </div>
                         </div>
                     </div>
                 </div>

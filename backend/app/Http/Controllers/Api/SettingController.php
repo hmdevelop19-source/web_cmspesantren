@@ -45,6 +45,8 @@ class SettingController extends Controller
             'site_favicon' => 'nullable|string',
             'header_logo_style' => 'nullable|string|max:50',
             'site_logo_landscape' => 'nullable|string',
+            'header_button_label' => 'nullable|string|max:100',
+            'header_button_url' => 'nullable|string|max:255',
         ]);
 
         foreach ($validated as $key => $value) {

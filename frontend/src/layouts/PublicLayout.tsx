@@ -223,9 +223,23 @@ export default function PublicLayout() {
                 <Search className="w-4.5 h-4.5" />
               </button>
 
-              <Link to="/login" className="text-[11px] font-black text-primary-dark bg-secondary hover:bg-yellow-400 px-5 py-3 rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-secondary/20 active:scale-95 ml-2">
-                Portal Admin
-              </Link>
+              {settings?.header_button_url?.startsWith('http') ? (
+                <a 
+                  href={settings.header_button_url} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-[11px] font-black text-primary-dark bg-secondary hover:bg-yellow-400 px-5 py-3 rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-secondary/20 active:scale-95 ml-2"
+                >
+                  {settings?.header_button_label || 'Portal Admin'}
+                </a>
+              ) : (
+                <Link 
+                  to={settings?.header_button_url || "/login"} 
+                  className="text-[11px] font-black text-primary-dark bg-secondary hover:bg-yellow-400 px-5 py-3 rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-secondary/20 active:scale-95 ml-2"
+                >
+                  {settings?.header_button_label || 'Portal Admin'}
+                </Link>
+              )}
             </nav>
 
             {/* Mobile Navigation Trigger */}
@@ -299,9 +313,24 @@ export default function PublicLayout() {
             ))}
           </div>
           <div className="p-6 border-t border-gray-100 bg-gray-50/30">
-            <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center block text-[11px] font-black text-primary-dark bg-secondary px-6 py-5 rounded-2xl uppercase tracking-[0.2em] shadow-xl shadow-secondary/20 active:scale-95 transition-all">
-              Akses Portal Admin &rarr;
-            </Link>
+            {settings?.header_button_url?.startsWith('http') ? (
+              <a 
+                href={settings.header_button_url} 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-full text-center block text-[11px] font-black text-primary-dark bg-secondary px-6 py-5 rounded-2xl uppercase tracking-[0.2em] shadow-xl shadow-secondary/20 active:scale-95 transition-all"
+              >
+                {settings?.header_button_label || 'Portal Admin'} &rarr;
+              </a>
+            ) : (
+              <Link 
+                to={settings?.header_button_url || "/login"} 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full text-center block text-[11px] font-black text-primary-dark bg-secondary px-6 py-5 rounded-2xl uppercase tracking-[0.2em] shadow-xl shadow-secondary/20 active:scale-95 transition-all"
+              >
+                {settings?.header_button_label || 'Portal Admin'} &rarr;
+              </Link>
+            )}
           </div>
         </div>
       </div>
